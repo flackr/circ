@@ -1,0 +1,19 @@
+{
+  "name": "PlatfIRC",
+  "description": "IRC inna platform app.",
+  "version": "1",
+  "manifest_version": 2,
+  "app": {
+    "launch": {
+      "local_path": "main.html",
+      "container": "shell",
+      "width": 512,
+      "height": 384
+    }
+  },
+  "platform_app": true,
+  "permissions": [
+    "experimental",
+    "socket"
+  ]
+}
