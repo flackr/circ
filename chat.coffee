@@ -7,6 +7,28 @@ escapeHTML = (html) ->
 	}
 	String(html).replace(/[&<>"]/g, (chr) -> escaped[chr])
 
+display = (text) ->
+	# Gruber's url-finding regex
+	rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,  ↪ 4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*   ↪ \)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi
+	canonicalise = (url) ->
+		url = escapeHTML url
+		if url.match(/^[a-z][\w-]+:/i)
+			url
+		else
+			'http://' + url
+
+	escape = (str) ->
+		escapeHTML(str).replace(/\S{40,}/,'<span class="longword">$&</span>')
+	res = ''
+	textIndex = 0
+	while m = rurl.exec text
+		res += escape(text.substr(textIndex, m.index - textIndex))
+		res += '<a href="'+canonicalise(m[0])+'">'+escape(m[0])+'</a>'
+		textIndex = m.index + m[0].length
+	res += escape(text.substr(textIndex))
+	return res
+
+
 parsePrefix = (prefix) ->
 	p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix)
 	{ nick: p[1], user: p[2], host: p[3] }
@@ -174,7 +196,7 @@ class Window
 		scroll = @isScrolledDown
 		e = escapeHTML
 		extra_classes = [opts.type]
-		msg = (e msg).replace(/\S{40,}/,'<span class="longword">$&</span>')
+		msg = display msg
 		@$messages.append $("""
 		<div class='message #{extra_classes.join(' ')}'>
 			<div class='source'>#{e from}</div>
