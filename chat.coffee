@@ -161,6 +161,9 @@ class IRC5
 			@irc.opts.nick = newNick
 			@send 'NICK', newNick
 		connect: (server, port) ->
+			@switchToWindow @systemWindow
+			@windows = {}
+			@winList = [@systemWindow]
 			@irc = new irc.IRC server, parseInt(port ? 6667)
 			@irc.on 'connect', => @onConnected()
 			@irc.on 'disconnect', => @onDisconnected()
