@@ -23,7 +23,7 @@ display = (text) ->
 	textIndex = 0
 	while m = rurl.exec text
 		res += escape(text.substr(textIndex, m.index - textIndex))
-		res += '<a href="'+canonicalise(m[0])+'">'+escape(m[0])+'</a>'
+		res += '<a target="_blank" href="'+canonicalise(m[0])+'">'+escape(m[0])+'</a>'
 		textIndex = m.index + m[0].length
 	res += escape(text.substr(textIndex))
 	return res
