@@ -68,7 +68,7 @@ class IRC5
 
 	handlers = {
 		# RPL_WELCOME
-		001: (from, target, msg) ->
+		1: (from, target, msg) ->
 			# once we get a welcome message, we know who we are
 			@nick = target
 			@status()
