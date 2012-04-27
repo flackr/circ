@@ -1,19 +1,16 @@
 {
-  "name": "PlatfIRC",
+  "name": "irciii",
   "description": "IRC inna platform app.",
   "version": "1",
   "manifest_version": 2,
-  "app": {
-    "launch": {
-      "local_path": "main.html",
-      "container": "shell",
-      "width": 512,
-      "height": 384
-    }
-  },
   "platform_app": true,
   "permissions": [
     "experimental",
-    "socket"
-  ]
+    "socket",
+    "windows"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
 }
