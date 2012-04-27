@@ -10,7 +10,7 @@ html, body {
 	box-sizing: border-box;
 }
 #chat-container {
-	overflow-y: scroll;
+	overflow-y: hidden;
 	width: 100%;
 	height: 100%;
 }
