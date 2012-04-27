@@ -54,6 +54,8 @@ class Socket
 		chrome.experimental.socket.disconnect @socketId
 		@emit 'close' # TODO: figure out whether i should emit 'end' as well?
 
+	end: -> @destroy() # TODO: only half-close the socket
+
 	_onEvent: (ev) =>
 		switch ev.type
 			when 'connectComplete'

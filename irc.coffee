@@ -100,6 +100,8 @@ class IRC extends EventEmitter
 		@socket = new net.Socket
 		@socket.on 'connect', => @onConnect()
 		@socket.on 'data', (data) => @onData data
+		@socket.on 'error', (err) => @onError err
+		@socket.on 'end', (err) => @onError err
 		@data = []
 
 	connect: ->
@@ -137,6 +139,11 @@ class IRC extends EventEmitter
 					@onCommand(parseCommand lineStr)
 			else
 				break
+
+	onError: (err) ->
+	  console.log "error", err
+	  @socket.end()
+	  @emit 'disconnect'
 
 	send: (args...) ->
 		msg = makeCommand args...
