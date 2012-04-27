@@ -49,6 +49,10 @@ class IRC5
 
 		@partialNameLists = {}
 
+		@systemWindow.message '', "Welcome to irciii, a v2 Chrome app."
+		@systemWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
+		@systemWindow.message '', "Alt+[0-9] switches windows."
+
 	onConnected: => @status 'connected'
 	onDisconnected: => @status 'disconnected'
 
