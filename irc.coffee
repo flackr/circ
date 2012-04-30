@@ -117,6 +117,11 @@ class IRC extends EventEmitter
 		@send 'PASS', @opts.password if @opts.password
 		@send 'NICK', @opts.nick
 		@send 'USER', @opts.nick, '0', '*', 'An irc5 user'
+		@socket.setTimeout 60000, @onTimeout
+
+	onTimeout: =>
+    @send 'PING', +new Date
+    @socket.setTimeout 60000, @onTimeout
 
 	onData: (pdata) ->
 		@data = @data.concat pdata
@@ -142,6 +147,7 @@ class IRC extends EventEmitter
 
 	onError: (err) ->
 	  console.log "error", err
+	  @socket.setTimeout 0, @onTimeout
 	  @socket.end()
 	  @emit 'disconnect'
 
