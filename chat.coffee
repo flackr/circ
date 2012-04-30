@@ -123,9 +123,6 @@ class IRC5
 				win.message '', "#{from.nick} #{m[1]}", type:'privmsg action'
 			else
 				win.message from.nick, msg, type:'privmsg'
-
-		PING: -> # server handles these for us.
-		# TODO: maybe don't even forward pings to client?
 	}
 
 	send: (msg...) ->
