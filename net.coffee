@@ -18,13 +18,22 @@ class Socket
 		@listeners = {}
 	on: (ev, cb) ->
 		(@listeners[ev] ?= []).push cb
+	removeListener: (ev, cb) ->
+		return unless @listeners and @listeners[ev]
+		@listeners[ev] = (l for l in @listeners[ev] when l != cb)
+	once: (ev, cb) ->
+		@on ev, f = (args...) =>
+			@removeListener ev, f
+			cb(args...)
 	emit: (ev, args...) ->
 		l(args...) for l in (@listeners[ev] ? [])
 
 	connect: (port, host='localhost') ->
+		@_active()
 		go = (err, addr) =>
 			throw new Error("couldn't resolve: " + err) if err
 			console.log "Resolved #{host} to #{addr}"
+			@_active()
 			options = onEvent: @_onEvent
 			chrome.experimental.socket.create 'tcp', options, (si) =>
 				@socketId = si.socketId
@@ -43,6 +52,7 @@ class Socket
 
 
 	write: (data) ->
+		@_active()
 		chrome.experimental.socket.write @socketId, data, (writeInfo) =>
 			if writeInfo.bytesWritten < -1
 				@emit 'error', writeInfo.bytesWritten
@@ -57,6 +67,7 @@ class Socket
 	end: -> @destroy() # TODO: only half-close the socket
 
 	_onEvent: (ev) =>
+		@_active()
 		switch ev.type
 			when 'connectComplete'
 				if ev.resultCode < 0
@@ -79,6 +90,7 @@ class Socket
 
 	_onRead: (readInfo) =>
 		console.log "onRead", readInfo
+		@_active() unless readInfo.resultCode is -1
 		if readInfo.resultCode < -1 # -1 is EWOULDBLOCK
 			@emit 'error', readInfo.resultCode
 		else if readInfo.resultCode is 0
@@ -87,6 +99,22 @@ class Socket
 			@emit 'data', readInfo.data
 
 			chrome.experimental.socket.read @socketId, @_onRead
+
+	_active: ->
+		if @timeout
+			clearTimeout @timeout
+			@timeout = setTimeout (=> @emit 'timeout'), @timeout_ms
+
+	setTimeout: (ms, cb) ->
+		if ms > 0
+			@timeout = setTimeout (=> @emit 'timeout'), ms
+			@timeout_ms = ms
+			@once 'timeout', cb if cb
+		else if ms == 0
+			clearTimeout @timeout
+			@removeListener 'timeout', cb if cb
+			@timeout = null
+			@timeout_ms = 0
 
 	@resolve: (host, cb) ->
 		chrome.experimental.dns.resolve host, (res) ->
