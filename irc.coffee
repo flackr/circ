@@ -105,6 +105,7 @@ class IRC extends EventEmitter
 		@socket.on 'end', (err) => @onClose err
 		@socket.on 'close', (err) => @onClose err
 		@data = []
+		@connected = false
 
 	connect: ->
 		@socket.connect(@port, @server)
@@ -119,6 +120,7 @@ class IRC extends EventEmitter
 		@send 'NICK', @opts.nick
 		@send 'USER', @opts.nick, '0', '*', 'An irc5 user'
 		@emit 'connect'
+		@connected = true
 		@socket.setTimeout 60000, @onTimeout
 
 	onTimeout: =>
@@ -151,10 +153,12 @@ class IRC extends EventEmitter
 		console.log "error", err
 		@socket.setTimeout 0, @onTimeout
 		@socket.end()
+		@connected = false
 		@emit 'disconnect'
 
 	onClose: ->
 		@socket.setTimeout 0, @onTimeout
+		@connected = false
 		@emit 'disconnect'
 
 	send: (args...) ->

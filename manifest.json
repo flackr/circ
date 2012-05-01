@@ -7,7 +7,8 @@
   "permissions": [
     "experimental",
     "socket",
-    "windows"
+    "windows",
+    "storage"
   ],
   "background": {
     "scripts": ["background.js"]

@@ -39,6 +39,9 @@ class IRC5
 
 		@$main = $('#main')
 		@nick = undefined
+		chrome.storage.sync.get 'nick', (settings) =>
+			if settings?.nick
+				@nick = settings.nick
 
 		@systemWindow = new Window('system')
 		@switchToWindow @systemWindow
@@ -150,6 +153,7 @@ class IRC5
 	}
 
 	send: (msg...) ->
+		return unless @irc.connected # TODO hm
 		@irc.send msg...
 
 	status: (status) ->
@@ -184,12 +188,13 @@ class IRC5
 			commands.say.call(this, '\u0001ACTION '+text.join(' ')+'\u0001')
 		nick: (newNick) ->
 			@irc.opts.nick = newNick
+			chrome.storage.sync.set({nick: newNick})
 			@send 'NICK', newNick
 		connect: (server, port) ->
 			@switchToWindow @systemWindow
 			@windows = {}
 			@winList = [@systemWindow]
-			@irc = new irc.IRC server, parseInt(port ? 6667)
+			@irc = new irc.IRC server, parseInt(port ? 6667), {nick: @nick}
 			@irc.on 'connect', => @onConnected()
 			@irc.on 'disconnect', => @onDisconnected()
 			@irc.on 'message', (cmd) => @onMessage cmd
