@@ -145,6 +145,8 @@ class IRC5
 				win.message '', "#{from.nick} #{m[1]}", type:'privmsg action'
 			else
 				win.message from.nick, msg, type:'privmsg'
+
+		PONG: (from, _) ->
 	}
 
 	send: (msg...) ->
