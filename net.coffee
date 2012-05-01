@@ -19,12 +19,13 @@ class Socket
 	on: (ev, cb) ->
 		(@listeners[ev] ?= []).push cb
 	removeListener: (ev, cb) ->
-		return unless @listeners and @listeners[ev]
-		@listeners[ev] = (l for l in @listeners[ev] when l != cb)
+		return unless @listeners and @listeners[ev] and cb?
+		@listeners[ev] = (l for l in @listeners[ev] when l != cb and l.listener != cb)
 	once: (ev, cb) ->
 		@on ev, f = (args...) =>
 			@removeListener ev, f
 			cb(args...)
+		f.listener = cb
 	emit: (ev, args...) ->
 		l(args...) for l in (@listeners[ev] ? [])
 
