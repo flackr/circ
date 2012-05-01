@@ -35,8 +35,6 @@ parsePrefix = (prefix) ->
 
 class IRC5
 	constructor: ->
-		@status '(connecting...)'
-
 		@irc = new irc.IRC # TODO hrm
 
 		@$main = $('#main')
@@ -53,8 +51,29 @@ class IRC5
 		@systemWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
 		@systemWindow.message '', "Alt+[0-9] switches windows."
 
-	onConnected: => @status 'connected'
-	onDisconnected: => @status 'disconnected'
+		@status 'hi!'
+
+	onConnected: =>
+		@status 'connected'
+		for chan, win of @windows
+			win.message '', '(connected)', type:'system'
+
+		if @reconnect_joins
+			for chan in @reconnect_joins
+				@send 'JOIN', chan
+			
+	onDisconnected: =>
+		@status 'disconnected'
+		@reconnect_joins = []
+		for chan, win of @windows
+			win.message '', '(disconnected)', type:'system'
+			if win.target
+				@reconnect_joins.push win.target
+
+		@reconnect()
+
+	reconnect: ->
+		@irc.connect()
 
 	disconnect: ->
 		@irc.quit 'App closing.'
@@ -98,11 +117,14 @@ class IRC5
 
 		JOIN: (from, chan) ->
 			if from.nick == @nick
-				win = new Window(chan)
-				win.target = chan
-				@windows[win.target] = win
-				@winList.push(win)
-				@switchToWindow win
+				if win = @windows[chan]
+					win.message '', '(rejoined)', type: 'system'
+				else
+					win = new Window(chan)
+					win.target = chan
+					@windows[win.target] = win
+					@winList.push(win)
+					@switchToWindow win
 			if win = @windows[chan]
 				win.message('', "#{from.nick} joined the channel.")
 				win.names.push(from.nick) if win.names
@@ -170,6 +192,8 @@ class IRC5
 			@irc.on 'disconnect', => @onDisconnected()
 			@irc.on 'message', (cmd) => @onMessage cmd
 			@irc.connect()
+		dc: ->
+			@irc.socket.end()
 		names: ->
 			if names = @currentWindow.names
 				@currentWindow.message('', JSON.stringify names.slice().sort())

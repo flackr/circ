@@ -100,8 +100,10 @@ class IRC extends EventEmitter
 		@socket = new net.Socket
 		@socket.on 'connect', => @onConnect()
 		@socket.on 'data', (data) => @onData data
+		# TODO: differentiate these events. /quit is not same as sock err
 		@socket.on 'error', (err) => @onError err
-		@socket.on 'end', (err) => @onError err
+		@socket.on 'end', (err) => @onClose err
+		@socket.on 'close', (err) => @onClose err
 		@data = []
 
 	connect: ->
@@ -113,10 +115,10 @@ class IRC extends EventEmitter
 		@emit 'disconnect'
 
 	onConnect: ->
-		@emit 'connect'
 		@send 'PASS', @opts.password if @opts.password
 		@send 'NICK', @opts.nick
 		@send 'USER', @opts.nick, '0', '*', 'An irc5 user'
+		@emit 'connect'
 		@socket.setTimeout 60000, @onTimeout
 
 	onTimeout: =>
@@ -150,6 +152,10 @@ class IRC extends EventEmitter
 	  @socket.setTimeout 0, @onTimeout
 	  @socket.end()
 	  @emit 'disconnect'
+
+	onClose: ->
+		@socket.setTimeout 0, @onTimeout
+		@emit 'disconnect'
 
 	send: (args...) ->
 		msg = makeCommand args...
