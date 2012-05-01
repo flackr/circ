@@ -48,27 +48,27 @@ randomName = (length = 10) ->
 
 # Many thanks to Dennis for his StackOverflow answer: http://goo.gl/UDanx
 string2ArrayBuffer = (string, callback) ->
-  bb = new WebKitBlobBuilder()
-  bb.append(string)
-  f = new FileReader()
-  f.onload = (e) ->
-    callback(e.target.result)
-  f.readAsArrayBuffer(bb.getBlob())
+	bb = new WebKitBlobBuilder()
+	bb.append(string)
+	f = new FileReader()
+	f.onload = (e) ->
+		callback(e.target.result)
+	f.readAsArrayBuffer(bb.getBlob())
 
 arrayBuffer2String = (buf, callback) ->
-  bb = new WebKitBlobBuilder()
-  bb.append(buf)
-  f = new FileReader()
-  f.onload = (e) ->
-    callback(e.target.result)
-  f.readAsText(bb.getBlob())
+	bb = new WebKitBlobBuilder()
+	bb.append(buf)
+	f = new FileReader()
+	f.onload = (e) ->
+		callback(e.target.result)
+	f.readAsText(bb.getBlob())
 
 arrayBufferToArrayOfLongs = (arrayBuffer) ->
-  longs = []
-  arrayBufferView = new Uint8Array(arrayBuffer)
-  for i in [0...arrayBufferView.length]
-    longs[i] = arrayBufferView[i]
-  longs
+	longs = []
+	arrayBufferView = new Uint8Array(arrayBuffer)
+	for i in [0...arrayBufferView.length]
+		longs[i] = arrayBufferView[i]
+	longs
 
 arrayOfLongsToArrayBuffer = (longs) ->
 	ab = new ArrayBuffer longs.length
@@ -122,8 +122,8 @@ class IRC extends EventEmitter
 		@socket.setTimeout 60000, @onTimeout
 
 	onTimeout: =>
-    @send 'PING', +new Date
-    @socket.setTimeout 60000, @onTimeout
+		@send 'PING', +new Date
+		@socket.setTimeout 60000, @onTimeout
 
 	onData: (pdata) ->
 		@data = @data.concat pdata
@@ -148,10 +148,10 @@ class IRC extends EventEmitter
 				break
 
 	onError: (err) ->
-	  console.log "error", err
-	  @socket.setTimeout 0, @onTimeout
-	  @socket.end()
-	  @emit 'disconnect'
+		console.log "error", err
+		@socket.setTimeout 0, @onTimeout
+		@socket.end()
+		@emit 'disconnect'
 
 	onClose: ->
 		@socket.setTimeout 0, @onTimeout
