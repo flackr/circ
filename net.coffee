@@ -6,13 +6,10 @@ exports = window.net = {}
 # - 'data': data received. Argument is the data (array of longs, atm)
 # - 'end': the other end sent a FIN packet, and won't accept any more data.
 # - 'error': an error occurred. The socket is pretty much hosed now. (TODO:
-#	 investigate how node deals with errors. The docs say 'close' gets sent right
-#	 after 'error', so they probably destroy the socket.)
-# - 'close': currently only emitted when you call destroy(). TODO: also emit
-#	 this whenever node would.
+#	  investigate how node deals with errors. The docs say 'close' gets sent right
+#	  after 'error', so they probably destroy the socket.)
+# - 'close': emitted when the socket is fully closed.
 # TODO: 'drain': emitted when the write buffer becomes empty
-# TODO: 'timeout': emitted if the socket times out from inactivity. (socket
-# should stay open: it's up to you to close it.)
 class Socket
 	constructor: ->
 		@listeners = {}
@@ -32,8 +29,7 @@ class Socket
 	connect: (port, host='localhost') ->
 		@_active()
 		go = (err, addr) =>
-			throw new Error("couldn't resolve: " + err) if err
-			console.log "Resolved #{host} to #{addr}"
+			return @emit 'error', "couldn't resolve: #{err}" if err
 			@_active()
 			options = onEvent: @_onEvent
 			chrome.experimental.socket.create 'tcp', options, (si) =>
@@ -42,9 +38,8 @@ class Socket
 					chrome.experimental.socket.connect @socketId, addr, port, (rc) =>
 						# useless; at this point the connect actually hasn't happened.
 						# wait for connectComplete event.
-						console.log "connect callback", rc
 				else
-					throw new Error "couldn't create socket"
+					return @emit 'error', "couldn't create socket"
 
 		if /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/.test host
 			go null, host
@@ -65,7 +60,10 @@ class Socket
 		chrome.experimental.socket.disconnect @socketId
 		@emit 'close' # TODO: figure out whether i should emit 'end' as well?
 
-	end: -> @destroy() # TODO: only half-close the socket
+	end: ->
+		# TODO: only half-close the socket
+		chrome.experimental.socket.disconnect @socketId
+		@emit 'close'
 
 	_onEvent: (ev) =>
 		@_active()
@@ -73,6 +71,7 @@ class Socket
 			when 'connectComplete'
 				if ev.resultCode < 0
 					# TODO: I'm pretty sure we should never get a -1 here..
+					# TODO: we should destroy the socket when we get an error.
 					@emit 'error', ev.resultCode
 				else
 					@emit 'connect'
@@ -96,6 +95,7 @@ class Socket
 			@emit 'error', readInfo.resultCode
 		else if readInfo.resultCode is 0
 			@emit 'end'
+			@destroy() # TODO: half-open sockets
 		if readInfo.data.length
 			@emit 'data', readInfo.data
 

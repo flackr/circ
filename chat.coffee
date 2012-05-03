@@ -29,26 +29,18 @@ display = (text) ->
 	return res
 
 
-parsePrefix = (prefix) ->
-	p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix)
-	{ nick: p[1], user: p[2], host: p[3] }
-
 class IRC5
 	constructor: ->
-		@irc = new irc.IRC # TODO hrm
-
 		@$main = $('#main')
-		@nick = undefined
+		@default_nick = undefined
+		# TODO: don't let the user do anything until we load settings
 		chrome.storage.sync.get 'nick', (settings) =>
 			if settings?.nick
-				@nick = settings.nick
+				@default_nick = settings.nick
 
 		@systemWindow = new Window('system')
 		@switchToWindow @systemWindow
-		@windows = {}
 		@winList = [@systemWindow]
-
-		@partialNameLists = {}
 
 		@systemWindow.message '', "Welcome to irciii, a v2 Chrome app."
 		@systemWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
@@ -56,109 +48,93 @@ class IRC5
 
 		@status 'hi!'
 
-	onConnected: =>
-		@status 'connected'
-		for chan, win of @windows
-			win.message '', '(connected)', type:'system'
-
-		if @reconnect_joins
-			for chan in @reconnect_joins
-				@send 'JOIN', chan
-			
-	onDisconnected: =>
-		@status 'disconnected'
-		@reconnect_joins = []
-		for chan, win of @windows
-			win.message '', '(disconnected)', type:'system'
-			if win.target
-				@reconnect_joins.push win.target
-
-		@reconnect()
-
-	reconnect: ->
-		@irc.connect()
+		@connections = {}
+		# { 'freenode': { irc: irc.IRC, windows: {Window} } }
 
 	disconnect: ->
-		@irc.quit 'App closing.'
+		# TODO
+		#@irc.quit 'App closing.'
 
-	onMessage: (msg) =>
-		prefix = parsePrefix msg.prefix
-		cmd = if /^\d{3}$/.test(msg.command)
-			parseInt(msg.command)
-		else
-			msg.command
-		if handlers[cmd]
-			handlers[cmd].apply(this, [prefix].concat(msg.params))
-		else
-			@systemWindow.message prefix.nick, msg.command + ' ' + msg.params.join(' ')
+	connect: (server, port = 6667) ->
+		name = server # TODO: 'irc.freenode.net' -> 'freenode'
+		tries = 0
+		while @connections[name]
+			name = server + ++tries
+		c = new irc.IRC server, port, {nick: @default_nick}
 
-	handlers = {
-		# RPL_WELCOME
-		1: (from, target, msg) ->
-			# once we get a welcome message, we know who we are
-			@nick = target
-			@status()
-			@systemWindow.message from.nick, msg
+		conn = @connections[name] = {irc:c, name, windows:{}}
+		c.on 'connect', => @onConnected conn
+		c.on 'disconnect', => @onDisconnected conn
+		c.on 'message', (target, type, args...) =>
+			@onMessage conn, target, type, args...
+		c.on 'joined', (chan) => @onJoined conn, chan
+		c.on 'parted', (chan) => @onJoined conn, chan
+		c.connect()
+		@systemWindow.conn = conn
 
-		# RPL_NAMREPLY
-		353: (from, target, privacy, channel, names) ->
-			names = names.split(/\x20/)
-			@partialNameLists[channel] ||= []
-			@partialNameLists[channel] = @partialNameLists[channel].concat(names)
+	onConnected: (conn) ->
+		@systemWindow.message '', "Connected to #{conn.name}"
+		for chan, win of conn.windows
+			win.message '', '(connected)', type:'system'
 
-		366: (from, target, channel, _) ->
-			if @windows[channel]
-				@windows[channel].names = @partialNameLists[channel]
-			delete @partialNameLists[channel]
+	onDisconnected: (conn) ->
+		@systemWindow.message '', "Disconnected from #{conn.name}"
+		for chan, win of conn.windows
+			win.message '', '(disconnected)', type:'system'
 
-		NICK: (from, newNick, msg) ->
-			if from.nick == @nick
-				@nick = newNick
-				@status()
-			for chan,win of @windows when from.nick in win.names
-				win.names[win.names.indexOf from.nick] = newNick
+	onJoined: (conn, chan) ->
+		unless chan of conn.windows
+			win = @makeWin conn, chan
+		win.message '', '(You joined the channel.)', type:'system'
+	onParted: (conn, chan) ->
+		if win = conn.windows[chan]
+			win.message '', '(You left the channel.)', type:'system'
 
-		JOIN: (from, chan) ->
-			if from.nick == @nick
-				if win = @windows[chan]
-					win.message '', '(rejoined)', type: 'system'
-				else
-					win = new Window(chan)
-					win.target = chan
-					@windows[win.target] = win
-					@winList.push(win)
-					@switchToWindow win
-			if win = @windows[chan]
-				win.message('', "#{from.nick} joined the channel.")
-				win.names.push(from.nick) if win.names
-
-		PART: (from, chan) ->
-			if win = @windows[chan]
-				win.message('', "#{from.nick} left the channel.")
-				win.names = win.names.filter (n) -> n != from.nick # ugh, hack :/
-
-		QUIT: (from, reason) ->
-			for chan, win of @windows when from.nick in win.names
-				win.names = win.names.filter (n) -> n != from.nick # ugh, hack :/
-				win.message('', "#{from.nick} quit: #{reason}")
-
-		PRIVMSG: (from, target, msg) ->
-			win = @windows[target] || @systemWindow
-			if m = /^\u0001ACTION (.*)\u0001/.exec msg
-				win.message '', "#{from.nick} #{m[1]}", type:'privmsg action'
+	onMessage: (conn, target, type, args...) =>
+		if target?
+			win = conn.windows[target]
+			if win
+				handlers[type].apply win, args
 			else
-				win.message from.nick, msg, type:'privmsg'
+				@systemWindow.message conn.name, "unknown message: #{target}(#{type}): #{JSON.stringify args}"
+				console.warn "unknown message to "+conn.name,target,type,args
+		else
+			system_handlers[type].apply @systemWindow, [conn].concat(args)
 
-		PONG: (from, _) ->
-	}
+	handlers =
+		join: (nick) ->
+			@message '', "#{nick} joined the channel.", type:'join'
+		part: (nick) ->
+			@message '', "#{nick} left the channel.", type:'part'
+		nick: (from, to) ->
+			@message '', "#{from} is now known as #{to}.", type:'nick'
+		quit: (nick, reason) ->
+			@message '', "#{nick} has quit: #{reason}.", type:'quit'
+		privmsg: (from, msg) ->
+			if m = /^\u0001ACTION (.*)\u0001/.exec msg
+				@message '', "#{from} #{m[1]}", type:'privmsg action'
+			else
+				@message from, msg, type:'privmsg'
 
-	send: (msg...) ->
-		return unless @irc.connected # TODO hm
-		@irc.send msg...
+	system_handlers =
+		welcome: (conn, msg) ->
+			@message conn.name, msg, type: 'welcome'
+		unknown: (conn, cmd) ->
+			@message conn.name, cmd.command + ' ' + cmd.params.join(' ')
+		nickinuse: (conn, oldnick, newnick, msg) ->
+			@message conn.name, "Nickname #{oldnick} already in use: #{msg}"
+
+	makeWin: (conn, chan) ->
+		throw new Error("we already have a window for that") if conn.windows[chan]
+		win = conn.windows[chan] = new Window(chan)
+		win.conn = conn
+		win.target = chan
+		@winList.push(win)
+		win
 
 	status: (status) ->
 		if !status
-			status = "[#{@nick}] #{@currentWindow.target}"
+			status = "[#{@currentWindow.conn?.irc.nick}] #{@currentWindow.target}"
 		$('#status').text(status)
 
 	switchToWindow: (win) ->
@@ -175,35 +151,31 @@ class IRC5
 
 	commands = {
 		join: (chan) ->
-			@send 'JOIN', chan
+			@currentWindow.conn.irc.send 'JOIN', chan
 		win: (num) ->
 			num = parseInt(num)
 			@switchToWindow @winList[num] if num < @winList.length
 		say: (text...) ->
-			if target = @currentWindow.target
+			if target = @currentWindow.target and conn = @currentWindow.conn
 				msg = text.join(' ')
-				@onMessage prefix: @nick, command: 'PRIVMSG', params: [target, msg]
-				@send 'PRIVMSG', target, msg
+				@onMessage conn, target, 'privmsg', conn.irc.nick, msg
+				conn.irc.send 'PRIVMSG', target, msg
 		me: (text...) ->
-			commands.say.call(this, '\u0001ACTION '+text.join(' ')+'\u0001')
+			commands.say.call this, '\u0001ACTION '+text.join(' ')+'\u0001'
 		nick: (newNick) ->
-			@irc.opts.nick = newNick
-			chrome.storage.sync.set({nick: newNick})
-			@send 'NICK', newNick
+			if conn = @currentWindow.conn
+				# TODO: HRHRMRHM
+				chrome.storage.sync.set({nick: newNick})
+				conn.irc.send 'NICK', newNick
 		connect: (server, port) ->
-			@switchToWindow @systemWindow
-			@windows = {}
-			@winList = [@systemWindow]
-			@irc = new irc.IRC server, parseInt(port ? 6667), {nick: @nick}
-			@irc.on 'connect', => @onConnected()
-			@irc.on 'disconnect', => @onDisconnected()
-			@irc.on 'message', (cmd) => @onMessage cmd
-			@irc.connect()
+			@connect server, if port then parseInt port
 		dc: ->
-			@irc.socket.end()
+			if conn = @currentWindow.conn
+				conn.irc.socket.end()
 		names: ->
-			if names = @currentWindow.names
-				@currentWindow.message('', JSON.stringify names.slice().sort())
+			if (conn = @currentWindow.conn) and (target = @currentWindow.target) and (names = conn.irc.channels[target]?.names)
+				names = (v for k,v of names).sort()
+				@currentWindow.message '', JSON.stringify names
 	}
 
 	command: (text) ->

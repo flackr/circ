@@ -29,6 +29,10 @@ parseCommand = (data) ->
 		params: parts[3]
 	}
 
+parsePrefix = (prefix) ->
+	p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix)
+	{ nick: p[1], user: p[2], host: p[3] }
+
 exports.parseCommand = parseCommand
 
 makeCommand = (cmd, params...) ->
@@ -45,6 +49,11 @@ makeCommand = (cmd, params...) ->
 randomName = (length = 10) ->
 	chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	(chars[Math.floor(Math.random() * chars.length)] for x in [0...length]).join('')
+
+normaliseNick = (nick) ->
+	nick.toLowerCase().replace(/[\[\]\\]/g, (x) -> ('[':'{', ']':'}', '|':'\\')[x])
+
+nicksEqual = (a, b) -> normaliseNick(a) == normaliseNick(b)
 
 # Many thanks to Dennis for his StackOverflow answer: http://goo.gl/UDanx
 string2ArrayBuffer = (string, callback) ->
@@ -93,39 +102,81 @@ class EventEmitter
 		@_listeners ?= {}
 		l(args...) for l in (@_listeners[ev] ? [])
 
+assert = (cond) ->
+	throw new Error("assertion failed") unless cond
+
 class IRC extends EventEmitter
 	constructor: (@server, @port, @opts) ->
-		@opts ||= {}
-		@opts.nick ||= "irc5-#{randomName()}"
+		@opts ?= {}
+		@opts.nick ?= "irc5-#{randomName()}"
 		@socket = new net.Socket
 		@socket.on 'connect', => @onConnect()
 		@socket.on 'data', (data) => @onData data
+
 		# TODO: differentiate these events. /quit is not same as sock err
 		@socket.on 'error', (err) => @onError err
-		@socket.on 'end', (err) => @onClose err
+		@socket.on 'end', (err) => @onEnd err
 		@socket.on 'close', (err) => @onClose err
 		@data = []
-		@connected = false
 
+		@partialNameLists = {}
+		@channels = {}
+
+		@state = 'disconnected'
+
+	# user-facing
 	connect: ->
+		assert @state in ['disconnected', 'reconnecting']
+		clearTimeout @reconnect_timer if @reconnect_timer
+		@reconnect_timer = null
 		@socket.connect(@port, @server)
+		@state = 'connecting'
 
+	# user-facing
 	quit: (reason) ->
+		assert @state is 'connected'
 		@send 'QUIT', reason
-		@socket.end()
-		@emit 'disconnect'
+		@state = 'disconnected'
+
+	# user-facing
+	giveup: ->
+		assert @state is 'reconnecting'
+		clearTimeout @reconnect_timer
+		@reconnect_timer = null
+		@state = 'disconnected'
+
 
 	onConnect: ->
-		@send 'PASS', @opts.password if @opts.password
-		@send 'NICK', @opts.nick
-		@send 'USER', @opts.nick, '0', '*', 'An irc5 user'
-		@emit 'connect'
-		@connected = true
+		@_send 'PASS', @opts.password if @opts.password
+		@_send 'NICK', @opts.nick
+		@_send 'USER', @opts.nick, '0', '*', 'An irc5 user'
 		@socket.setTimeout 60000, @onTimeout
 
 	onTimeout: =>
 		@send 'PING', +new Date
 		@socket.setTimeout 60000, @onTimeout
+
+	onError: (err) ->
+		console.error "socket error", err
+		@setReconnect()
+		@socket.end()
+
+	onClose: ->
+		@socket.setTimeout 0, @onTimeout
+		@emit 'disconnect'
+
+	onEnd: ->
+		console.error "remote peer closed connection"
+		if @state is 'connected'
+			@setReconnect()
+
+	setReconnect: ->
+		@state = 'reconnecting'
+		# TODO: exponential backoff
+		@reconnect_timer = setTimeout @reconnect, 10000
+
+	reconnect: =>
+		@connect()
 
 	onData: (pdata) ->
 		@data = @data.concat pdata
@@ -149,31 +200,106 @@ class IRC extends EventEmitter
 			else
 				break
 
-	onError: (err) ->
-		console.log "error", err
-		@socket.setTimeout 0, @onTimeout
-		@socket.end()
-		@connected = false
-		@emit 'disconnect'
-
-	onClose: ->
-		@socket.setTimeout 0, @onTimeout
-		@connected = false
-		@emit 'disconnect'
-
-	send: (args...) ->
+	_send: (args...) ->
 		msg = makeCommand args...
 		console.log('=>', msg[0...msg.length-2])
 		toSocketData msg, (arr) => @socket.write arr
+	send: (args...) ->
+		return unless @state is 'connected' # TODO hm
+		@_send args...
+
+	handlers =
+		# RPL_WELCOME
+		1: (from, target, msg) ->
+			@nick = target
+			@emit 'connect'
+			@state = 'connected'
+			@emit 'message', undefined, 'welcome', msg
+			for name,c in @channels
+				@send 'JOIN', name
+
+		# RPL_NAMREPLY
+		353: (from, target, privacy, channel, names) ->
+			l = (@partialNameLists[channel] ||= {})
+			# TODO I think this includes @ and + and stuff
+			for n in names.split(/\x20/)
+				l[normaliseNick n] = n
+
+		366: (from, target, channel, _) ->
+			if @channels[channel]
+				@channels[channel].names = @partialNameLists[channel]
+			else
+				console.warn "Got name list for #{channel}, but we're not in it?"
+			delete @partialNameLists[channel]
+
+		NICK: (from, newNick, msg) ->
+			if nicksEqual from.nick, @nick
+				@nick = newNick
+				@status()
+			norm_nick = normaliseNick from.nick
+			new_norm_nick = normaliseNick newNick
+			for name,chan of @channels when norm_nick of chan.names
+				delete chan.names[norm_nick]
+				chan.names[new_norm_nick] = newNick
+				@emit 'message', chan, 'nick', from.nick, newNick
+
+# Channel model should be that channels persist from when the user types
+# /join to when the user types /part.
+
+		JOIN: (from, chan) ->
+			if nicksEqual from.nick, @nick
+				if c = @channels[chan]
+					c.names = []
+				else
+					@channels[chan] = {names:[]}
+				@emit 'joined', chan
+			if c = @channels[chan]
+				c.names[normaliseNick from.nick] = from.nick
+				@emit 'message', chan, 'join', from.nick
+			else
+				console.warn "Got JOIN for channel we're not in (#{channel})"
+
+		PART: (from, chan) ->
+			# TODO: when do we receive PART? can the server just PART us?
+			if c = @channels[chan]
+				delete c.names[normaliseNick from.nick]
+				@emit 'message', chan, 'part', from.nick
+			else
+				console.warn "Got PART for channel we're not in (#{channel})"
+
+			if nicksEqual from.nick, @nick
+				@channels[chan]?.names = []
+				@emit 'parted', chan
+
+
+		QUIT: (from, reason) ->
+			norm_nick = normaliseNick from.nick
+			for name, c of @channels when norm_nick of c.names
+				delete c.names[norm_nick]
+				@emit 'message', chan, 'quit', from.nick
+
+		PRIVMSG: (from, target, msg) ->
+			# TODO: normalise channel target names
+			# TODO: should we pass more info about from?
+			@emit 'message', target, 'privmsg', from.nick, msg
+
+		PING: (from, payload) ->
+			@send 'PONG', payload
+
+		PONG: (from, payload) -> # ignore for now. later, lag calc.
+
+		# ERR_NICKNAMEINUSE
+		433: (from, nick, msg) ->
+			@opts.nick += '_'
+			@emit 'message', undefined, 'nickinuse', nick, @opts.nick, msg
+			@_send 'NICK', @opts.nick
 
 	onCommand: (cmd) ->
-		switch cmd.command
-			when 'PING'
-				@send 'PONG', cmd.params
-			when '433'
-				@opts.nick += '_'
-				@send 'NICK', @opts.nick
-
-		@emit 'message', cmd
+		cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
+		if handlers[cmd.command]
+			handlers[cmd.command].apply this,
+				[parsePrefix cmd.prefix].concat cmd.params
+		else
+			@emit 'message', undefined, 'unknown', cmd
 
 exports.IRC = IRC
