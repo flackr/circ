@@ -72,27 +72,21 @@ arrayBuffer2String = (buf, callback) ->
 		callback(e.target.result)
 	f.readAsText(bb.getBlob())
 
-arrayBufferToArrayOfLongs = (arrayBuffer) ->
-	longs = []
-	arrayBufferView = new Uint8Array(arrayBuffer)
-	for i in [0...arrayBufferView.length]
-		longs[i] = arrayBufferView[i]
-	longs
-
-arrayOfLongsToArrayBuffer = (longs) ->
-	ab = new ArrayBuffer longs.length
-	abView = new Uint8Array ab
-	for i in [0...longs.length]
-		abView[i] = longs[i]
-	ab
-
 toSocketData = (str, cb) ->
 	string2ArrayBuffer str, (ab) ->
-		cb arrayBufferToArrayOfLongs ab
+		cb ab
 
-fromSocketData = (arr, cb) ->
-	ab = arrayOfLongsToArrayBuffer arr
+fromSocketData = (ab, cb) ->
+	console.log ab
 	arrayBuffer2String ab, cb
+
+emptySocketData = -> new ArrayBuffer(0)
+concatSocketData = (a, b) ->
+  result = new ArrayBuffer a.byteLength + b.byteLength
+  resultView = new Uint8Array result
+  resultView.set new Uint8Array a
+  resultView.set new Uint8Array(b), a.byteLength
+  result
 
 class EventEmitter
 	on: (ev, cb) ->
@@ -117,7 +111,7 @@ class IRC extends EventEmitter
 		@socket.on 'error', (err) => @onError err
 		@socket.on 'end', (err) => @onEnd err
 		@socket.on 'close', (err) => @onClose err
-		@data = []
+		@data = emptySocketData()
 
 		@partialNameLists = {}
 		@channels = {}
@@ -179,11 +173,12 @@ class IRC extends EventEmitter
 		@connect()
 
 	onData: (pdata) ->
-		@data = @data.concat pdata
-		while @data.length > 0
+		@data = concatSocketData @data, pdata
+		dataView = new Uint8Array @data
+		while dataView.length > 0
 			cr = false
 			crlf = undefined
-			for d,i in @data
+			for d,i in dataView
 				if d == 0x0d
 					cr = true
 				else if cr and d == 0x0a
@@ -194,6 +189,7 @@ class IRC extends EventEmitter
 			if crlf?
 				line = @data.slice(0, crlf-1)
 				@data = @data.slice(crlf+1)
+				dataView = new Uint8Array @data
 				fromSocketData line, (lineStr) =>
 					console.log '<=', lineStr
 					@onCommand(parseCommand lineStr)

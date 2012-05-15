@@ -31,13 +31,10 @@ class Socket
 		go = (err, addr) =>
 			return @emit 'error', "couldn't resolve: #{err}" if err
 			@_active()
-			options = onEvent: @_onEvent
-			chrome.experimental.socket.create 'tcp', options, (si) =>
+			chrome.experimental.socket.create 'tcp', {}, (si) =>
 				@socketId = si.socketId
 				if @socketId > 0
-					chrome.experimental.socket.connect @socketId, addr, port, (rc) =>
-						# useless; at this point the connect actually hasn't happened.
-						# wait for connectComplete event.
+					chrome.experimental.socket.connect @socketId, addr, port, @_onConnect
 				else
 					return @emit 'error', "couldn't create socket"
 
@@ -46,14 +43,39 @@ class Socket
 		else
 			Socket.resolve host, go
 
+	_onConnect: (rc) =>
+		if rc < 0
+			# TODO: I'm pretty sure we should never get a -1 here..
+			# TODO: we should destroy the socket when we get an error.
+			@emit 'error', rc
+		else
+			@emit 'connect'
+			chrome.experimental.socket.read @socketId, @_onRead
+
+	_onRead: (readInfo) =>
+		console.error "Bad assumption: got -1 in _onRead" if readInfo.resultCode is -1
+		console.log readInfo
+		@_active()
+		if readInfo.resultCode < 0
+			@emit 'error', readInfo.resultCode
+		else if readInfo.resultCode is 0
+			@emit 'end'
+			@destroy() # TODO: half-open sockets
+		if readInfo.data.byteLength
+			@emit 'data', readInfo.data
+
+			chrome.experimental.socket.read @socketId, @_onRead
 
 	write: (data) ->
 		@_active()
 		chrome.experimental.socket.write @socketId, data, (writeInfo) =>
-			if writeInfo.bytesWritten < -1
-				@emit 'error', writeInfo.bytesWritten
-			if writeInfo.bytesWritten == data.length
+			if writeInfo.resultCode < 0
+				console.error "SOCKET ERROR on write: ", writeInfo.resultCode
+			console.log "Wrote #{writeInfo.bytesWritten} of #{data.byteLength} bytes"
+			if writeInfo.bytesWritten == data.byteLength
 				@emit 'drain' # TODO not sure if this works, don't rely on this message
+			else
+				console.error "Waaah can't handle non-complete writes"
 
 	# looks to me like there's no equivalent to node's end() in the socket API
 	destroy: ->
@@ -64,42 +86,6 @@ class Socket
 		# TODO: only half-close the socket
 		chrome.experimental.socket.disconnect @socketId
 		@emit 'close'
-
-	_onEvent: (ev) =>
-		@_active()
-		switch ev.type
-			when 'connectComplete'
-				if ev.resultCode < 0
-					# TODO: I'm pretty sure we should never get a -1 here..
-					# TODO: we should destroy the socket when we get an error.
-					@emit 'error', ev.resultCode
-				else
-					@emit 'connect'
-					chrome.experimental.socket.read @socketId, @_onRead
-
-			when 'dataRead'
-				@_onRead {data: ev.data, resultCode: ev.resultCode}
-
-			when 'writeComplete'
-				if ev.resultCode < 0
-					console.error "SOCKET ERROR on write: ", ev.resultCode
-				@emit 'drain' # TODO not sure if this is the right place to send this event
-
-			else
-				console.log "unknown socket event type: #{ev.type}", ev
-
-	_onRead: (readInfo) =>
-		console.log "onRead", readInfo
-		@_active() unless readInfo.resultCode is -1
-		if readInfo.resultCode < -1 # -1 is EWOULDBLOCK
-			@emit 'error', readInfo.resultCode
-		else if readInfo.resultCode is 0
-			@emit 'end'
-			@destroy() # TODO: half-open sockets
-		if readInfo.data.length
-			@emit 'data', readInfo.data
-
-			chrome.experimental.socket.read @socketId, @_onRead
 
 	_active: ->
 		if @timeout
