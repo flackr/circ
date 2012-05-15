@@ -83,7 +83,7 @@ class IRC5
 			win.message '', '(disconnected)', type:'system'
 
 	onJoined: (conn, chan) ->
-		unless chan of conn.windows
+		unless win = conn.windows[chan]
 			win = @makeWin conn, chan
 		win.message '', '(You joined the channel.)', type:'system'
 	onParted: (conn, chan) ->
@@ -152,11 +152,13 @@ class IRC5
 	commands = {
 		join: (chan) ->
 			@currentWindow.conn.irc.send 'JOIN', chan
+			win = @makeWin @currentWindow.conn, chan
+			@switchToWindow win
 		win: (num) ->
 			num = parseInt(num)
 			@switchToWindow @winList[num] if num < @winList.length
 		say: (text...) ->
-			if target = @currentWindow.target and conn = @currentWindow.conn
+			if (target = @currentWindow.target) and (conn = @currentWindow.conn)
 				msg = text.join(' ')
 				@onMessage conn, target, 'privmsg', conn.irc.nick, msg
 				conn.irc.send 'PRIVMSG', target, msg
