@@ -6,8 +6,8 @@ exports = window.net = {}
 # - 'data': data received. Argument is the data (array of longs, atm)
 # - 'end': the other end sent a FIN packet, and won't accept any more data.
 # - 'error': an error occurred. The socket is pretty much hosed now. (TODO:
-#	  investigate how node deals with errors. The docs say 'close' gets sent right
-#	  after 'error', so they probably destroy the socket.)
+#		investigate how node deals with errors. The docs say 'close' gets sent right
+#		after 'error', so they probably destroy the socket.)
 # - 'close': emitted when the socket is fully closed.
 # TODO: 'drain': emitted when the write buffer becomes empty
 class Socket

@@ -158,6 +158,8 @@ class IRC extends EventEmitter
 	onClose: ->
 		@socket.setTimeout 0, @onTimeout
 		@emit 'disconnect'
+		if @state is 'connected'
+			@setReconnect()
 
 	onEnd: ->
 		console.error "remote peer closed connection"
@@ -211,14 +213,14 @@ class IRC extends EventEmitter
 			@emit 'connect'
 			@state = 'connected'
 			@emit 'message', undefined, 'welcome', msg
-			for name,c in @channels
+			for name,c of @channels
 				@send 'JOIN', name
 
 		# RPL_NAMREPLY
 		353: (from, target, privacy, channel, names) ->
 			l = (@partialNameLists[channel] ||= {})
-			# TODO I think this includes @ and + and stuff
 			for n in names.split(/\x20/)
+				n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
 				l[normaliseNick n] = n
 
 		366: (from, target, channel, _) ->
@@ -231,7 +233,6 @@ class IRC extends EventEmitter
 		NICK: (from, newNick, msg) ->
 			if nicksEqual from.nick, @nick
 				@nick = newNick
-				@status()
 			norm_nick = normaliseNick from.nick
 			new_norm_nick = normaliseNick newNick
 			for name,chan of @channels when norm_nick of chan.names
@@ -239,8 +240,7 @@ class IRC extends EventEmitter
 				chan.names[new_norm_nick] = newNick
 				@emit 'message', chan, 'nick', from.nick, newNick
 
-# Channel model should be that channels persist from when the user types
-# /join to when the user types /part.
+# Channels persist from when the user types /join to when they type /part.
 
 		JOIN: (from, chan) ->
 			if nicksEqual from.nick, @nick
