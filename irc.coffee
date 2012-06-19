@@ -206,6 +206,14 @@ class IRC extends EventEmitter
 		return unless @state is 'connected' # TODO hm
 		@_send args...
 
+	onCommand: (cmd) ->
+		cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
+		if handlers[cmd.command]
+			handlers[cmd.command].apply this,
+				[parsePrefix cmd.prefix].concat cmd.params
+		else
+			@emit 'message', undefined, 'unknown', cmd
+
 	handlers =
 		# RPL_WELCOME
 		1: (from, target, msg) ->
@@ -289,13 +297,5 @@ class IRC extends EventEmitter
 			@opts.nick += '_'
 			@emit 'message', undefined, 'nickinuse', nick, @opts.nick, msg
 			@_send 'NICK', @opts.nick
-
-	onCommand: (cmd) ->
-		cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
-		if handlers[cmd.command]
-			handlers[cmd.command].apply this,
-				[parsePrefix cmd.prefix].concat cmd.params
-		else
-			@emit 'message', undefined, 'unknown', cmd
 
 exports.IRC = IRC

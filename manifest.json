@@ -3,15 +3,16 @@
   "description": "IRC inna platform app.",
   "version": "1",
   "manifest_version": 2,
-  "platform_app": true,
   "permissions": [
     "experimental",
     "socket",
-    "windows",
+    "appWindow",
     "storage"
   ],
-  "background": {
-    "scripts": ["background.js"]
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
   },
   "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
 }
