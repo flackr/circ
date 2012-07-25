@@ -6,7 +6,6 @@
   "permissions": [
     "experimental",
     "socket",
-    "appWindow",
     "storage"
   ],
   "app": {
