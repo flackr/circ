@@ -1,7 +1,7 @@
 {
   "name": "ircv",
   "description": "IRC inna platform app.",
-  "version": "1",
+  "version": "1.0.2",
   "manifest_version": 2,
   "permissions": [
     "experimental",

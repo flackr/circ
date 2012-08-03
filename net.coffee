@@ -31,10 +31,10 @@ class Socket
 		go = (err, addr) =>
 			return @emit 'error', "couldn't resolve: #{err}" if err
 			@_active()
-			chrome.experimental.socket.create 'tcp', {}, (si) =>
+			chrome.socket.create 'tcp', {}, (si) =>
 				@socketId = si.socketId
 				if @socketId > 0
-					chrome.experimental.socket.connect @socketId, addr, port, @_onConnect
+					chrome.socket.connect @socketId, addr, port, @_onConnect
 				else
 					return @emit 'error', "couldn't create socket"
 
@@ -50,7 +50,7 @@ class Socket
 			@emit 'error', rc
 		else
 			@emit 'connect'
-			chrome.experimental.socket.read @socketId, @_onRead
+			chrome.socket.read @socketId, @_onRead
 
 	_onRead: (readInfo) =>
 		console.error "Bad assumption: got -1 in _onRead" if readInfo.resultCode is -1
@@ -64,11 +64,11 @@ class Socket
 		if readInfo.data.byteLength
 			@emit 'data', readInfo.data
 
-			chrome.experimental.socket.read @socketId, @_onRead
+			chrome.socket.read @socketId, @_onRead
 
 	write: (data) ->
 		@_active()
-		chrome.experimental.socket.write @socketId, data, (writeInfo) =>
+		chrome.socket.write @socketId, data, (writeInfo) =>
 			if writeInfo.resultCode < 0
 				console.error "SOCKET ERROR on write: ", writeInfo.resultCode
 			console.log "Wrote #{writeInfo.bytesWritten} of #{data.byteLength} bytes"
@@ -79,12 +79,12 @@ class Socket
 
 	# looks to me like there's no equivalent to node's end() in the socket API
 	destroy: ->
-		chrome.experimental.socket.disconnect @socketId
+		chrome.socket.disconnect @socketId
 		@emit 'close' # TODO: figure out whether i should emit 'end' as well?
 
 	end: ->
 		# TODO: only half-close the socket
-		chrome.experimental.socket.disconnect @socketId
+		chrome.socket.disconnect @socketId
 		@emit 'close'
 
 	_active: ->
