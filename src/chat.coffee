@@ -233,5 +233,6 @@ $cmd.keydown (e) ->
 			$cmd.val('')
 			irc5.command cmd
 
-window.onbeforeunload = ->
-	irc5.disconnect()
+#TODO detect app v2 event and disconnect
+#window.onbeforeunload = ->
+#	irc5.disconnect()
