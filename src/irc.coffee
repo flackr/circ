@@ -276,8 +276,8 @@ class IRC extends EventEmitter
 
     QUIT: (from, reason) ->
       norm_nick = normaliseNick from.nick
-      for name, c of @channels when norm_nick of c.names
-        delete c.names[norm_nick]
+      for name, chan of @channels when norm_nick of chan.names
+        delete chan.names[norm_nick]
         @emit 'message', chan, 'quit', from.nick
 
     PRIVMSG: (from, target, msg) ->

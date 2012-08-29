@@ -443,16 +443,16 @@
         }
       },
       QUIT: function(from, reason) {
-        var c, name, norm_nick, _ref, _results;
+        var chan, name, norm_nick, _ref, _results;
         norm_nick = normaliseNick(from.nick);
         _ref = this.channels;
         _results = [];
         for (name in _ref) {
-          c = _ref[name];
-          if (!(norm_nick in c.names)) {
+          chan = _ref[name];
+          if (!(norm_nick in chan.names)) {
             continue;
           }
-          delete c.names[norm_nick];
+          delete chan.names[norm_nick];
           _results.push(this.emit('message', chan, 'quit', from.nick));
         }
         return _results;
