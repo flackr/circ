@@ -57,20 +57,18 @@ nicksEqual = (a, b) -> normaliseNick(a) == normaliseNick(b)
 
 # Many thanks to Dennis for his StackOverflow answer: http://goo.gl/UDanx
 string2ArrayBuffer = (string, callback) ->
-  bb = new WebKitBlobBuilder()
-  bb.append(string)
+  blob = new Blob [string]
   f = new FileReader()
   f.onload = (e) ->
     callback(e.target.result)
-  f.readAsArrayBuffer(bb.getBlob())
+  f.readAsArrayBuffer(blob)
 
 arrayBuffer2String = (buf, callback) ->
-  bb = new WebKitBlobBuilder()
-  bb.append(buf)
+  blob = new Blob [new DataView buf]
   f = new FileReader()
   f.onload = (e) ->
     callback(e.target.result)
-  f.readAsText(bb.getBlob())
+  f.readAsText(blob)
 
 toSocketData = (str, cb) ->
   string2ArrayBuffer str, (ab) ->

@@ -96,25 +96,23 @@
   };
 
   string2ArrayBuffer = function(string, callback) {
-    var bb, f;
-    bb = new WebKitBlobBuilder();
-    bb.append(string);
+    var blob, f;
+    blob = new Blob([string]);
     f = new FileReader();
     f.onload = function(e) {
       return callback(e.target.result);
     };
-    return f.readAsArrayBuffer(bb.getBlob());
+    return f.readAsArrayBuffer(blob);
   };
 
   arrayBuffer2String = function(buf, callback) {
-    var bb, f;
-    bb = new WebKitBlobBuilder();
-    bb.append(buf);
+    var blob, f;
+    blob = new Blob([new DataView(buf)]);
     f = new FileReader();
     f.onload = function(e) {
       return callback(e.target.result);
     };
-    return f.readAsText(bb.getBlob());
+    return f.readAsText(blob);
   };
 
   toSocketData = function(str, cb) {
