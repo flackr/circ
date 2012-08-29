@@ -359,7 +359,7 @@
       e = escapeHTML;
       extra_classes = [opts.type];
       msg = display(msg);
-      this.$messages.append($("<div class='message " + (extra_classes.join(' ')) + "'>\n	<div class='source'>" + (e(from)) + "</div>\n	<div class='text'>" + msg + "</div>\n</div>"));
+      this.$messages.append($("<div class='message " + (extra_classes.join(' ')) + "'>\n  <div class='source'>" + (e(from)) + "</div>\n  <div class='text'>" + msg + "</div>\n</div>"));
       if (scroll) {
         return this.$container.scrollTop(this.$container[0].scrollHeight);
       }

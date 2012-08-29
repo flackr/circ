@@ -1,97 +1,97 @@
 html, body {
-	height: 100%;
-	font-family: monospace;
-	background: white;
+  height: 100%;
+  font-family: monospace;
+  background: white;
 }
 #main {
-	width: 100%;
-	height: 100%;
-	padding-bottom: 50px;
-	box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 50px;
+  box-sizing: border-box;
 }
 #chat-container {
-	overflow-y: hidden;
-	width: 100%;
-	height: 100%;
+  overflow-y: hidden;
+  width: 100%;
+  height: 100%;
 }
 #chat {
-	display: table;
+  display: table;
 }
 body {
-	margin: 0; padding: 0;
+  margin: 0; padding: 0;
 }
 .message {
-	display: table-row;
+  display: table-row;
 }
 .message .source {
-	display: table-cell;
-	text-align: right;
-	padding: 0 10px;
-	border-right: 1px solid lightgray;
-	min-width: 125px;
+  display: table-cell;
+  text-align: right;
+  padding: 0 10px;
+  border-right: 1px solid lightgray;
+  min-width: 125px;
 }
 .message .text {
-	display: table-cell;
-	padding: 0 10px;
-	color: #999;
+  display: table-cell;
+  padding: 0 10px;
+  color: #999;
 }
 
 .message.privmsg .text {
-	color: black;
+  color: black;
 }
 
 #entry {
-	position: fixed;
-	bottom: 0;
-	height: 30px;
-	width: 100%;
+  position: fixed;
+  bottom: 0;
+  height: 30px;
+  width: 100%;
 }
 #entry input {
-	width: 100%;
-	height: 100%;
-	border: 0;
-	outline-width: 0;
-	font-family: inherit;
-	font-size: inherit;
-	padding-left: 4px;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline-width: 0;
+  font-family: inherit;
+  font-size: inherit;
+  padding-left: 4px;
 }
 #status {
-	width: 100%;
-	height: 20px;
-	background-color: lightgray;
-	position: fixed;
-	bottom: 30px;
+  width: 100%;
+  height: 20px;
+  background-color: lightgray;
+  position: fixed;
+  bottom: 30px;
 }
 
 /*
 #main {
-	padding-left: 150px;
+  padding-left: 150px;
 }
 #channels {
-	position: fixed;
-	top: 0; left: 0;
-	height: 100%;
-	overflow-y: auto;
-	overflow-x: hidden;
-	width: 150px;
-	box-sizing: border-box;
-	border-right: 2px solid lightgray;
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	font-family: Helvetica, arial, sans-serif;
-	font-size: 12px;
-	padding: 10px;
-	padding-right: 0;
+  position: fixed;
+  top: 0; left: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 150px;
+  box-sizing: border-box;
+  border-right: 2px solid lightgray;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 12px;
+  padding: 10px;
+  padding-right: 0;
 }
 #channels li {
-	padding: 2px 10px;
-	border-radius: 2px 0 0 2px;
+  padding: 2px 10px;
+  border-radius: 2px 0 0 2px;
 }
 #channels li.selected {
-	background-color: lightgray;
-	font-weight: bold;
-	color: white;
+  background-color: lightgray;
+  font-weight: bold;
+  color: white;
 }
 */
 
