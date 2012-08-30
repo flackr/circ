@@ -136,7 +136,6 @@ class IRC extends EventEmitter
     @reconnect_timer = null
     @state = 'disconnected'
 
-
   onConnect: ->
     @_send 'PASS', @opts.password if @opts.password
     @_send 'NICK', @opts.nick
@@ -200,8 +199,7 @@ class IRC extends EventEmitter
     console.log('=>', "(#{@server})", msg[0...msg.length-2])
     toSocketData msg, (arr) => @socket.write arr
   send: (args...) ->
-    return unless @state is 'connected' # TODO hm
-    @_send args...
+    @_send args... if @state is 'connected'
 
   onCommand: (cmd) ->
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
