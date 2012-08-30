@@ -283,7 +283,7 @@ class IRC extends EventEmitter
       @emit 'message', target, 'privmsg', from.nick, msg
 
     PING: (from, payload) ->
-      @send 'PONG', payload
+      @_send 'PONG', payload
 
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
