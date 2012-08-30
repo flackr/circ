@@ -75,7 +75,6 @@ toSocketData = (str, cb) ->
     cb ab
 
 fromSocketData = (ab, cb) ->
-  console.log ab
   arrayBuffer2String ab, cb
 
 emptySocketData = -> new ArrayBuffer(0)
@@ -191,14 +190,14 @@ class IRC extends EventEmitter
         @data = @data.slice(crlf+1)
         dataView = new Uint8Array @data
         fromSocketData line, (lineStr) =>
-          console.log '<=', lineStr
+          console.log '<=', "(#{@server})", lineStr
           @onCommand(parseCommand lineStr)
       else
         break
 
   _send: (args...) ->
     msg = makeCommand args...
-    console.log('=>', msg[0...msg.length-2])
+    console.log('=>', "(#{@server})", msg[0...msg.length-2])
     toSocketData msg, (arr) => @socket.write arr
   send: (args...) ->
     return unless @state is 'connected' # TODO hm
@@ -210,6 +209,7 @@ class IRC extends EventEmitter
       handlers[cmd.command].apply this,
         [parsePrefix cmd.prefix].concat cmd.params
     else
+      console.warn 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd
 
   handlers =
@@ -228,7 +228,7 @@ class IRC extends EventEmitter
       for n in names.split(/\x20/)
         n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
         l[normaliseNick n] = n
-
+    # RPL_ENDOFNAMES
     366: (from, target, channel, _) ->
       if @channels[channel]
         @channels[channel].names = @partialNameLists[channel]
@@ -245,8 +245,6 @@ class IRC extends EventEmitter
         delete chan.names[norm_nick]
         chan.names[new_norm_nick] = newNick
         @emit 'message', chan, 'nick', from.nick, newNick
-
-# Channels persist from when the user types /join to when they type /part.
 
     JOIN: (from, chan) ->
       if nicksEqual from.nick, @nick
@@ -272,7 +270,6 @@ class IRC extends EventEmitter
       if nicksEqual from.nick, @nick
         @channels[chan]?.names = []
         @emit 'parted', chan
-
 
     QUIT: (from, reason) ->
       norm_nick = normaliseNick from.nick

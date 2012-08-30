@@ -54,7 +54,6 @@ class Socket
 
   _onRead: (readInfo) =>
     console.error "Bad assumption: got -1 in _onRead" if readInfo.resultCode is -1
-    console.log readInfo
     @_active()
     if readInfo.resultCode < 0
       @emit 'error', readInfo.resultCode
@@ -71,7 +70,6 @@ class Socket
     chrome.socket.write @socketId, data, (writeInfo) =>
       if writeInfo.resultCode < 0
         console.error "SOCKET ERROR on write: ", writeInfo.resultCode
-      console.log "Wrote #{writeInfo.bytesWritten} of #{data.byteLength} bytes"
       if writeInfo.bytesWritten == data.byteLength
         @emit 'drain' # TODO not sure if this works, don't rely on this message
       else
