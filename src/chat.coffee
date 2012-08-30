@@ -51,10 +51,6 @@ class IRC5
     @connections = {}
     # { 'freenode': { irc: irc.IRC, windows: {Window} } }
 
-  disconnect: ->
-    # TODO
-    #@irc.quit 'App closing.'
-
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
     tries = 0
@@ -86,6 +82,7 @@ class IRC5
     unless win = conn.windows[chan]
       win = @makeWin conn, chan
     win.message '', '(You joined the channel.)', type:'system'
+
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
       win.message '', '(You left the channel.)', type:'system'
@@ -149,36 +146,49 @@ class IRC5
     @currentWindow = win
     @status()
 
-  commands = {
-    join: (chan) ->
-      @currentWindow.conn.irc.send 'JOIN', chan
-      win = @makeWin @currentWindow.conn, chan
-      @switchToWindow win
-    win: (num) ->
+  commands =
+    join: (chan) -> # join channel
+      if conn = @currentWindow.conn
+        @currentWindow.conn.irc.send 'JOIN', chan
+        win = @makeWin @currentWindow.conn, chan
+        @switchToWindow win
+
+    win: (num) -> # change windows
       num = parseInt(num)
       @switchToWindow @winList[num] if num < @winList.length
-    say: (text...) ->
+
+    say: (text...) -> # speak text
       if (target = @currentWindow.target) and (conn = @currentWindow.conn)
         msg = text.join(' ')
         @onMessage conn, target, 'privmsg', conn.irc.nick, msg
         conn.irc.send 'PRIVMSG', target, msg
-    me: (text...) ->
+
+    me: (text...) -> # talk in 3rd person
       commands.say.call this, '\u0001ACTION '+text.join(' ')+'\u0001'
-    nick: (newNick) ->
+
+    nick: (newNick) -> # change nick
       if conn = @currentWindow.conn
         # TODO: HRHRMRHM
         chrome.storage.sync.set({nick: newNick})
         conn.irc.send 'NICK', newNick
-    connect: (server, port) ->
+
+    server: (server, port) -> # connect to server
       @connect server, if port then parseInt port
-    dc: ->
+
+    disconnect: -> # disconnect from server
       if conn = @currentWindow.conn
         conn.irc.socket.end()
-    names: ->
-      if (conn = @currentWindow.conn) and (target = @currentWindow.target) and (names = conn.irc.channels[target]?.names)
+
+    quit: (reason) -> # quit from all servers
+      if conn = @currentWindow.conn
+        conn.irc.quit reason
+
+    names: -> # list users in channel
+      if (conn = @currentWindow.conn) and
+         (target = @currentWindow.target) and
+         (names = conn.irc.channels[target]?.names)
         names = (v for k,v of names).sort()
         @currentWindow.message '', JSON.stringify names
-  }
 
   command: (text) ->
     if text[0] == '/'
