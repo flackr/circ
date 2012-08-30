@@ -103,6 +103,7 @@ class IRC extends EventEmitter
     @socket = new net.Socket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
+    @socket.on 'drain', => @onDrain()
 
     # TODO: differentiate these events. /quit is not same as sock err
     @socket.on 'error', (err) => @onError err
@@ -128,6 +129,7 @@ class IRC extends EventEmitter
     assert @state is 'connected'
     @send 'QUIT', reason
     @state = 'disconnected'
+    @endSocketOnDrain = true
 
   # user-facing
   giveup: ->
@@ -193,6 +195,9 @@ class IRC extends EventEmitter
           @onCommand(parseCommand lineStr)
       else
         break
+
+  onDrain: ->
+    @socket.end() if @endSocketOnDrain
 
   _send: (args...) ->
     msg = makeCommand args...

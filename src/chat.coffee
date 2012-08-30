@@ -175,9 +175,9 @@ class IRC5
     server: (server, port) -> # connect to server
       @connect server, if port then parseInt port
 
-    quit: (reason) ->
+    quit: (reason...) ->
       if conn = @currentWindow.conn
-        conn.irc.quit reason
+        conn.irc.quit reason.join(' ')
 
     names: ->
       if (conn = @currentWindow.conn) and

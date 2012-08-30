@@ -9,7 +9,7 @@ exports = window.net = {}
 #    investigate how node deals with errors. The docs say 'close' gets sent right
 #    after 'error', so they probably destroy the socket.)
 # - 'close': emitted when the socket is fully closed.
-# TODO: 'drain': emitted when the write buffer becomes empty
+# - 'drain': emitted when the write buffer becomes empty
 class Socket
   constructor: ->
     @listeners = {}
@@ -62,7 +62,6 @@ class Socket
       @destroy() # TODO: half-open sockets
     if readInfo.data.byteLength
       @emit 'data', readInfo.data
-
       chrome.socket.read @socketId, @_onRead
 
   write: (data) ->
