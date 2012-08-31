@@ -1,17 +1,8 @@
 exports = window.irc ?= {}
 
-class ServerResponseHandler
-  constructor: (ircInstance) ->
-    @irc = ircInstance
-
-  handle: (command, params...) ->
-    assert @canHandle(command)
-    handlers[command].apply @irc, params
-
-  canHandle: (command) ->
-    return handlers[command]?
-
-  handlers =
+class ServerResponseHandler extends AbstractMessageHandler
+  
+  handlers:
     # RPL_WELCOME
     1: (from, target, msg) ->
       @nick = target
