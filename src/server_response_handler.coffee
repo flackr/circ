@@ -1,6 +1,6 @@
 exports = window.irc ?= {}
 
-class ServerMessageHandler
+class ServerResponseHandler
   constructor: (ircInstance) ->
     @irc = ircInstance
 
@@ -92,4 +92,4 @@ class ServerMessageHandler
       @emit 'message', undefined, 'nickinuse', nick, @opts.nick, msg
       @send 'NICK', @opts.nick
 
-exports.ServerMessageHandler = ServerMessageHandler
+exports.ServerResponseHandler = ServerResponseHandler

@@ -7,7 +7,7 @@ class IRC extends EventEmitter
 
     @partialNameLists = {}
     @channels = {}
-    @serverMessageHandler = new irc.ServerMessageHandler(this)
+    @serverResponseHandler = new irc.ServerResponseHandler(this)
     @util = irc.util
     @state = 'disconnected'
 
@@ -118,11 +118,11 @@ class IRC extends EventEmitter
 
   onCommand: (cmd) ->
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
-    if @serverMessageHandler.canHandle cmd.command
-      @serverMessageHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
+    if @serverResponseHandler.canHandle cmd.command
+      @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
         cmd.params...
     else
-      console.log 'Unknown cmd:', cmd.command
+      #console.warn 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd
 
 exports.IRC = IRC
