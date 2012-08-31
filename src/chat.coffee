@@ -2,6 +2,7 @@ class IRC5
   constructor: ->
     @$main = $('#main')
     @ircResponseHandler = new chat.IRCResponseHandler()
+    @chatCommandHandler = new chat.ChatCommandHandler(this)
     @default_nick = undefined
     # TODO: don't let the user do anything until we load settings
     chrome.storage.sync.get 'nick', (settings) =>
@@ -108,55 +109,16 @@ class IRC5
     @currentWindow = win
     @status()
 
-  commands =
-    join: (chan) ->
-      if conn = @currentWindow.conn
-        @currentWindow.conn.irc.doCommand 'JOIN', chan
-        win = @makeWin @currentWindow.conn, chan
-        @switchToWindow win
-
-    win: (num) ->
-      num = parseInt(num)
-      @switchToWindow @winList[num] if num < @winList.length
-
-    say: (text...) ->
-      if (target = @currentWindow.target) and (conn = @currentWindow.conn)
-        msg = text.join(' ')
-        @onIRCMessage conn, target, 'privmsg', conn.irc.nick, msg
-        conn.irc.doCommand 'PRIVMSG', target, msg
-
-    me: (text...) ->
-      commands.say.call this, '\u0001ACTION '+text.join(' ')+'\u0001'
-
-    nick: (newNick) ->
-      if conn = @currentWindow.conn
-        # TODO: HRHRMRHM
-        chrome.storage.sync.set({nick: newNick})
-        conn.irc.doCommand 'NICK', newNick
-
-    server: (server, port) -> # connect to server
-      @connect server, if port then parseInt port
-
-    quit: (reason...) ->
-      if conn = @currentWindow.conn
-        conn.irc.quit reason.join(' ')
-
-    names: ->
-      if (conn = @currentWindow.conn) and
-         (target = @currentWindow.target) and
-         (names = conn.irc.channels[target]?.names)
-        names = (v for k,v of names).sort()
-        @currentWindow.message '', JSON.stringify names
-
   onTextInput: (text) ->
     if text[0] == '/'
       cmd = text[1..].split(/\s+/)
-      if func = commands[cmd[0].toLowerCase()]
-        func.apply(this, cmd[1..])
+      type = cmd[0].toLowerCase()
+      if @chatCommandHandler.canHandle type
+        @chatCommandHandler.handle type, cmd[1..]...
       else
         console.log "no such command"
     else
-      commands.say.call(this, text)
+      @chatCommandHandler.handle 'say', text
 
 
 irc5 = new IRC5
