@@ -1,9 +1,12 @@
 exports = window
 
 class AbstractMessageHandler
-  constructor: (source) ->
+  constructor: (source=this) ->
     @source = source
-    @handlers ?= {} 
+    @handlers ?= {}
+
+  setSource: (source) ->
+    @source = source
 
   handle: (type, params...) ->
     assert @canHandle(type)

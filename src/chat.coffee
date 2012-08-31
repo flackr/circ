@@ -1,6 +1,7 @@
 class IRC5
   constructor: ->
     @$main = $('#main')
+    @ircResponseHandler = new chat.IRCResponseHandler()
     @default_nick = undefined
     # TODO: don't let the user do anything until we load settings
     chrome.storage.sync.get 'nick', (settings) =>
@@ -31,7 +32,7 @@ class IRC5
     c.on 'connect', => @onConnected conn
     c.on 'disconnect', => @onDisconnected conn
     c.on 'message', (target, type, args...) =>
-      @onMessage conn, target, type, args...
+      @onIRCMessage conn, target, type, args...
     c.on 'joined', (chan) => @onJoined conn, chan
     c.on 'parted', (chan) => @onJoined conn, chan
     c.connect()
@@ -56,31 +57,23 @@ class IRC5
     if win = conn.windows[chan]
       win.message '', '(You left the channel.)', type:'system'
 
-  onMessage: (conn, target, type, args...) =>
-    if target?
-      win = conn.windows[target]
-      if win
-        handlers[type].apply win, args
-      else
-        @systemWindow.message conn.name, "unknown message: #{target}(#{type}): #{JSON.stringify args}"
-        console.warn "unknown message to "+conn.name,target,type,args
-    else
+  onIRCMessage: (conn, target, type, args...) =>
+    if not target?
       system_handlers[type].apply @systemWindow, [conn].concat(args)
+      return
 
-  handlers =
-    join: (nick) ->
-      @message '', "#{nick} joined the channel.", type:'join'
-    part: (nick) ->
-      @message '', "#{nick} left the channel.", type:'part'
-    nick: (from, to) ->
-      @message '', "#{from} is now known as #{to}.", type:'nick'
-    quit: (nick, reason) ->
-      @message '', "#{nick} has quit: #{reason}.", type:'quit'
-    privmsg: (from, msg) ->
-      if m = /^\u0001ACTION (.*)\u0001/.exec msg
-        @message '', "#{from} #{m[1]}", type:'privmsg action'
-      else
-        @message from, msg, type:'privmsg'
+    win = conn.windows[target]
+    if not win
+      @systemWindow.message conn.name, "unknown message: #{target}(#{type}): #{JSON.stringify args}"
+      console.warn "message to unknown target", conn.name, target, type, args
+      return
+
+    if not @ircResponseHandler.canHandle type
+      console.warn "received unknown message", conn.name, target, type, args
+      return
+
+    @ircResponseHandler.setSource win
+    @ircResponseHandler.handle type, args...
 
   system_handlers =
     welcome: (conn, msg) ->
@@ -129,7 +122,7 @@ class IRC5
     say: (text...) ->
       if (target = @currentWindow.target) and (conn = @currentWindow.conn)
         msg = text.join(' ')
-        @onMessage conn, target, 'privmsg', conn.irc.nick, msg
+        @onIRCMessage conn, target, 'privmsg', conn.irc.nick, msg
         conn.irc.doCommand 'PRIVMSG', target, msg
 
     me: (text...) ->
@@ -155,7 +148,7 @@ class IRC5
         names = (v for k,v of names).sort()
         @currentWindow.message '', JSON.stringify names
 
-  command: (text) ->
+  onTextInput: (text) ->
     if text[0] == '/'
       cmd = text[1..].split(/\s+/)
       if func = commands[cmd[0].toLowerCase()]
@@ -179,10 +172,10 @@ $(window).keydown (e) ->
     e.preventDefault()
 $cmd.keydown (e) ->
   if e.which == 13
-    cmd = $cmd.val()
-    if cmd.length > 0
+    input = $cmd.val()
+    if input.length > 0
       $cmd.val('')
-      irc5.command cmd
+      irc5.onTextInput input
 
 # TODO detect app v2 event and disconnect
 #window.onbeforeunload = ->

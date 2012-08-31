@@ -1,7 +1,7 @@
 exports = window.irc ?= {}
 
 class ServerResponseHandler extends AbstractMessageHandler
-  
+
   handlers:
     # RPL_WELCOME
     1: (from, target, msg) ->
