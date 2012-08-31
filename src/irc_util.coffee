@@ -47,10 +47,10 @@ exports.randomName = (length = 10) ->
   chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   (chars[Math.floor(Math.random() * chars.length)] for x in [0...length]).join('')
 
-exports.normaliseNick = (nick) ->
+exports.normaliseNick = normaliseNick = (nick) ->
   nick.toLowerCase().replace(/[\[\]\\]/g, (x) -> ('[':'{', ']':'}', '|':'\\')[x])
 
-exports.nicksEqual = (a, b) -> exports.normaliseNick(a) == exports.normaliseNick(b)
+exports.nicksEqual = (a, b) -> normaliseNick(a) == normaliseNick(b)
 
 exports.toSocketData = (str, cb) ->
   string2ArrayBuffer str, (ab) ->
