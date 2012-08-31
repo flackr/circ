@@ -1,6 +1,6 @@
 exports = window.chat ?= {}
 
-class ChatCommandHandler extends AbstractMessageHandler
+class ChatCommands extends AbstractMessageHandler
   handlers:
     join: (chan) ->
       if conn = @currentWindow.conn
@@ -41,4 +41,4 @@ class ChatCommandHandler extends AbstractMessageHandler
         names = (v for k,v of names).sort()
         @currentWindow.message '', JSON.stringify names
 
-chat.ChatCommandHandler = ChatCommandHandler
+chat.ChatCommands = ChatCommands

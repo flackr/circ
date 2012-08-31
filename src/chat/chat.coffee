@@ -4,7 +4,7 @@ class IRC5
   constructor: ->
     @$main = $('#main')
     @ircResponseHandler = new chat.IRCResponseHandler()
-    @chatCommandHandler = new chat.ChatCommandHandler(this)
+    @chatCommands = new chat.ChatCommands(this)
     @default_nick = undefined
     # TODO: don't let the user do anything until we load settings
     chrome.storage.sync.get 'nick', (settings) =>
@@ -115,11 +115,11 @@ class IRC5
     if text[0] == '/'
       cmd = text[1..].split(/\s+/)
       type = cmd[0].toLowerCase()
-      if @chatCommandHandler.canHandle type
-        @chatCommandHandler.handle type, cmd[1..]...
+      if @chatCommands.canHandle type
+        @chatCommands.handle type, cmd[1..]...
       else
         console.log "no such command"
     else
-      @chatCommandHandler.handle 'say', text
+      @chatCommands.handle 'say', text
 
 exports.IRC5 = IRC5
