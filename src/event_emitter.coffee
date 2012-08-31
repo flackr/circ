@@ -1,3 +1,5 @@
+exports = window
+
 class EventEmitter
   constructor: ->
     @_listeners = {}
@@ -18,4 +20,4 @@ class EventEmitter
     return unless @_listeners and @_listeners[ev] and cb?
     @_listeners[ev] = (c for c in @_listeners[ev] when c != cb and c.listener != cb)
 
-window.EventEmitter = EventEmitter
+exports.EventEmitter = EventEmitter
