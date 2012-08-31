@@ -55,21 +55,6 @@ normaliseNick = (nick) ->
 
 nicksEqual = (a, b) -> normaliseNick(a) == normaliseNick(b)
 
-# Many thanks to Dennis for his StackOverflow answer: http://goo.gl/UDanx
-string2ArrayBuffer = (string, callback) ->
-  blob = new Blob [string]
-  f = new FileReader()
-  f.onload = (e) ->
-    callback(e.target.result)
-  f.readAsArrayBuffer(blob)
-
-arrayBuffer2String = (buf, callback) ->
-  blob = new Blob [new DataView buf]
-  f = new FileReader()
-  f.onload = (e) ->
-    callback(e.target.result)
-  f.readAsText(blob)
-
 toSocketData = (str, cb) ->
   string2ArrayBuffer str, (ab) ->
     cb ab
@@ -78,15 +63,9 @@ fromSocketData = (ab, cb) ->
   arrayBuffer2String ab, cb
 
 emptySocketData = -> new ArrayBuffer(0)
-concatSocketData = (a, b) ->
-  result = new ArrayBuffer a.byteLength + b.byteLength
-  resultView = new Uint8Array result
-  resultView.set new Uint8Array a
-  resultView.set new Uint8Array(b), a.byteLength
-  result
 
-assert = (cond) ->
-  throw new Error("assertion failed") unless cond
+concatSocketData = (a, b) ->
+  concatArrayBuffers(a, b)
 
 class IRC extends EventEmitter
   constructor: (@server, @port, @opts) ->
