@@ -1,4 +1,4 @@
-irc5 = new IRC5
+irc5 = new chat.IRC5
 
 $cmd = $('#cmd')
 $cmd.focus()

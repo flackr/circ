@@ -3,7 +3,7 @@
 This is a IRC client v2 Chrome app. It's using the experimental socket
 support in Chrome.
 
-# Installing
+# Running
 
 **Currently requires the dev channel version of Chrome, or Canary**
 

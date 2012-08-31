@@ -1,3 +1,5 @@
+exports = window.chat ?= {}
+
 class IRC5
   constructor: ->
     @$main = $('#main')
@@ -120,4 +122,4 @@ class IRC5
     else
       @chatCommandHandler.handle 'say', text
 
-
+exports.IRC5 = IRC5
