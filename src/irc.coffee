@@ -85,19 +85,12 @@ concatSocketData = (a, b) ->
   resultView.set new Uint8Array(b), a.byteLength
   result
 
-class EventEmitter
-  on: (ev, cb) ->
-    @_listeners ?= {}
-    (@_listeners[ev] ?= []).push cb
-  emit: (ev, args...) ->
-    @_listeners ?= {}
-    l(args...) for l in (@_listeners[ev] ? [])
-
 assert = (cond) ->
   throw new Error("assertion failed") unless cond
 
 class IRC extends EventEmitter
   constructor: (@server, @port, @opts) ->
+    super
     @opts ?= {}
     @opts.nick ?= "irc5-#{randomName()}"
     @socket = new net.Socket

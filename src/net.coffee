@@ -10,22 +10,7 @@ exports = window.net = {}
 #    after 'error', so they probably destroy the socket.)
 # - 'close': emitted when the socket is fully closed.
 # - 'drain': emitted when the write buffer becomes empty
-class Socket
-  constructor: ->
-    @listeners = {}
-  on: (ev, cb) ->
-    (@listeners[ev] ?= []).push cb
-  removeListener: (ev, cb) ->
-    return unless @listeners and @listeners[ev] and cb?
-    @listeners[ev] = (l for l in @listeners[ev] when l != cb and l.listener != cb)
-  once: (ev, cb) ->
-    @on ev, f = (args...) =>
-      @removeListener ev, f
-      cb(args...)
-    f.listener = cb
-  emit: (ev, args...) ->
-    l(args...) for l in (@listeners[ev] ? [])
-
+class Socket extends EventEmitter
   connect: (port, host='localhost') ->
     @_active()
     go = (err, addr) =>
