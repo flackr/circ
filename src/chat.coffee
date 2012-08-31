@@ -149,7 +149,7 @@ class IRC5
   commands =
     join: (chan) ->
       if conn = @currentWindow.conn
-        @currentWindow.conn.irc.send 'JOIN', chan
+        @currentWindow.conn.irc.doCommand 'JOIN', chan
         win = @makeWin @currentWindow.conn, chan
         @switchToWindow win
 
@@ -161,7 +161,7 @@ class IRC5
       if (target = @currentWindow.target) and (conn = @currentWindow.conn)
         msg = text.join(' ')
         @onMessage conn, target, 'privmsg', conn.irc.nick, msg
-        conn.irc.send 'PRIVMSG', target, msg
+        conn.irc.doCommand 'PRIVMSG', target, msg
 
     me: (text...) ->
       commands.say.call this, '\u0001ACTION '+text.join(' ')+'\u0001'
@@ -170,7 +170,7 @@ class IRC5
       if conn = @currentWindow.conn
         # TODO: HRHRMRHM
         chrome.storage.sync.set({nick: newNick})
-        conn.irc.send 'NICK', newNick
+        conn.irc.doCommand 'NICK', newNick
 
     server: (server, port) -> # connect to server
       @connect server, if port then parseInt port

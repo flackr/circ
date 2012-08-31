@@ -43,6 +43,10 @@ class IRC extends EventEmitter
     @reconnect_timer = null
     @state = 'disconnected'
 
+  # user-facing
+  doCommand: (cmd, args...) ->
+    @sendIfConnected(cmd, args...)
+
   onConnect: ->
     @send 'PASS', @opts.password if @opts.password
     @send 'NICK', @opts.nick
@@ -115,8 +119,8 @@ class IRC extends EventEmitter
   onCommand: (cmd) ->
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
     if @serverMessageHandler.canHandle cmd.command
-      @serverMessageHandler.handle cmd.command,
-        [@util.parsePrefix(cmd.prefix), cmd.params...]
+      @serverMessageHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
+        cmd.params...
     else
       console.log 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd

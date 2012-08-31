@@ -4,7 +4,7 @@ class ServerMessageHandler
   constructor: (ircInstance) ->
     @irc = ircInstance
 
-  handle: (command, params) ->
+  handle: (command, params...) ->
     assert @canHandle(command)
     handlers[command].apply @irc, params
 
