@@ -3,8 +3,11 @@ exports = window.chat ?= {}
 class IRC5
   constructor: ->
     @$main = $('#main')
+
     @ircResponseHandler = new chat.IRCResponseHandler()
     @chatCommands = new chat.ChatCommands(this)
+    @chatCommands.addHandler new chat.DeveloperCommands(this)
+
     @default_nick = undefined
     # TODO: don't let the user do anything until we load settings
     chrome.storage.sync.get 'nick', (settings) =>
