@@ -1,77 +1,11 @@
-unless exports?
-  exports = window.irc = {}
-
-parseCommand = (data) ->
-  str = data.toString('utf8')
-  parts = ///
-    ^
-    (?: : ([^\x20]+?) \x20)?        # prefix
-    ([^\x20]+?)                     # command
-    ((?:\x20 [^\x20:] [^\x20]*)+)?  # params
-    (?:\x20:(.*))?                  # trail
-    $
-  ///.exec(str)
-  throw new Error("invalid IRC message: #{data}") unless parts
-  # could do more validation here...
-  # prefix = servername | nickname((!user)?@host)?
-  # command = letter+ | digit{3}
-  # params has weird stuff going on when there are 14 arguments
-
-  # trim whitespace
-  if parts[3]?
-    parts[3] = parts[3].slice(1).split(/\x20/)
-  else
-    parts[3] = []
-  parts[3].push(parts[4]) if parts[4]?
-  {
-    prefix: parts[1]
-    command: parts[2]
-    params: parts[3]
-  }
-
-parsePrefix = (prefix) ->
-  p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix)
-  { nick: p[1], user: p[2], host: p[3] }
-
-exports.parseCommand = parseCommand
-
-makeCommand = (cmd, params...) ->
-  _params = if params and params.length > 0
-    if !params[0...params.length-1].every((a) -> !/^:|\x20/.test(a))
-      throw new Error("some non-final arguments had spaces or initial colons in them")
-    if /^:|\x20/.test(params[params.length-1])
-      params[params.length-1] = ':'+params[params.length-1]
-    ' ' + params.join(' ')
-  else
-    ''
-  cmd + _params + "\x0d\x0a"
-
-randomName = (length = 10) ->
-  chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  (chars[Math.floor(Math.random() * chars.length)] for x in [0...length]).join('')
-
-normaliseNick = (nick) ->
-  nick.toLowerCase().replace(/[\[\]\\]/g, (x) -> ('[':'{', ']':'}', '|':'\\')[x])
-
-nicksEqual = (a, b) -> normaliseNick(a) == normaliseNick(b)
-
-toSocketData = (str, cb) ->
-  string2ArrayBuffer str, (ab) ->
-    cb ab
-
-fromSocketData = (ab, cb) ->
-  arrayBuffer2String ab, cb
-
-emptySocketData = -> new ArrayBuffer(0)
-
-concatSocketData = (a, b) ->
-  concatArrayBuffers(a, b)
+exports = window.irc ?= {}
 
 class IRC extends EventEmitter
   constructor: (@server, @port, @opts) ->
     super
+    @util = window.irc.util
     @opts ?= {}
-    @opts.nick ?= "irc5-#{randomName()}"
+    @opts.nick ?= "irc5-#{@util.randomName()}"
     @socket = new net.Socket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
@@ -81,7 +15,7 @@ class IRC extends EventEmitter
     @socket.on 'error', (err) => @onError err
     @socket.on 'end', (err) => @onEnd err
     @socket.on 'close', (err) => @onClose err
-    @data = emptySocketData()
+    @data = @util.emptySocketData()
 
     @partialNameLists = {}
     @channels = {}
@@ -145,7 +79,7 @@ class IRC extends EventEmitter
     @connect()
 
   onData: (pdata) ->
-    @data = concatSocketData @data, pdata
+    @data = @util.concatSocketData @data, pdata
     dataView = new Uint8Array @data
     while dataView.length > 0
       cr = false
@@ -162,9 +96,9 @@ class IRC extends EventEmitter
         line = @data.slice(0, crlf-1)
         @data = @data.slice(crlf+1)
         dataView = new Uint8Array @data
-        fromSocketData line, (lineStr) =>
+        @util.fromSocketData line, (lineStr) =>
           console.log '<=', "(#{@server})", lineStr
-          @onCommand(parseCommand lineStr)
+          @onCommand(@util.parseCommand lineStr)
       else
         break
 
@@ -172,9 +106,9 @@ class IRC extends EventEmitter
     @socket.end() if @endSocketOnDrain
 
   _send: (args...) ->
-    msg = makeCommand args...
+    msg = @util.makeCommand args...
     console.log('=>', "(#{@server})", msg[0...msg.length-2])
-    toSocketData msg, (arr) => @socket.write arr
+    @util.toSocketData msg, (arr) => @socket.write arr
   send: (args...) ->
     @_send args... if @state is 'connected'
 
@@ -182,7 +116,7 @@ class IRC extends EventEmitter
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
     if handlers[cmd.command]
       handlers[cmd.command].apply this,
-        [parsePrefix cmd.prefix].concat cmd.params
+        [@util.parsePrefix cmd.prefix].concat cmd.params
     else
       console.warn 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd
@@ -202,7 +136,7 @@ class IRC extends EventEmitter
       l = (@partialNameLists[channel] ||= {})
       for n in names.split(/\x20/)
         n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
-        l[normaliseNick n] = n
+        l[@util.normaliseNick n] = n
     # RPL_ENDOFNAMES
     366: (from, target, channel, _) ->
       if @channels[channel]
@@ -212,24 +146,24 @@ class IRC extends EventEmitter
       delete @partialNameLists[channel]
 
     NICK: (from, newNick, msg) ->
-      if nicksEqual from.nick, @nick
+      if @util.nicksEqual from.nick, @nick
         @nick = newNick
-      norm_nick = normaliseNick from.nick
-      new_norm_nick = normaliseNick newNick
+      norm_nick = @util.normaliseNick from.nick
+      new_norm_nick = @util.normaliseNick newNick
       for name,chan of @channels when norm_nick of chan.names
         delete chan.names[norm_nick]
         chan.names[new_norm_nick] = newNick
         @emit 'message', chan, 'nick', from.nick, newNick
 
     JOIN: (from, chan) ->
-      if nicksEqual from.nick, @nick
+      if @util.nicksEqual from.nick, @nick
         if c = @channels[chan]
           c.names = []
         else
           @channels[chan] = {names:[]}
         @emit 'joined', chan
       if c = @channels[chan]
-        c.names[normaliseNick from.nick] = from.nick
+        c.names[@util.normaliseNick from.nick] = from.nick
         @emit 'message', chan, 'join', from.nick
       else
         console.warn "Got JOIN for channel we're not in (#{channel})"
@@ -237,17 +171,17 @@ class IRC extends EventEmitter
     PART: (from, chan) ->
       # TODO: when do we receive PART? can the server just PART us?
       if c = @channels[chan]
-        delete c.names[normaliseNick from.nick]
+        delete c.names[@util.normaliseNick from.nick]
         @emit 'message', chan, 'part', from.nick
       else
         console.warn "Got PART for channel we're not in (#{channel})"
 
-      if nicksEqual from.nick, @nick
+      if @util.nicksEqual from.nick, @nick
         @channels[chan]?.names = []
         @emit 'parted', chan
 
     QUIT: (from, reason) ->
-      norm_nick = normaliseNick from.nick
+      norm_nick = @util.normaliseNick from.nick
       for name, chan of @channels when norm_nick of chan.names
         delete chan.names[norm_nick]
         @emit 'message', chan, 'quit', from.nick
