@@ -1,16 +1,6 @@
-exports = window.net = {}
+exports = window.net ?= {}
 
-# TCP socket.
-# Events emitted:
-# - 'connect': the connection succeeded, proceed.
-# - 'data': data received. Argument is the data (array of longs, atm)
-# - 'end': the other end sent a FIN packet, and won't accept any more data.
-# - 'error': an error occurred. The socket is pretty much hosed now. (TODO:
-#    investigate how node deals with errors. The docs say 'close' gets sent right
-#    after 'error', so they probably destroy the socket.)
-# - 'close': emitted when the socket is fully closed.
-# - 'drain': emitted when the write buffer becomes empty
-class ChromeSocket extends EventEmitter
+class ChromeSocket extends net.AbstractTCPSocket
   connect: (port, host='localhost') ->
     @_active()
     go = (err, addr) =>
@@ -44,7 +34,7 @@ class ChromeSocket extends EventEmitter
       @emit 'error', readInfo.resultCode
     else if readInfo.resultCode is 0
       @emit 'end'
-      @destroy() # TODO: half-open sockets
+      @close() # TODO: half-open sockets
     if readInfo.data.byteLength
       @emit 'data', readInfo.data
       chrome.socket.read @socketId, @_onRead
@@ -59,13 +49,7 @@ class ChromeSocket extends EventEmitter
       else
         console.error "Waaah can't handle non-complete writes"
 
-  # looks to me like there's no equivalent to node's end() in the socket API
-  destroy: ->
-    chrome.socket.disconnect @socketId
-    @emit 'close' # TODO: figure out whether i should emit 'end' as well?
-
-  end: ->
-    # TODO: only half-close the socket
+  close: ->
     chrome.socket.disconnect @socketId
     @emit 'close'
 

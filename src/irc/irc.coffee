@@ -59,7 +59,7 @@ class IRC extends EventEmitter
   onError: (err) ->
     console.error "socket error", err
     @setReconnect()
-    @socket.end()
+    @socket.close()
 
   onClose: ->
     @socket.setTimeout 0, @onTimeout
@@ -105,7 +105,8 @@ class IRC extends EventEmitter
         break
 
   onDrain: ->
-    @socket.end() if @endSocketOnDrain
+    @socket.close() if @endSocketOnDrain
+    @endSocketOnDrain = false
 
   send: (args...) ->
     msg = @util.makeCommand args...
