@@ -8,9 +8,9 @@ build:
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
-tester:
-	mkdir -p bin
+tester: build
 	cp test/mock_chrome_api/*.* bin/
+	cp test/*.* bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
