@@ -3,15 +3,14 @@ exports = window.irc ?= {}
 class IRC extends EventEmitter
   constructor: (@server, @port, @opts={}) ->
     super
+    @util = irc.util
     @opts.nick ?= "irc5-#{@util.randomName()}"
-
     @partialNameLists = {}
     @channels = {}
     @serverResponseHandler = new irc.ServerResponseHandler(this)
-    @util = irc.util
     @state = 'disconnected'
 
-    @socket = new net.Socket
+    @socket = new net.ChromeSocket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
     @socket.on 'drain', => @onDrain()

@@ -10,7 +10,7 @@ exports = window.net = {}
 #    after 'error', so they probably destroy the socket.)
 # - 'close': emitted when the socket is fully closed.
 # - 'drain': emitted when the write buffer becomes empty
-class Socket extends EventEmitter
+class ChromeSocket extends EventEmitter
   connect: (port, host='localhost') ->
     @_active()
     go = (err, addr) =>
@@ -26,7 +26,7 @@ class Socket extends EventEmitter
     if /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/.test host
       go null, host
     else
-      Socket.resolve host, go
+      ChromeSocket.resolve host, go
 
   _onConnect: (rc) =>
     if rc < 0
@@ -92,4 +92,4 @@ class Socket extends EventEmitter
       else
         cb(res.resultCode)
 
-exports.Socket = Socket
+exports.ChromeSocket = ChromeSocket
