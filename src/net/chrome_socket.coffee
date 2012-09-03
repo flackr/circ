@@ -1,7 +1,7 @@
 exports = window.net ?= {}
 
 class ChromeSocket extends net.AbstractTCPSocket
-  connect: (port, host='localhost') ->
+  connect: (host, port) ->
     @_active()
     go = (err, addr) =>
       return @emit 'error', "couldn't resolve: #{err}" if err

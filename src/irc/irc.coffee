@@ -27,7 +27,7 @@ class IRC extends EventEmitter
     return if @state not in ['disconnected', 'reconnecting']
     clearTimeout @reconnect_timer if @reconnect_timer
     @reconnect_timer = null
-    @socket.connect(@port, @server)
+    @socket.connect(@server, @port)
     @state = 'connecting'
 
   # user-facing
@@ -83,6 +83,7 @@ class IRC extends EventEmitter
     @connect()
 
   onData: (pdata) ->
+    @util.fromSocketData pdata, (str) -> console.warn "RECV:", str
     @data = @util.concatSocketData @data, pdata
     dataView = new Uint8Array @data
     while dataView.length > 0
@@ -113,6 +114,7 @@ class IRC extends EventEmitter
   send: (args...) ->
     msg = @util.makeCommand args...
     console.log('=>', "(#{@server})", msg[0...msg.length-2])
+    console.warn "SEND:", msg
     @util.toSocketData msg, (arr) => @socket.write arr
 
   sendIfConnected: (args...) ->

@@ -8,7 +8,7 @@ build:
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
-tester: build
+test: build
 	mkdir -p bin
 	cp test/*.* bin/
 	cp test/mocks/* bin/

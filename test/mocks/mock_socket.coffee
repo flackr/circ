@@ -12,8 +12,7 @@ exports = window.net ?= {}
 # - 'drain': emitted when the write buffer becomes empty
 
 class MockSocket extends net.AbstractTCPSocket
-  connect: (port, host) ->
-    console.log 'MockSocket: connect(', port, host, ')'
+  connect: (host, port) ->
 
   write: (data) ->
     console.log 'MockSocket: write(', data, ')'
