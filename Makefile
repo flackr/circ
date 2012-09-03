@@ -4,13 +4,15 @@ build:
 	cp src/chat/* bin/
 	cp src/irc/* bin/
 	cp src/net/* bin/
-	cp third_party/* bin/
+	cp third_party/*.js bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
 tester: build
-	cp test/mock_chrome_api/*.* bin/
+	mkdir -p bin
 	cp test/*.* bin/
+	cp test/mocks/* bin/
+	cp -r third_party/jasmine-1.2.0 bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 

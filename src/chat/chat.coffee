@@ -8,11 +8,11 @@ class IRC5
     @chatCommands = new chat.ChatCommands(this)
     @chatCommands.addHandler new chat.DeveloperCommands(this)
 
-    @default_nick = undefined
+    @previousNick = undefined
     # TODO: don't let the user do anything until we load settings
     chrome.storage.sync.get 'nick', (settings) =>
       if settings?.nick
-        @default_nick = settings.nick
+        @previousNick = settings.nick
 
     @systemWindow = new chat.Window('system')
     @switchToWindow @systemWindow
@@ -32,7 +32,8 @@ class IRC5
     tries = 0
     while @connections[name]
       name = server + ++tries
-    c = new irc.IRC server, port, {nick: @default_nick}
+    c = new irc.IRC
+    c.setPreferredNick @previousNick if @previousNick?
 
     conn = @connections[name] = {irc:c, name, windows:{}}
     c.on 'connect', => @onConnected conn
@@ -41,7 +42,7 @@ class IRC5
       @onIRCMessage conn, target, type, args...
     c.on 'joined', (chan) => @onJoined conn, chan
     c.on 'parted', (chan) => @onJoined conn, chan
-    c.connect()
+    c.connect(server, port)
     @systemWindow.conn = conn
 
   onConnected: (conn) ->

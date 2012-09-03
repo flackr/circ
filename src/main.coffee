@@ -8,7 +8,7 @@ $(window).keydown (e) ->
     e.currentTarget = $('#cmd')[0]
     $cmd.focus()
   if e.altKey and 48 <= e.which <= 57
-    irc5.command("/win " + (e.which - 48))
+    irc5.onTextInput "/win " + (e.which - 48)
     e.preventDefault()
 
 $cmd.keydown (e) ->

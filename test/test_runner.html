@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Jasmine Spec Runner</title>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine-1.2.0/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="jasmine-1.2.0/jasmine.css">
+  <script type="text/javascript" src="jasmine-1.2.0/jasmine.js"></script>
+  <script type="text/javascript" src="jasmine-1.2.0/jasmine-html.js"></script>
+
+  <!-- source files -->
+  <script type="text/javascript" src="abstract_message_handler.js"></script>
+  <script type="text/javascript" src="event_emitter.js"></script>
+  <script type="text/javascript" src="abstract_tcp_socket.js"></script>
+
+  <script type="text/javascript" src="mock_sync.js"></script>
+  <script type="text/javascript" src="mock_socket.js"></script>
+
+  <script type="text/javascript" src="irc_util.js"></script>
+  <script type="text/javascript" src="server_response_handler.js"></script>
+  <script type="text/javascript" src="irc.js"></script>
+
+  <!-- spec files -->
+  <script type="text/javascript" src="irc_test.js"></script>
+
+  <script type="text/javascript">
+    (function() {
+      var jasmineEnv = jasmine.getEnv();
+      jasmineEnv.updateInterval = 1000;
+
+      var htmlReporter = new jasmine.HtmlReporter();
+
+      jasmineEnv.addReporter(htmlReporter);
+
+      jasmineEnv.specFilter = function(spec) {
+        return htmlReporter.specFilter(spec);
+      };
+
+      var currentWindowOnload = window.onload;
+
+      window.onload = function() {
+        if (currentWindowOnload) {
+          currentWindowOnload();
+        }
+        execJasmine();
+      };
+
+      function execJasmine() {
+        jasmineEnv.execute();
+      }
+
+    })();
+  </script>
+
+</head>
+
+<body>
+</body>
+</html>

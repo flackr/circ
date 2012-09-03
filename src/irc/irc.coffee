@@ -1,16 +1,11 @@
 exports = window.irc ?= {}
 
 class IRC extends EventEmitter
-  constructor: (@server, @port, @opts={}) ->
+  constructor: (@socket=new net.ChromeSocket) ->
     super
     @util = irc.util
-    @opts.nick ?= "irc5-#{@util.randomName()}"
-    @partialNameLists = {}
-    @channels = {}
-    @serverResponseHandler = new irc.ServerResponseHandler(this)
-    @state = 'disconnected'
+    @preferredNick = "irc5-#{@util.randomName()}"
 
-    @socket = new net.ChromeSocket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
     @socket.on 'drain', => @onDrain()
@@ -20,9 +15,16 @@ class IRC extends EventEmitter
     @socket.on 'close', (err) => @onClose err
     @data = @util.emptySocketData()
 
+    @partialNameLists = {}
+    @channels = {}
+    @serverResponseHandler = new irc.ServerResponseHandler(this)
+    @state = 'disconnected'
+
+  setPreferredNick: (@preferredNick, @password) ->
+
   # user-facing
-  connect: ->
-    assert @state in ['disconnected', 'reconnecting']
+  connect: (@server=@server, @port=@port) ->
+    return if @state not in ['disconnected', 'reconnecting']
     clearTimeout @reconnect_timer if @reconnect_timer
     @reconnect_timer = null
     @socket.connect(@port, @server)
@@ -30,14 +32,14 @@ class IRC extends EventEmitter
 
   # user-facing
   quit: (reason) ->
-    assert @state is 'connected'
+    return if @state is not 'connected'
     @send 'QUIT', reason
     @state = 'disconnected'
     @endSocketOnDrain = true
 
   # user-facing
   giveup: ->
-    assert @state is 'reconnecting'
+    return if @state is not 'reconnecting'
     clearTimeout @reconnect_timer
     @reconnect_timer = null
     @state = 'disconnected'
@@ -47,9 +49,9 @@ class IRC extends EventEmitter
     @sendIfConnected(cmd, args...)
 
   onConnect: ->
-    @send 'PASS', @opts.password if @opts.password
-    @send 'NICK', @opts.nick
-    @send 'USER', @opts.nick, '0', '*', 'An irc5 user'
+    @send 'PASS', @password if @password
+    @send 'NICK', @preferredNick
+    @send 'USER', @preferredNick, '0', '*', 'An irc5 user'
     @socket.setTimeout 60000, @onTimeout
 
   onTimeout: =>
