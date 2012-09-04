@@ -64,6 +64,9 @@ exports.emptySocketData = -> new ArrayBuffer(0)
 exports.concatSocketData = (a, b) ->
   concatArrayBuffers(a, b)
 
+exports.arrayBufferConversionCount = 0
+exports.isConvertingArrayBuffers = -> exports.arrayBufferConversionCount > 0
+
 concatArrayBuffers = (a, b) ->
   result = new ArrayBuffer a.byteLength + b.byteLength
   resultView = new Uint8Array result
@@ -72,15 +75,19 @@ concatArrayBuffers = (a, b) ->
   result
 
 string2ArrayBuffer = (string, callback) ->
+  exports.arrayBufferConversionCount++
   blob = new Blob [string]
   f = new FileReader()
   f.onload = (e) ->
+    exports.arrayBufferConversionCount--
     callback(e.target.result)
   f.readAsArrayBuffer(blob)
 
 arrayBuffer2String = (buf, callback) ->
+  exports.arrayBufferConversionCount++
   blob = new Blob [new DataView buf]
   f = new FileReader()
   f.onload = (e) ->
+    exports.arrayBufferConversionCount--
     callback(e.target.result)
   f.readAsText(blob)

@@ -1,4 +1,6 @@
-build:
+all: test
+
+build: clean
 	mkdir -p bin
 	cp src/*.* bin/
 	cp src/chat/* bin/
@@ -19,4 +21,3 @@ test: build
 clean:
 	-rm -rf bin
 
-all: build

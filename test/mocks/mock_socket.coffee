@@ -1,26 +1,25 @@
 exports = window.net ?= {}
 
-# Abstract TCP socket.
-# Events emitted:
-# - 'connect': the connection succeeded, proceed.
-# - 'data': data received. Argument is the data (array of longs, atm)
-# - 'end': the other end sent a FIN packet, and won't accept any more data.
-# - 'error': an error occurred. The socket is pretty much hosed now. (TODO:
-#    investigate how node deals with errors. The docs say 'close' gets sent right
-#    after 'error', so they probably destroy the socket.)
-# - 'close': emitted when the socket is fully closed.
-# - 'drain': emitted when the write buffer becomes empty
-
 class MockSocket extends net.AbstractTCPSocket
+  constructor: ->
+    super
+
   connect: (host, port) ->
 
   write: (data) ->
-    console.log 'MockSocket: write(', data, ')'
+    irc.util.fromSocketData data, ((msg) => @received msg)
 
   close: ->
-    console.log 'MockSocket: close()'
 
   setTimeout: (ms, callback) ->
-    console.log 'MockSocket: connect(', ms, callback, ')'
+
+  received: (msg) ->
+    @emit 'drain'
+
+  respond: (type, args...) ->
+    @emit type, args...
+
+  respondWithData: (msg) ->
+    irc.util.toSocketData msg, ((data) => @respond 'data', data)
 
 exports.MockSocket = MockSocket

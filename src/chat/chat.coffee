@@ -41,7 +41,7 @@ class IRC5
     c.on 'message', (target, type, args...) =>
       @onIRCMessage conn, target, type, args...
     c.on 'joined', (chan) => @onJoined conn, chan
-    c.on 'parted', (chan) => @onJoined conn, chan
+    c.on 'parted', (chan) => @onParted conn, chan
     c.connect(server, port)
     @systemWindow.conn = conn
 

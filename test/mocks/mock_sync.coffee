@@ -1,10 +1,8 @@
 exports = (window.chrome ?= {}).storage ?= {}
 
 class Sync
-  constructor: ->
-    @_storageMap =
-      nick:
-        'sugarman'
+  constructor: () ->
+    @_storageMap = {}
 
   set: (obj) ->
     (@_storageMap[k] = v for k, v of obj)
