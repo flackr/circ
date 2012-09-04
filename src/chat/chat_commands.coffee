@@ -48,4 +48,9 @@ class ChatCommands extends AbstractMessageHandler
       commands = @chatCommands.getCommands()
       @currentWindow.displayHelp commands
 
+    part: (reason...) ->
+      if (conn = @currentWindow.conn) and
+         (target = @currentWindow.target)
+        conn.irc.doCommand 'PART', target, reason.join(' ')
+
 chat.ChatCommands = ChatCommands

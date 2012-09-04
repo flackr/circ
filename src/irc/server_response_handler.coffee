@@ -50,14 +50,14 @@ class ServerResponseHandler extends AbstractMessageHandler
         console.warn "Got JOIN for channel we're not in (#{channel})"
 
     PART: (from, chan) ->
-      # TODO: when do we receive PART? can the server just PART us?
+      weLeft = @util.nicksEqual from.nick, @nick
       if c = @channels[chan]
         delete c.names[@util.normaliseNick from.nick]
-        @emit 'message', chan, 'part', from.nick
+        @emit 'message', chan, 'part', from.nick if not weLeft
       else
         console.warn "Got PART for channel we're not in (#{channel})"
 
-      if @util.nicksEqual from.nick, @nick
+      if weLeft
         @channels[chan]?.names = []
         @emit 'parted', chan
 
