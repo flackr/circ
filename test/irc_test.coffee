@@ -37,7 +37,7 @@ describe 'An IRC client', ->
   it 'does nothing on non-connection commands when disconnected', ->
     irc.quit()
     irc.giveup()
-    irc.doCommand('NICK', 'sugarman')
+    irc.doCommand 'NICK', 'sugarman'
     waitsForArrayBufferConversion()
     runs ->
       expect(irc.state).toBe 'disconnected'
@@ -82,33 +82,24 @@ describe 'An IRC client', ->
         runs ->
           expect(chat.onConnected).toHaveBeenCalled()
 
-      it 'emits join after joining a room', ->
-        irc.doCommand 'JOIN', '#sugarman'
-        waitsForArrayBufferConversion()
-        runs ->
-          expect(socket.received.callCount).toBe 1
-          expect(socket.received.mostRecentCall.args).toMatch /JOIN #sugarman\s*/
-
-      it "sends PRIVMSG on /say", ->
-        irc.doCommand 'JOIN', '#sugarman'
-        irc.doCommand 'PRIVMSG', '#sugarman', 'hello world'
-        waitsForArrayBufferConversion()
-        runs ->
-          expect(socket.received.callCount).toBe 2
-          expect(socket.received.mostRecentCall.args).toMatch /PRIVMSG #sugarman :hello world\s*/
-
-      it "can join multiple channels and /say on all of them", ->
-        irc.doCommand 'JOIN', '#sugarman'
-        irc.doCommand 'JOIN', '#sugarman2'
-        irc.doCommand 'PRIVMSG', '#sugarman', 'hello sugarman'
-        irc.doCommand 'PRIVMSG', '#sugarman2', 'hello sugarman2'
+      it "properly creates commands on doCommand()", ->
+        irc.doCommand 'JOIN', '#awesome'
+        irc.doCommand 'PRIVMSG', '#awesome', 'hello world'
+        irc.doCommand 'NICK', 'sugarman'
+        irc.doCommand 'PART', '#awesome', 'this channel is not awesome'
         waitsForArrayBufferConversion()
         runs ->
           expect(socket.received.callCount).toBe 4
-          expect(socket.received.argsForCall[0]).toMatch /JOIN #sugarman\s*/
-          expect(socket.received.argsForCall[1]).toMatch /JOIN #sugarman2\s*/
-          expect(socket.received.argsForCall[2]).toMatch /PRIVMSG #sugarman :hello sugarman\s*/
-          expect(socket.received.argsForCall[3]).toMatch /PRIVMSG #sugarman2 :hello sugarman2\s*/
+          expect(socket.received.argsForCall[0]).toMatch /JOIN #awesome\s*/
+          expect(socket.received.argsForCall[1]).toMatch /PRIVMSG #awesome :hello world\s*/
+          expect(socket.received.argsForCall[2]).toMatch /NICK sugarman\s*/
+          expect(socket.received.argsForCall[3]).toMatch /PART #awesome :this channel is not awesome\s*/
+
+      it 'emits join after joining a room', ->
+        socket.respondWithData ":sugarman!sugarman@company.com JOIN :#awesome\r\n"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onJoined).toHaveBeenCalled()
 
       it "responds to a PING with a PONG", ->
         socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"
@@ -128,7 +119,7 @@ describe 'An IRC client', ->
         jasmine.Clock.tick(50000)
         socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"
         jasmine.Clock.tick(50000)
-        irc.doCommand 'JOIN', '#sugarman'
+        irc.doCommand 'JOIN', '#awesome'
         waitsForArrayBufferConversion() # wait for JOIN
         runs ->
           jasmine.Clock.tick(50000)
@@ -137,11 +128,10 @@ describe 'An IRC client', ->
             expect(socket.received.callCount).toBe 2
 
       it "can disconnected from the server on /quit", ->
-        irc.doCommand 'JOIN', '#sugarman'
         irc.quit 'this is my reason'
         waitsForArrayBufferConversion()
         runs ->
-          expect(socket.received.callCount).toBe 2
+          expect(socket.received.callCount).toBe 1
           expect(socket.received.mostRecentCall.args).toMatch /QUIT :this is my reason\s*/
           expect(irc.state).toBe 'disconnected'
           expect(socket.close).toHaveBeenCalled()
