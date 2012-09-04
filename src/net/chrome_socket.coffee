@@ -53,22 +53,6 @@ class ChromeSocket extends net.AbstractTCPSocket
     chrome.socket.disconnect @socketId
     @emit 'close'
 
-  _active: ->
-    if @timeout
-      clearTimeout @timeout
-      @timeout = setTimeout (=> @emit 'timeout'), @timeout_ms
-
-  setTimeout: (ms, cb) ->
-    if ms > 0
-      @timeout = setTimeout (=> @emit 'timeout'), ms
-      @timeout_ms = ms
-      @once 'timeout', cb if cb
-    else if ms == 0
-      clearTimeout @timeout
-      @removeListener 'timeout', cb if cb
-      @timeout = null
-      @timeout_ms = 0
-
   @resolve: (host, cb) ->
     chrome.experimental.dns.resolve host, (res) ->
       if res.resultCode is 0

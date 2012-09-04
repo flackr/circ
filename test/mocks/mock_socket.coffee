@@ -7,19 +7,20 @@ class MockSocket extends net.AbstractTCPSocket
   connect: (host, port) ->
 
   write: (data) ->
+    @_active()
     irc.util.fromSocketData data, ((msg) => @received msg)
 
   close: ->
-
-  setTimeout: (ms, callback) ->
 
   received: (msg) ->
     @emit 'drain'
 
   respond: (type, args...) ->
+    @_active()
     @emit type, args...
 
   respondWithData: (msg) ->
+    @_active()
     irc.util.toSocketData msg, ((data) => @respond 'data', data)
 
 exports.MockSocket = MockSocket

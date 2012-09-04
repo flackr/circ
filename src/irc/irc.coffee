@@ -126,7 +126,7 @@ class IRC extends EventEmitter
       @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
         cmd.params...
     else
-      #console.warn 'Unknown cmd:', cmd.command
+#      console.warn 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd
 
 exports.IRC = IRC

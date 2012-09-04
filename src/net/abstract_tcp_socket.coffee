@@ -19,5 +19,19 @@ class AbstractTCPSocket extends EventEmitter
   close: ->
 
   setTimeout: (ms, callback) ->
+    if ms > 0
+      @timeout = setTimeout (=> @emit 'timeout'), ms
+      @timeout_ms = ms
+      @once 'timeout', callback if callback
+    else if ms == 0
+      clearTimeout @timeout
+      @removeListener 'timeout', callback if callback
+      @timeout = null
+      @timeout_ms = 0
+
+   _active: ->
+     if @timeout
+      clearTimeout @timeout
+      @timeout = setTimeout (=> @emit 'timeout'), @timeout_ms
 
 exports.AbstractTCPSocket = AbstractTCPSocket
