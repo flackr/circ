@@ -1,6 +1,9 @@
 exports = window.chat ?= {}
 
 class ChatCommands extends AbstractMessageHandler
+  getCommands: ->
+    Object.keys @handlers
+
   handlers:
     join: (chan) ->
       if conn = @currentWindow.conn
@@ -40,5 +43,9 @@ class ChatCommands extends AbstractMessageHandler
          (names = conn.irc.channels[target]?.names)
         names = (v for k,v of names).sort()
         @currentWindow.message '', JSON.stringify names
+
+    help: ->
+      commands = @chatCommands.getCommands()
+      @currentWindow.displayHelp commands
 
 chat.ChatCommands = ChatCommands

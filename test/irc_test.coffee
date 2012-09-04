@@ -67,7 +67,7 @@ describe 'An IRC client', ->
       runs ->
         expect(socket.received.mostRecentCall.args).toMatch /NICK sugarman_\s*/
 
-    describe 'then connected', ->
+    describe 'then connects', ->
 
       beforeEach ->
         resetSpies()

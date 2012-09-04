@@ -11,18 +11,21 @@ class Window
     scrollBottom == @$container[0].scrollHeight
 
   message: (from, msg, opts={}) ->
-    scroll = @isScrolledDown
-    e = escapeHTML
     extra_classes = [opts.type]
     msg = display msg
     @$messages.append $("""
     <div class='message #{extra_classes.join(' ')}'>
-      <div class='source'>#{e from}</div>
+      <div class='source'>#{escapeHTML from}</div>
       <div class='text'>#{msg}</div>
     </div>
     """)
-    if scroll
+    if @isScrolledDown
       @$container.scrollTop(@$container[0].scrollHeight)
+
+  displayHelp: (commands) ->
+    # TODO format nicely
+    commandList = ('/'+c for c in commands).join(' ')
+    @message '', "Commands Available: #{commandList}"
 
 escapeHTML = (html) ->
   escaped = {
