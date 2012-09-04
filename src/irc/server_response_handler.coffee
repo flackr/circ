@@ -80,7 +80,7 @@ class ServerResponseHandler extends AbstractMessageHandler
     # ERR_NICKNAMEINUSE
     433: (from, nick, msg) ->
       @preferredNick += '_'
-      @emit 'message', undefined, 'nickinuse', nick, @opts.nick, msg
-      @send 'NICK', @opts.nick
+      @emit 'message', undefined, 'nickinuse', nick, @preferredNick, msg
+      @send 'NICK', @preferredNick
 
 exports.ServerResponseHandler = ServerResponseHandler

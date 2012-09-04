@@ -1,6 +1,6 @@
 describe 'An IRC client', ->
   irc = socket = chat = undefined
-  
+
   waitsForArrayBufferConversion = () ->
     waitsFor (-> not window.irc.util.isConvertingArrayBuffers()),
       'wait for array buffer conversion', 50
@@ -61,6 +61,12 @@ describe 'An IRC client', ->
         expect(socket.received.argsForCall[0]).toMatch /NICK sugarman\s*/
         expect(socket.received.argsForCall[1]).toMatch /USER sugarman 0 \* :.+/
 
+    it 'appends an underscore when the desired nick is in use', ->
+      socket.respondWithData ":irc.freenode.net 433 * sugarman :Nickname is already in use.\r\n"
+      waitsForArrayBufferConversion()
+      runs ->
+        expect(socket.received.mostRecentCall.args).toMatch /NICK sugarman_\s*/
+
     describe 'then connected', ->
 
       beforeEach ->
@@ -118,7 +124,7 @@ describe 'An IRC client', ->
           expect(socket.received.callCount).toBe 1 # NICK, USER and now PING
           expect(socket.received.mostRecentCall.args).toMatch /PING \d+\s*/
 
-      it "doesn't send a PING if activity is happening", ->
+      it "doesn't send a PING if regularly active", ->
         jasmine.Clock.tick(50000)
         socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"
         jasmine.Clock.tick(50000)
