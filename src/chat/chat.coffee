@@ -79,7 +79,7 @@ class IRC5
       console.warn "received unknown message", conn.name, target, type, args
       return
 
-    @ircResponseHandler.setSource win
+    @ircResponseHandler.setWindow(win)
     @ircResponseHandler.handle type, args...
 
   system_handlers =

@@ -1,19 +1,34 @@
 exports = window.chat ?= {}
 
 class IRCResponseHandler extends AbstractMessageHandler
+  setWindow: (@window) ->
+    @_message = @window.message
+
   handlers:
     join: (nick) ->
-      @message '', "#{nick} joined the channel.", type:'join'
+      @_message '', "#{nick} joined the channel.", type:'join'
+
     part: (nick) ->
-      @message '', "#{nick} left the channel.", type:'part'
+      @_message '', "#{nick} left the channel.", type:'part'
+
     nick: (from, to) ->
-      @message '', "#{from} is now known as #{to}.", type:'nick'
+      @_message '', "#{from} is now known as #{to}.", type:'nick'
+
     quit: (nick, reason) ->
-      @message '', "#{nick} has quit: #{reason}.", type:'quit'
+      @_message '', "#{nick} has quit: #{reason}.", type:'quit'
+
     privmsg: (from, msg) ->
+      nick = @window.conn?.irc.nick
+      if chat.NickMentionedRegex.shouldNotify(nick, msg)
+        @_notifyNickMentioned from, msg
       if m = /^\u0001ACTION (.*)\u0001/.exec msg
-        @message '', "#{from} #{m[1]}", type:'privmsg action'
+        @_message '', "#{from} #{m[1]}", type:'privmsg action'
       else
-        @message from, msg, type:'privmsg'
+        @_message from, msg, type:'privmsg'
+
+    _notifyNickMentioned: (from, msg) ->
+      #TODO add callback to focus conversation where mentioned
+      notification = new NickMentionedNotification(from, msg)
+      notification.show()
 
 exports.IRCResponseHandler = IRCResponseHandler

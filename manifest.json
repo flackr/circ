@@ -8,6 +8,7 @@
     {"socket": [
       "tcp-connect"
     ]},
+    "notifications",
     "storage"
   ],
   "app": {
