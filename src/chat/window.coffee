@@ -19,7 +19,7 @@ class Window
       <div class='text'>#{msg}</div>
     </div>
     """)
-    if @isScrolledDown
+    if not @isScrolledDown()
       @$container.scrollTop(@$container[0].scrollHeight)
 
   displayHelp: (commands) ->
