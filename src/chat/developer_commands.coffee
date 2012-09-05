@@ -34,4 +34,7 @@ class DeveloperCommands extends AbstractMessageHandler
       @onTextInput "/win 1"
       @onTextInput "/quit quitting a sever in window 1"
 
+    n: ->
+      new chat.Notification('test', 'hi!').show()
+
 exports.DeveloperCommands = DeveloperCommands

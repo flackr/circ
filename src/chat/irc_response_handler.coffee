@@ -20,6 +20,7 @@ class IRCResponseHandler extends AbstractMessageHandler
       nick = @window.conn?.irc.nick
       ownMessage = from? and nick? and irc.util.nicksEqual from, nick
       if not ownMessage and chat.NickMentionedNotification.shouldNotify(nick, msg)
+        # TODO color text where name is mentioned so it stands out
         @_notifyNickMentioned from, msg
       if m = /^\u0001ACTION (.*)\u0001/.exec msg
         @window.message '', "#{from} #{m[1]}", type:'privmsg action'
@@ -27,7 +28,8 @@ class IRCResponseHandler extends AbstractMessageHandler
         @window.message from, msg, type:'privmsg'
 
   _notifyNickMentioned: (from, msg) ->
-    #TODO add callback to focus conversation where mentioned
+    #TODO cancel notification when focus is gained on the channel
+    #TODO add callback to focus conversation when user clicks on notification
     notification = new chat.NickMentionedNotification(from, msg)
     notification.show()
 
