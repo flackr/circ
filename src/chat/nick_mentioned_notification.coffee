@@ -5,17 +5,22 @@ class NickMentionedNotification extends window.chat.Notification
     super "#{from} mentioned you", msg
 
   @shouldNotify: (nick, msg) ->
-    # TODO actual impl untested, so returning false for now
-    return false
     return false if not nick?
-    testMsg = @_removeNicksThatFailLookBehind msg, nick
-    nickRegex = new RegExp @_escapeRegEx "@?sugarman_*[!?.]*[,:~\*]?(?!^\s)"
-    nickRegex.test testMsg
+    # TODO have optional underscores if it doesn't conflict with another name
+    msgToTest = @_prepMessageForRegex msg, nick
+    ///
+      \#nick\#     # the nickname
+      ([!?.]* |    # any number of ! ? .
+      [-:;~\*]?)  # or one ending punctuation
+      (?!\S)       # can't be followed by a letter
+    ///i.test msgToTest
 
-  @_removeNicksThatFailLookBehind: (msg, nick) ->
-    msg = msg.toLowerCase()
-    return msg.replace("\\S#{nick}", 'a')
+  # do negative lookbehind and replace nick with a placeholder
+  @_prepMessageForRegex: (msg, nick) ->
+    msg = msg.replace(/,/g, ' ') # treat commas as whitespace
+    msg = msg.replace(/\#nick\#/gi, 'a')
+    msg = msg.replace(new RegExp("@\?#{nick}", "ig"), '#nick#') # optional preceding @
+    # simulate a negative lookbehind to make sure only whitespace precedes the nick
+    return msg.replace(/\S\#nick\#/i, 'a')
 
-  @_escapeRegEx: (text) ->
-    text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
-
+exports.NickMentionedNotification = NickMentionedNotification

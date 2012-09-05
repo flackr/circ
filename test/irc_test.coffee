@@ -3,7 +3,7 @@ describe 'An IRC client', ->
 
   waitsForArrayBufferConversion = () ->
     waitsFor (-> not window.irc.util.isConvertingArrayBuffers()),
-      'wait for array buffer conversion', 50
+      'wait for array buffer conversion', 500
 
   resetSpies = () ->
     socket.connect.reset()
