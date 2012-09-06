@@ -2,7 +2,7 @@ exports = window.chat ?= {}
 
 class IRC5
   constructor: ->
-    @$main = $('#main')
+    @$channelDisplay = $('#channel-display')
 
     @ircResponseHandler = new chat.IRCResponseHandler()
     @chatCommands = new chat.ChatCommands(this)
@@ -108,7 +108,7 @@ class IRC5
       @currentWindow.scroll = @currentWindow.$container.scrollTop()
       @currentWindow.wasScrolledDown = @currentWindow.isScrolledDown()
       @currentWindow.$container.detach()
-    @$main.append win.$container
+    @$channelDisplay.prepend win.$container
     if win.wasScrolledDown
       win.scroll = win.$container[0].scrollHeight
     win.$container.scrollTop(win.scroll)

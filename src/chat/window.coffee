@@ -3,7 +3,7 @@ exports = window.chat ?= {}
 class Window
   constructor: (@name) ->
     @$container = $ "<div id='chat-container'>"
-    @$messages = $ "<div id='chat'>"
+    @$messages = $ "<div id='chat-messages'>"
     @$container.append @$messages
 
   isScrolledDown: ->
