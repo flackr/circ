@@ -63,11 +63,11 @@ class ServerResponseHandler extends AbstractMessageHandler
         @channels[chan]?.names = []
         @emit 'parted', chan
 
-    QUIT: (from, reason) ->
+    QUIT: (from, reason='Client Quit') ->
       normNick = @util.normaliseNick from.nick
-      for name, chan of @channels when normNick of chan.names
+      for chanName, chan of @channels when normNick of chan.names
         delete chan.names[normNick]
-        @emit 'message', chan, 'quit', from.nick
+        @emit 'message', chanName, 'quit', from.nick, reason
 
     PRIVMSG: (from, target, msg) ->
       # TODO: normalise channel target names

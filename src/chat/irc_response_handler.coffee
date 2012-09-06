@@ -6,15 +6,15 @@ class IRCResponseHandler extends AbstractMessageHandler
   handlers:
     join: (nick) ->
       @window.message '', "#{nick} joined the channel.", type:'join'
-      @window.addNick nick
+      @window.nicks.add nick
 
     part: (nick) ->
       @window.message '', "#{nick} left the channel.", type:'part'
-      @window.removeNick nick
+      @window.nicks.remove nick
 
     nick: (from, to) ->
       @window.message '', "#{from} is now known as #{to}.", type:'nick'
-      @window.renameNick from, to
+      @window.nicks.rename from, to
 
     quit: (nick, reason) ->
       @window.message '', "#{nick} has quit: #{reason}.", type:'quit'

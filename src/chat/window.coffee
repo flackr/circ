@@ -5,7 +5,7 @@ class Window
     @$container = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
     @$container.append @$messages
-    @$nickList = $ "#nicks"
+    @nicks = new chat.NickList()
 
   isScrolledDown: ->
     scrollBottom = @$container.scrollTop() + @$container.height()
@@ -22,32 +22,6 @@ class Window
     """)
     if not @isScrolledDown()
       @$container.scrollTop(@$container[0].scrollHeight)
-
-  addNicksInOrder: (nicks) ->
-    for nick in nicks
-      @$nickList.append $ "<li>#{nick}</li>"
-
-  addNick: (nick) ->
-    # TODO binary search
-    htmlNick = $ "<li>#{nick}</li>"
-    for nickLi in $ 'li', @$nickList
-      if $(nickLi).text() > nick
-        htmlNick.insertBefore $(nickLi)
-        return
-    @$nickList.append htmlNick
-
-  renameNick: (from, to) ->
-    @removeNick from
-    @addNick to
-
-  removeNick: (nick) ->
-    # TODO binary search
-    for nickLi in $ 'li', @$nickList
-      if irc.util.nicksEqual $(nickLi).text(), nick
-        $(nickLi).remove()
-
-  clearNicks: ->
-    @$nickList.empty()
 
   displayHelp: (commands) ->
     # TODO format nicely

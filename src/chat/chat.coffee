@@ -58,12 +58,12 @@ class IRC5
   onJoined: (conn, chan) ->
     unless win = conn.windows[chan]
       win = @makeWin conn, chan
-    win.clearNicks()
+    win.nicks.clear()
     win.message '', '(You joined the channel)', type:'system'
 
   onNames: (conn, chan, nicks) ->
     if win = conn.windows[chan]
-      win.addNicksInOrder(nicks)
+      win.nicks.addInOrder(nicks)
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
