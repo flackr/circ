@@ -37,14 +37,17 @@ class Window
     @$nickList.append htmlNick
 
   renameNick: (from, to) ->
-    removeNick from
-    addNick to
+    @removeNick from
+    @addNick to
 
   removeNick: (nick) ->
-    console.log 'remove nick'
+    # TODO binary search
+    for nickLi in $ 'li', @$nickList
+      if irc.util.nicksEqual $(nickLi).text(), nick
+        $(nickLi).remove()
 
   clearNicks: ->
-    console.log 'clear nicks'
+    @$nickList.empty()
 
   displayHelp: (commands) ->
     # TODO format nicely

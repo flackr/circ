@@ -32,10 +32,10 @@ class ServerResponseHandler extends AbstractMessageHandler
         @nick = newNick
       normNick = @util.normaliseNick from.nick
       newNormNick = @util.normaliseNick newNick
-      for name,chan of @channels when normNick of chan.names
+      for chanName, chan of @channels when normNick of chan.names
         delete chan.names[normNick]
         chan.names[newNormNick] = newNick
-        @emit 'message', chan, 'nick', from.nick, newNick
+        @emit 'message', chanName, 'nick', from.nick, newNick
 
     JOIN: (from, chan) ->
       if @util.nicksEqual from.nick, @nick
