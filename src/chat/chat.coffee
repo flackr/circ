@@ -63,7 +63,7 @@ class IRC5
 
   onNames: (conn, chan, nicks) ->
     if win = conn.windows[chan]
-      win.nicks.addInOrder(nicks)
+      win.nicks.add(nicks...)
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]

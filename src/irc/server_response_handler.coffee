@@ -63,7 +63,7 @@ class ServerResponseHandler extends AbstractMessageHandler
         @channels[chan]?.names = []
         @emit 'parted', chan
 
-    QUIT: (from, reason='Client Quit') ->
+    QUIT: (from, reason) ->
       normNick = @util.normaliseNick from.nick
       for chanName, chan of @channels when normNick of chan.names
         delete chan.names[normNick]
