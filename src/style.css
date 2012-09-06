@@ -40,7 +40,7 @@ body {
   -webkit-box-orient: vertical;
 }
 
-#channel-display {
+#window-container {
   display: -webkit-box;
   -webkit-box-orient: horizontal;
   -webkit-box-flex: 1;
