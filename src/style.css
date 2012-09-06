@@ -53,7 +53,6 @@ body {
 
 #chat-messages {
   display: table;
-  width: 100%;
 }
 
 .message {
@@ -94,5 +93,5 @@ body {
 #nicks {
   overflow-y: auto;
   width: 125;
-  padding: 0, 2px;
+  padding: 0 2px;
 }
