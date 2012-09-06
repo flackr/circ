@@ -18,7 +18,7 @@ class IRCResponseHandler extends AbstractMessageHandler
 
     privmsg: (from, msg) ->
       nick = @window.conn?.irc.nick
-      ownMessage = from? and nick? and irc.util.nicksEqual from, nick
+      ownMessage = irc.util.nicksEqual from, nick
       if not ownMessage and chat.NickMentionedNotification.shouldNotify(nick, msg)
         # TODO color text where name is mentioned so it stands out
         @_notifyNickMentioned from, msg

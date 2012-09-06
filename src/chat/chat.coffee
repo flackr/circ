@@ -25,7 +25,6 @@ class IRC5
     @status 'hi!'
 
     @connections = {}
-    # { 'freenode': { irc: irc.IRC, windows: {Window} } }
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
@@ -58,11 +57,11 @@ class IRC5
   onJoined: (conn, chan) ->
     unless win = conn.windows[chan]
       win = @makeWin conn, chan
-    win.message '', '(You joined the channel.)', type:'system'
+    win.message '', '(You joined the channel)', type:'system'
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
-      win.message '', '(You left the channel.)', type:'system'
+      win.message '', '(You left the channel)', type:'system'
 
   onIRCMessage: (conn, target, type, args...) =>
     if not target?

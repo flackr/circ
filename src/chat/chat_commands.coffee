@@ -5,10 +5,12 @@ class ChatCommands extends AbstractMessageHandler
     Object.keys @handlers
 
   handlers:
-    join: (chan) ->
+    join: (opt_chan) ->
       if conn = @currentWindow.conn
+        chan = opt_chan ? @currentWindow.target
+        return if not chan
         @currentWindow.conn.irc.doCommand 'JOIN', chan
-        win = @makeWin @currentWindow.conn, chan
+        win = conn.windows[chan] ? @makeWin conn, chan
         @switchToWindow win
 
     win: (num) ->

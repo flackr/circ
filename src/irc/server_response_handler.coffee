@@ -43,7 +43,7 @@ class ServerResponseHandler extends AbstractMessageHandler
         else
           @channels[chan] = {names:[]}
         @emit 'joined', chan
-      if c = @channels[chan]
+      else if c = @channels[chan]
         c.names[@util.normaliseNick from.nick] = from.nick
         @emit 'message', chan, 'join', from.nick
       else
@@ -52,8 +52,9 @@ class ServerResponseHandler extends AbstractMessageHandler
     PART: (from, chan) ->
       weLeft = @util.nicksEqual from.nick, @nick
       if c = @channels[chan]
-        delete c.names[@util.normaliseNick from.nick]
-        @emit 'message', chan, 'part', from.nick if not weLeft
+        unless weLeft
+          delete c.names[@util.normaliseNick from.nick]
+          @emit 'message', chan, 'part', from.nick
       else
         console.warn "Got PART for channel we're not in (#{channel})"
 
