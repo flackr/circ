@@ -40,6 +40,7 @@ class IRC5
     c.on 'message', (target, type, args...) =>
       @onIRCMessage conn, target, type, args...
     c.on 'joined', (chan) => @onJoined conn, chan
+    c.on 'names', (chan, names) => @onNames conn, chan, names
     c.on 'parted', (chan) => @onParted conn, chan
     c.connect(server, port)
     @systemWindow.conn = conn
@@ -57,7 +58,12 @@ class IRC5
   onJoined: (conn, chan) ->
     unless win = conn.windows[chan]
       win = @makeWin conn, chan
+    win.clearNicks()
     win.message '', '(You joined the channel)', type:'system'
+
+  onNames: (conn, chan, nicks) ->
+    if win = conn.windows[chan]
+      win.addNicksInOrder(nicks)
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]

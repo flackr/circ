@@ -6,12 +6,15 @@ class IRCResponseHandler extends AbstractMessageHandler
   handlers:
     join: (nick) ->
       @window.message '', "#{nick} joined the channel.", type:'join'
+      @window.addNick nick
 
     part: (nick) ->
       @window.message '', "#{nick} left the channel.", type:'part'
+      @window.removeNick nick
 
     nick: (from, to) ->
       @window.message '', "#{from} is now known as #{to}.", type:'nick'
+      @window.renameNick from, to
 
     quit: (nick, reason) ->
       @window.message '', "#{nick} has quit: #{reason}.", type:'quit'
@@ -20,7 +23,7 @@ class IRCResponseHandler extends AbstractMessageHandler
       nick = @window.conn?.irc.nick
       ownMessage = irc.util.nicksEqual from, nick
       if not ownMessage and chat.NickMentionedNotification.shouldNotify(nick, msg)
-        # TODO color text where name is mentioned so it stands out
+        # TODO color text where nick is mentioned so it stands out
         @_notifyNickMentioned from, msg
       if m = /^\u0001ACTION (.*)\u0001/.exec msg
         @window.message '', "#{from} #{m[1]}", type:'privmsg action'

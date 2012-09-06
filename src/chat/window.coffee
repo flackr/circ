@@ -5,6 +5,7 @@ class Window
     @$container = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
     @$container.append @$messages
+    @$nickList = $ "#nicks"
 
   isScrolledDown: ->
     scrollBottom = @$container.scrollTop() + @$container.height()
@@ -21,6 +22,29 @@ class Window
     """)
     if not @isScrolledDown()
       @$container.scrollTop(@$container[0].scrollHeight)
+
+  addNicksInOrder: (nicks) ->
+    for nick in nicks
+      @$nickList.append $ "<li>#{nick}</li>"
+
+  addNick: (nick) ->
+    # TODO binary search
+    htmlNick = $ "<li>#{nick}</li>"
+    for nickLi in $ 'li', @$nickList
+      if $(nickLi).text() > nick
+        htmlNick.insertBefore $(nickLi)
+        return
+    @$nickList.append htmlNick
+
+  renameNick: (from, to) ->
+    removeNick from
+    addNick to
+
+  removeNick: (nick) ->
+    console.log 'remove nick'
+
+  clearNicks: ->
+    console.log 'clear nicks'
 
   displayHelp: (commands) ->
     # TODO format nicely

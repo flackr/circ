@@ -102,7 +102,7 @@ class IRC extends EventEmitter
         @data = @data.slice(crlf+1)
         dataView = new Uint8Array @data
         @util.fromSocketData line, (lineStr) =>
-#          console.log '<=', "(#{@server})", lineStr
+          console.log '<=', "(#{@server})", lineStr
           @onCommand(@util.parseCommand lineStr)
       else
         break
@@ -113,8 +113,7 @@ class IRC extends EventEmitter
 
   send: (args...) ->
     msg = @util.makeCommand args...
-#    console.log('=>', "(#{@server})", msg[0...msg.length-2])
-#    console.warn "SEND:", msg
+    console.log('=>', "(#{@server})", msg[0...msg.length-2])
     @util.toSocketData msg, (arr) => @socket.write arr
 
   sendIfConnected: (args...) ->
@@ -126,7 +125,6 @@ class IRC extends EventEmitter
       @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
         cmd.params...
     else
-#      console.warn 'Unknown cmd:', cmd.command
       @emit 'message', undefined, 'unknown', cmd
 
 exports.IRC = IRC

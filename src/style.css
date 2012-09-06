@@ -12,13 +12,13 @@ body {
 #channels {
   border-right: 2px solid lightgray;
   overflow-y: auto;
-  width: 150;
+  width: 140;
   list-style: none;
   font-family: Helvetica, arial, sans-serif;
   font-size: 12px;
   margin: 0;
-  padding: 10px;
-  padding-right: 0;
+  padding: 4px;
+  padding-bottom: 0;
 }
 
 #channels li {
@@ -92,6 +92,17 @@ body {
 
 #nicks {
   overflow-y: auto;
-  width: 125;
-  padding: 0 2px;
+  overflow-x: hidden;
+  width: 100;
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 12px;
+  margin: 0;
+  padding: 4px;
+  padding-bottom: 0;
+  list-style: none;
+}
+
+#nicks li {
+  padding: 0 4px;
+  border-radius: 2px 0 0 2px;
 }

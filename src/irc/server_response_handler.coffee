@@ -15,15 +15,16 @@ class ServerResponseHandler extends AbstractMessageHandler
     # RPL_NAMREPLY
     353: (from, target, privacy, channel, names) ->
       l = (@partialNameLists[channel] ||= {})
+      newNames = []
       for n in names.split(/\x20/)
         n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
         l[@util.normaliseNick n] = n
+        newNames.push n
+      @emit 'names', channel, newNames
     # RPL_ENDOFNAMES
     366: (from, target, channel, _) ->
       if @channels[channel]
         @channels[channel].names = @partialNameLists[channel]
-      else
-        console.warn "Got name list for #{channel}, but we're not in it?"
       delete @partialNameLists[channel]
 
     NICK: (from, newNick, msg) ->
