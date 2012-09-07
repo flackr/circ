@@ -36,10 +36,8 @@ class ChatCommands extends AbstractMessageHandler
       @connect server, if port then parseInt port
 
     quit: (reason...) ->
-      console.warn 'REASON', reason
       if conn = @currentWindow.conn
         reason = if reason.length == 0 then 'Client Quit' else reason.join(' ')
-        console.warn 'REASON FINAL', reason
         conn.irc.quit reason
 
     names: ->

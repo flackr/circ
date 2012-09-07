@@ -17,7 +17,7 @@ class IRCResponseHandler extends AbstractMessageHandler
 
     nick: (from, to) ->
       @window.message '', "#{from} is now known as #{to}.", type:'nick'
-      @window.nicks.rename from, to
+      @window.nicks.replace from, to
 
     quit: (nick, reason) ->
       @window.message '', "#{nick} has quit: #{reason}.", type:'quit'

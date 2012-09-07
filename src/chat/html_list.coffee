@@ -2,66 +2,63 @@ exports = window.chat ?= {}
 
 class HTMLList extends EventEmitter
   constructor: (@$list, @ordered=false) ->
+    @nodes = {}
     super
 
   add: (names...) ->
     for name in names
+      continue if name of @nodes
       if @ordered
         @_addOrdered name
       else
-        @_addNode name
+        node = @_createNode name
+        @$list.append node.html
+
+  remove: (name) ->
+    if node = @nodes[name]
+      node.html.remove()
+      delete @nodes[name]
+
+  clear: ->
+    @nodes = {}
+    @$list.empty()
+
+  addClass: (name, c) ->
+    @nodes[name]?.html.addClass(c)
+
+  removeClass: (name) ->
+    @nodes[name]?.html.removeClass()
+
+  clearClasses: ->
+    for name of @nodes
+      @removeClass node
+
+  replace: (oldName, newName) ->
+    if @nodes[oldName]?
+      @remove oldName
+      @add newName
+
+  rename: (name, text) ->
+    @nodes[name]?.html.text(text)
 
   _addOrdered: (name) ->
     # TODO binary search
     for nameLi in $ 'li', @$list
       if $(nameLi).text() > name
-        htmlify(name).insertBefore $(nameLi)
+        node = @_createNode name
+        node.html.insertBefore $(nameLi)
         return
-    @_addNode name
+    node = @_createNode name
+    @$list.append node.html
 
-  _addNode: (name) ->
-    html = htmlify name
-    $(html).mousedown((e) => @_handleClick(e))
-    @$list.append html
+  _createNode: (name) ->
+    @nodes[name] = {html: htmlify name}
+    node = @nodes[name]
+    node.html.mousedown( => @_handleClick(node))
+    node
 
-  _handleClick: (e) ->
-    name = $(e.srcElement).text()
-    @emit 'clicked', name
-
-  addClass: (name, c) ->
-    node = @_find(name)
-    @_addClassToNode node, c if node
-
-  removeClass: (name) ->
-    node = @_find(name)
-    @_removeClassFromNode node if node
-
-  clearClasses: ->
-    for node in $ 'li', @$list
-      @_removeClassFromNode node
-
-  _addClassToNode: (node, c) ->
-    $(node).addClass(c)
-
-  _removeClassFromNode: (node) ->
-    $(node).removeClass()
-
-  rename: (from, to) ->
-    @remove from
-    @add to
-
-  remove: (name) ->
-    @_find(name)?.remove()
-
-  _find: (name) ->
-    # TODO binary search if ordered
-    for nameLi in $ 'li', @$list
-      if irc.util.nicksEqual $(nameLi).text(), name
-        return $(nameLi)
-    undefined
-
-  clear: ->
-    @$list.empty()
+  _handleClick: (node) ->
+    @emit 'clicked', node.html.text()
 
 htmlify = (name) ->
     $ "<li>#{name}</li>"

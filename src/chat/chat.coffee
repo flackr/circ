@@ -68,7 +68,7 @@ class IRC5
 
   _createWindowForChannel: (conn, chan) ->
     if win = conn.windows[chan]
-      @chanList.reconnect()
+      @chanList.reconnect(chan)
     else
       @chanList.add chan
       win = @makeWin conn, chan

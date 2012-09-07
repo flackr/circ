@@ -11,10 +11,16 @@ class ChannelList extends chat.HTMLList
     @lastSelected = channel
     @addClass channel, 'selected'
 
+  selectNext: ->
+    # TODO implement - used with ALT down/right
+
+  selectPrevious: ->
+    # TODO implement - used with ALT up/left
+
   disconnect: (channel) ->
-    #TODO color channel / server different when disconnected
+    @rename channel, '(' + channel + ')'
 
   reconnect: (channel) ->
-    #TODO color channel / server different when connected
+    @rename channel, channel
 
 exports.ChannelList = ChannelList
