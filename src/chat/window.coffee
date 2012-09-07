@@ -2,14 +2,29 @@ exports = window.chat ?= {}
 
 class Window
   constructor: (@name) ->
-    @$container = $ "<div id='chat-container'>"
+    @$container = $ "<div id='window-container'>"
+    @$messageContainer = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
-    @$container.append @$messages
-    @nicks = new chat.NickList()
+    @$nicks = $ "<ol id='nicks'>"
+    @$messageContainer.append @$messages
+    @$container.append @$messageContainer
+    @$container.append @$nicks
+    @nicks = new chat.NickList(@$nicks)
+
+  detach: ->
+    @scroll = @$messageContainer.scrollTop()
+    @wasScrolledDown = @isScrolledDown()
+    @$container.detach()
+
+  attachTo: (container) ->
+    container.prepend @$container
+    if @wasScrolledDown
+      @scroll = @$messageContainer[0].scrollHeight
+    @$messageContainer.scrollTop(@scroll)
 
   isScrolledDown: ->
-    scrollBottom = @$container.scrollTop() + @$container.height()
-    scrollBottom == @$container[0].scrollHeight
+    scrollBottom = @$messageContainer.scrollTop() + @$messageContainer.height()
+    scrollBottom == @$messageContainer[0].scrollHeight
 
   message: (from, msg, opts={}) ->
     extra_classes = [opts.type]
@@ -21,7 +36,7 @@ class Window
     </div>
     """)
     if not @isScrolledDown()
-      @$container.scrollTop(@$container[0].scrollHeight)
+      @$messageContainer.scrollTop(@$messageContainer[0].scrollHeight)
 
   displayHelp: (commands) ->
     # TODO format nicely

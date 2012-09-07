@@ -2,11 +2,16 @@ exports = window.chat ?= {}
 
 class IRC5
   constructor: ->
-    @$windowContainer = $('#window-container')
+    @$windowContainer = $('#chat')
 
     @ircResponseHandler = new chat.IRCResponseHandler()
     @chatCommands = new chat.ChatCommands(this)
     @chatCommands.addHandler new chat.DeveloperCommands(this)
+
+    @chanList = new chat.ChannelList()
+    @chanList.on 'clicked', (chan) =>
+      win = @_getWindowFromChan(chan)
+      @switchToWindow win
 
     @previousNick = undefined
     # TODO: don't let the user do anything until we load settings
@@ -53,13 +58,21 @@ class IRC5
   onDisconnected: (conn) ->
     @systemWindow.message '', "Disconnected from #{conn.name}"
     for chan, win of conn.windows
+      @chanList.disconnect chan
       win.message '', '(disconnected)', type:'system'
 
   onJoined: (conn, chan) ->
-    unless win = conn.windows[chan]
-      win = @makeWin conn, chan
+    win = @_createWindowForChannel conn, chan
     win.nicks.clear()
     win.message '', '(You joined the channel)', type:'system'
+
+  _createWindowForChannel: (conn, chan) ->
+    if win = conn.windows[chan]
+      @chanList.reconnect()
+    else
+      @chanList.add chan
+      win = @makeWin conn, chan
+    win
 
   onNames: (conn, chan, nicks) ->
     if win = conn.windows[chan]
@@ -67,6 +80,7 @@ class IRC5
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
+      @chanList.disconnect chan
       win.message '', '(You left the channel)', type:'system'
 
   onIRCMessage: (conn, target, type, args...) =>
@@ -109,16 +123,17 @@ class IRC5
     $('#status').text(status)
 
   switchToWindow: (win) ->
-    if @currentWindow
-      @currentWindow.scroll = @currentWindow.$container.scrollTop()
-      @currentWindow.wasScrolledDown = @currentWindow.isScrolledDown()
-      @currentWindow.$container.detach()
-    @$windowContainer.prepend win.$container
-    if win.wasScrolledDown
-      win.scroll = win.$container[0].scrollHeight
-    win.$container.scrollTop(win.scroll)
+    throw new Error("switching to non-existant window") if not win?
+    @currentWindow.detach() if @currentWindow
+    win.attachTo @$windowContainer
     @currentWindow = win
+    @chanList.select win.target
     @status()
+
+  _getWindowFromChan: (chan) ->
+    for win in @winList
+      return win if win.target == chan
+    undefined
 
   onTextInput: (text) ->
     if text[0] == '/'

@@ -1,6 +1,9 @@
 exports = window.chat ?= {}
 
 class IRCResponseHandler extends AbstractMessageHandler
+  constructor: (@chat) ->
+    super
+
   setWindow: (@window) ->
 
   handlers:
@@ -18,6 +21,7 @@ class IRCResponseHandler extends AbstractMessageHandler
 
     quit: (nick, reason) ->
       @window.message '', "#{nick} has quit: #{reason}.", type:'quit'
+      @window.nicks.remove nick
 
     privmsg: (from, msg) ->
       nick = @window.conn?.irc.nick

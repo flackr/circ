@@ -15,9 +15,9 @@ body {
   width: 140;
   list-style: none;
   font-family: Helvetica, arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   margin: 0;
-  padding: 4px;
+  padding: 0;
   padding-bottom: 0;
 }
 
@@ -27,9 +27,7 @@ body {
 }
 
 #channels li.selected {
-  background-color: lightgray;
-  font-weight: bold;
-  color: white;
+  background-color: DDD;
 }
 
 .longword { word-break: break-all; }
@@ -95,7 +93,7 @@ body {
   overflow-x: hidden;
   width: 100;
   font-family: Helvetica, arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   margin: 0;
   padding: 4px;
   padding-bottom: 0;

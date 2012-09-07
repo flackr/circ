@@ -9,9 +9,9 @@ class ChatCommands extends AbstractMessageHandler
       if conn = @currentWindow.conn
         chan = opt_chan ? @currentWindow.target
         return if not chan
-        @currentWindow.conn.irc.doCommand 'JOIN', chan
-        win = conn.windows[chan] ? @makeWin conn, chan
+        win = @_createWindowForChannel conn, chan
         @switchToWindow win
+        @currentWindow.conn.irc.doCommand 'JOIN', chan
 
     win: (num) ->
       num = parseInt(num)
