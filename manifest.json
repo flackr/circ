@@ -9,7 +9,8 @@
       "tcp-connect"
     ]},
     "notifications",
-    "storage"
+    "storage",
+    "fileSystem"
   ],
   "app": {
     "background": {

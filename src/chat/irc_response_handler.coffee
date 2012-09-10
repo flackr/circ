@@ -1,12 +1,13 @@
 exports = window.chat ?= {}
 
-class IRCResponseHandler extends AbstractMessageHandler
+class IRCResponseHandler extends MessageHandler
   constructor: (@chat) ->
     super
+    @registerHandlers @_ircResponses
 
   setWindow: (@window) ->
 
-  handlers:
+  _ircResponses:
     join: (nick) ->
       @window.message '', "#{nick} joined the channel.", type:'join'
       @window.nicks.add nick

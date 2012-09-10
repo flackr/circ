@@ -1,8 +1,12 @@
 exports = window.irc ?= {}
 
-class ServerResponseHandler extends AbstractMessageHandler
+class ServerResponseHandler extends MessageHandler
 
-  handlers:
+  constructor: (source) ->
+    super source
+    @registerHandlers @_serverResponses
+
+  _serverResponses:
     # RPL_WELCOME
     1: (from, target, msg) ->
       @nick = target

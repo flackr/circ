@@ -1,10 +1,14 @@
 exports = window.chat ?= {}
 
-class ChatCommands extends AbstractMessageHandler
-  getCommands: ->
-    Object.keys @handlers
+class ChatCommands extends MessageHandler
+  constructor: (source) ->
+    super source
+    @registerHandlers @_chatCommands
 
-  handlers:
+  getCommands: ->
+    Object.keys @_chatCommands
+
+  _chatCommands:
     join: (opt_chan) ->
       if conn = @currentWindow.conn
         return if not (conn.irc.state is 'connected')
