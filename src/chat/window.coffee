@@ -5,11 +5,11 @@ class Window
     @$container = $ "<div id='window-container'>"
     @$messageContainer = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
-    @$nicks = $ "<ol id='nicks'>"
+    nickDisplay = $ "<ol id='nicks'>"
     @$messageContainer.append @$messages
     @$container.append @$messageContainer
-    @$container.append @$nicks
-    @nicks = new chat.NickList(@$nicks)
+    @$container.append nickDisplay
+    @nicks = new chat.NickList(nickDisplay)
 
   detach: ->
     @scroll = @$messageContainer.scrollTop()

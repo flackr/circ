@@ -8,8 +8,8 @@ class IRC5
     @chatCommands = new chat.ChatCommands(this)
     @chatCommands.addHandler new chat.DeveloperCommands(this)
 
-    @chanList = new chat.ChannelList()
-    @chanList.on 'clicked', (chan) =>
+    @channelDisplay = new chat.ChannelList()
+    @channelDisplay.on 'clicked', (chan) =>
       win = @_getWindowFromChan(chan)
       @switchToWindow win
 
@@ -33,21 +33,20 @@ class IRC5
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
-    tries = 0
-    while @connections[name]
-      name = server + ++tries
-    c = new irc.IRC
-    c.setPreferredNick @previousNick if @previousNick?
-
-    conn = @connections[name] = {irc:c, name, windows:{}}
-    c.on 'connect', => @onConnected conn
-    c.on 'disconnect', => @onDisconnected conn
-    c.on 'message', (target, type, args...) =>
-      @onIRCMessage conn, target, type, args...
-    c.on 'joined', (chan) => @onJoined conn, chan
-    c.on 'names', (chan, names) => @onNames conn, chan, names
-    c.on 'parted', (chan) => @onParted conn, chan
-    c.connect(server, port)
+    if irc = @connections[name]?.irc
+      return if irc.state in ['connected', 'connecting']
+    else
+      irc = new window.irc.IRC
+      conn = @connections[name] = {irc:irc, name, windows:{}}
+      irc.on 'connect', => @onConnected conn
+      irc.on 'disconnect', => @onDisconnected conn
+      irc.on 'message', (target, type, args...) =>
+        @onIRCMessage conn, target, type, args...
+      irc.on 'joined', (chan) => @onJoined conn, chan
+      irc.on 'names', (chan, names) => @onNames conn, chan, names
+      irc.on 'parted', (chan) => @onParted conn, chan
+    irc.setPreferredNick @previousNick if @previousNick?
+    irc.connect(server, port)
     @systemWindow.conn = conn
 
   onConnected: (conn) ->
@@ -58,7 +57,7 @@ class IRC5
   onDisconnected: (conn) ->
     @systemWindow.message '', "Disconnected from #{conn.name}"
     for chan, win of conn.windows
-      @chanList.disconnect chan
+      @channelDisplay.disconnect chan
       win.message '', '(disconnected)', type:'system'
 
   onJoined: (conn, chan) ->
@@ -68,9 +67,9 @@ class IRC5
 
   _createWindowForChannel: (conn, chan) ->
     if win = conn.windows[chan]
-      @chanList.reconnect(chan)
+      @channelDisplay.reconnect(chan)
     else
-      @chanList.add chan
+      @channelDisplay.add chan
       win = @makeWin conn, chan
     win
 
@@ -80,7 +79,7 @@ class IRC5
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
-      @chanList.disconnect chan
+      @channelDisplay.disconnect chan
       win.message '', '(You left the channel)', type:'system'
 
   onIRCMessage: (conn, target, type, args...) =>
@@ -127,7 +126,7 @@ class IRC5
     @currentWindow.detach() if @currentWindow
     win.attachTo @$windowContainer
     @currentWindow = win
-    @chanList.select win.target
+    @channelDisplay.select win.target
     @status()
 
   _getWindowFromChan: (chan) ->

@@ -83,7 +83,6 @@ class IRC extends EventEmitter
     @connect()
 
   onData: (pdata) ->
-#    @util.fromSocketData pdata, (str) -> console.warn "RECV:", str
     @data = @util.concatSocketData @data, pdata
     dataView = new Uint8Array @data
     while dataView.length > 0
