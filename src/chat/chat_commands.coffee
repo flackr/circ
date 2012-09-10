@@ -7,6 +7,7 @@ class ChatCommands extends AbstractMessageHandler
   handlers:
     join: (opt_chan) ->
       if conn = @currentWindow.conn
+        return if not (conn.irc.state is 'connected')
         chan = opt_chan ? @currentWindow.target
         return if not chan
         win = @_createWindowForChannel conn, chan

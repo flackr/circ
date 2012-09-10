@@ -52,13 +52,13 @@ class HTMLList extends EventEmitter
     @$list.append node.html
 
   _createNode: (name) ->
-    @nodes[name] = {html: htmlify name}
+    @nodes[name] = {html: htmlify(name), name: name}
     node = @nodes[name]
     node.html.mousedown( => @_handleClick(node))
     node
 
   _handleClick: (node) ->
-    @emit 'clicked', node.html.text()
+    @emit 'clicked', node.name
 
 htmlify = (name) ->
     $ "<li>#{name}</li>"

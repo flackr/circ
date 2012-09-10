@@ -17,10 +17,14 @@ class ChannelList extends chat.HTMLList
   selectPrevious: ->
     # TODO implement - used with ALT up/left
 
+  add: (chan) ->
+    super chan
+    @disconnect(chan)
+
   disconnect: (channel) ->
     @rename channel, '(' + channel + ')'
 
-  reconnect: (channel) ->
+  connect: (channel) ->
     @rename channel, channel
 
 exports.ChannelList = ChannelList

@@ -62,16 +62,16 @@ class IRC5
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
+    @channelDisplay.connect chan
     win.nicks.clear()
     win.message '', '(You joined the channel)', type:'system'
 
   _createWindowForChannel: (conn, chan) ->
-    if win = conn.windows[chan]
-      @channelDisplay.reconnect(chan)
-    else
+    window = conn.windows[chan]
+    if not window
       @channelDisplay.add chan
-      win = @makeWin conn, chan
-    win
+      window = @makeWin conn, chan
+    window
 
   onNames: (conn, chan, nicks) ->
     if win = conn.windows[chan]
