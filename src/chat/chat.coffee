@@ -74,11 +74,11 @@ class IRC5
     win.message '', '(You joined the channel)', type:'system'
 
   _createWindowForChannel: (conn, chan) ->
-    window = conn.windows[chan]
-    if not window
+    win = conn.windows[chan]
+    if not win
       @channelDisplay.add chan
-      window = @makeWin conn, chan
-    window
+      win = @makeWin conn, chan
+    win
 
   onNames: (conn, chan, nicks) ->
     if win = conn.windows[chan]

@@ -1,7 +1,7 @@
 exports = window
 
 class MessageHandler
-  constructor: (source=null) ->
+  constructor: (source=this) ->
     @_source = source
     @_handlerMap ?= {}
     @_mergedHandlers = []
