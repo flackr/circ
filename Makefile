@@ -6,6 +6,7 @@ build: clean
 	cp src/chat/* bin/
 	cp src/irc/* bin/
 	cp src/net/* bin/
+	cp src/script/* bin/
 	cp third_party/*.js bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee

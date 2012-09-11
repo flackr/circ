@@ -1,8 +1,10 @@
 {
-  "name": "IRC for Chrome",
+  "name": "CIRC",
   "description": "An IRC client for Chrome",
-  "version": "0.2",
+  "version": "0.0.1",
   "manifest_version": 2,
+  "icons": { "16": "icon/icon16.png", "48": "icon/icon48.png", "128": "icon/icon128.png" },
+
   "permissions": [
     "experimental",
     {"socket": [
@@ -12,10 +14,10 @@
     "storage",
     "fileSystem"
   ],
+
   "app": {
     "background": {
       "scripts": ["bin/background.js"]
     }
-  },
-  "icons": { "16": "icon/icon16.png", "48": "icon/icon48.png", "128": "icon/icon128.png" }
+  }
 }
