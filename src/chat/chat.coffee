@@ -8,13 +8,6 @@ class IRC5
     @chatCommands = new chat.ChatCommands(this)
     @chatCommands.mergeHandlers new chat.DeveloperCommands(this)
 
-# TODO add script handler
-#    @scriptHandler = new ScriptHandler()
-#    @scriptHandler.loadScripts()
-#
-#    customCommands = @scriptHandler.getCustomCommandHandler()
-#    @chatCommands.addHandler(customCommands)
-
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (chan) =>
       win = @_getWindowFromChan(chan)

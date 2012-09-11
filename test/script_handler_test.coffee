@@ -11,7 +11,9 @@ describe 'A script handler', ->
     msg = script.postMessage.mostRecentCall.args[0]
     expect(msg.type).toEqual 'startup'
 
-  xit "sends 'command' when a command is entered", ->
+  xit "sends 'command' when a registered command is entered", ->
+
+  xit "does not send 'command' when a non-registered command is entered", ->
 
   xit "sends 'message' when a message is sent from a user", ->
 
@@ -20,9 +22,3 @@ describe 'A script handler', ->
   xit "sends 'notification_clicked' when a notification is clicked", ->
 
   xit "sends 'scrolled_out_of_view' when a message scrolls out of view", ->
-
-  xit "can have custom commands registered", ->
-
-  xit "can print input on the 'input' command", ->
-
-  xit "can create a desktop notification on the 'notify' command", ->
