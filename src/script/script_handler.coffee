@@ -3,9 +3,9 @@ exports = window.script ?= {}
 class ScriptHandler extends EventEmitter
   constructor: ->
     @_frames = []
-    @_commands = new script.ScriptCommands()
-    @_commands.setEmitCallback (args...) => @emit args...
-    addEventListener 'message', @_handleEvent e
+    @_commands = new script.ScriptCommandHandler()
+    @_commands.setEmitCallback @_onCommand
+    addEventListener 'message', @_handleEvent
 
   addScriptFrame: (frame) ->
     @_frames.push frame
@@ -17,5 +17,11 @@ class ScriptHandler extends EventEmitter
       console.warn 'script sent unknown command:', type
     else
       @_commands.handle type, e.data
+
+  _onCommand: (args...) =>
+
+  tearDown: ->
+    removeEventListener 'message', @_handleEvent
+
 
 exports.ScriptHandler = ScriptHandler

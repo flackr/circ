@@ -67,7 +67,7 @@ describe 'A message handler', ->
   it 'can merge handlers', ->
     mh.registerHandler 'eat', onEat
     mh.registerHandler 'run', onRun
-    mh.mergeHandlers mock
+    mh.merge mock
     expect(mh.canHandle('eat')).toBe true
     expect(mh.canHandle('drink')).toBe true
     expect(mh.canHandle('run')).toBe true

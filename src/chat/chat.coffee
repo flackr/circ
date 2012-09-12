@@ -6,7 +6,7 @@ class IRC5
 
     @ircResponseHandler = new chat.IRCResponseHandler()
     @chatCommands = new chat.ChatCommands(this)
-    @chatCommands.mergeHandlers new chat.DeveloperCommands(this)
+    @chatCommands.merge new chat.DeveloperCommands(this)
 
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (chan) =>

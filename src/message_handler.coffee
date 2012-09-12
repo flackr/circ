@@ -9,7 +9,7 @@ class MessageHandler
   setSource: (source) ->
     @_source = source
 
-  mergeHandlers: (handlerObject) ->
+  merge: (handlerObject) ->
     @_mergedHandlers.push handlerObject
 
   registerHandlers: (handlers) ->

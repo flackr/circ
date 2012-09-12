@@ -1,15 +1,18 @@
 describe 'A script handler', ->
+  sh = undefined
   script = jasmine.createSpyObj 'script', ['postMessage']
 
   beforeEach ->
     sh = new window.script.ScriptHandler()
     sh.addScriptFrame(script)
 
+  afterEach ->
+    sh.tearDown()
+
   it "sends 'startup' on startup", ->
     expect(script.postMessage.calls.length).toEqual 1
-    expect(script.postMessage).toHaveBeenCalledWith jasmine.any(Object), jasmine.any(String)
     msg = script.postMessage.mostRecentCall.args[0]
-    expect(msg.type).toEqual 'startup'
+    expect(msg.type).toBe 'startup'
 
   xit "sends 'command' when a registered command is entered", ->
 
