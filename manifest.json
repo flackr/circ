@@ -19,5 +19,9 @@
     "background": {
       "scripts": ["bin/background.js"]
     }
+  },
+
+  "sandbox": {
+    "pages": [ "bin/script_frame.html" ]
   }
 }

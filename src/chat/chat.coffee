@@ -1,7 +1,8 @@
 exports = window.chat ?= {}
 
-class IRC5
+class Chat extends EventEmitter
   constructor: ->
+    super
     @$windowContainer = $('#chat')
 
     @ircResponseHandler = new chat.IRCResponseHandler()
@@ -27,9 +28,11 @@ class IRC5
     @systemWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
     @systemWindow.message '', "Alt+[0-9] switches windows."
 
-    @status 'hi!'
+    @updateStatus 'hi!'
 
     @connections = {}
+
+  registerScriptEvents: (emitter) ->
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
@@ -116,7 +119,7 @@ class IRC5
     @winList.push(win)
     win
 
-  status: (status) ->
+  updateStatus: (status) ->
     if !status
       status = "[#{@currentWindow.conn?.irc.nick}] #{@currentWindow.target}"
     $('#status').text(status)
@@ -127,7 +130,7 @@ class IRC5
     win.attachTo @$windowContainer
     @currentWindow = win
     @channelDisplay.select win.target
-    @status()
+    @updateStatus()
 
   _getWindowFromChan: (chan) ->
     for win in @winList
@@ -139,10 +142,11 @@ class IRC5
       cmd = text[1..].split(/\s+/)
       type = cmd[0].toLowerCase()
       if @chatCommands.canHandle type
+        @emit 'command', type, cmd[1..]...
         @chatCommands.handle type, cmd[1..]...
       else
         console.log "no such command"
     else
       @chatCommands.handle 'say', text
 
-exports.IRC5 = IRC5
+exports.Chat = Chat

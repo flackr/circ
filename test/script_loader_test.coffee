@@ -1,42 +1,54 @@
 describe 'A script loader', ->
-  sl = frame = onMessage = undefined
+  sl = frame = undefined
   numFrames = undefined
 
+  onMessage = jasmine.createSpy 'onMessage'
+  addEventListener 'message', onMessage
+
   script = """
+    var data = { msg: 'hi!', script: window.script };
+    parent.window.postMessage(data, '*');
     addEventListener('message', function(e) {
-      var response = {
-        received: e.data,
-        script: window.script
-      }
-      e.source.postMessage(response, '*');
+      e.source.postMessage(e.data, '*');
     });
   """
 
-  waitsForScriptToRespond = ->
-    waitsFor (-> onMessage.calls.length > 0),
+  maliciousScript = """
+    chromeAPI = 'none';
+    try {
+      chromeAPI = window.parent.chrome;
+    } catch (ex) { }
+    parent.window.postMessage({chromeAPI: chromeAPI}, '*');
+  """
+
+  waitsForScriptToLoad = ->
+    waitsFor (-> onMessage.calls.length > 1),
       'onMessage should have been called', 500
 
   beforeEach ->
-    onMessage = jasmine.createSpy 'onMessage'
-    addEventListener 'message', onMessage
+    onMessage.reset()
     numFrames = $('iframe').length
+    sl = window.script.loader
 
-    sl = new window.script.ScriptLoader()
-    frame = sl.loadIntoFrame script
-    frame.postMessage 'hi!', '*'
+  afterEach ->
+    $('iframe').remove()
 
   it 'creates an invisible iframe on loadIntoFrame()', ->
+    frame = sl.loadIntoFrame script
     expect($('iframe').length).toEqual numFrames + 1
     expect($('iframe')[0].style.display).toBe 'none'
 
   it 'calls eval() on the script source code', ->
-    waitsForScriptToRespond()
+    frame = sl.loadIntoFrame script
+    waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data
-      expect(data.received).toEqual 'hi!'
+      expect(data.msg).toEqual 'hi!'
+      expect(data.script).toBeUndefined()
 
   it 'has the script run in a sandbox', ->
-    waitsForScriptToRespond()
+    frame = sl.loadIntoFrame maliciousScript
+    waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data
-      expect(data.script).toBeUndefined()
+      expect(data.chromeAPI).toBeUndefined()

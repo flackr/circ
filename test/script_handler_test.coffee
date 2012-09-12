@@ -16,8 +16,6 @@ describe 'A script handler', ->
 
   xit "sends 'command' when a registered command is entered", ->
 
-  xit "does not send 'command' when a non-registered command is entered", ->
-
   xit "sends 'message' when a message is sent from a user", ->
 
   xit "sends 'message' when a message is sent from a server", ->

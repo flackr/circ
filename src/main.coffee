@@ -1,4 +1,23 @@
-irc5 = new chat.IRC5
+chat = new window.chat.Chat
+
+#scriptHandler = new window.script.ScriptHandler()
+#scriptHandler.registerChatEvents chat
+#chat.registerScriptEvents scriptHandler
+#
+#f = document.createElement('iframe')
+#$(f).attr('src', 'script_frame.html')
+#f.style.display = 'none'
+#document.body.appendChild(f)
+#
+#addEventListener 'message', (e) ->
+#  console.log 'got', e.data, 'from', e.origin
+#  console.log 'is our frame?', e.source == f.contentWindow
+#
+#pm = ->
+#  f.contentWindow.postMessage('to iframe', '*')
+#  console.log 'posted message to frame'
+#
+#setTimeout(pm, 100)
 
 $cmd = $('#cmd')
 $cmd.focus()
@@ -8,7 +27,7 @@ $(window).keydown (e) ->
     e.currentTarget = $('#cmd')[0]
     $cmd.focus()
   if e.altKey and 48 <= e.which <= 57
-    irc5.onTextInput "/win " + (e.which - 48)
+    chat.onTextInput "/win " + (e.which - 48)
     e.preventDefault()
 
 $cmd.keydown (e) ->
@@ -16,4 +35,4 @@ $cmd.keydown (e) ->
     input = $cmd.val()
     if input.length > 0
       $cmd.val('')
-      irc5.onTextInput input
+      chat.onTextInput input
