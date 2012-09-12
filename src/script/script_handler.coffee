@@ -4,11 +4,13 @@ class ScriptHandler extends EventEmitter
   constructor: ->
     @_frames = []
     @_commands = new script.ScriptCommandHandler()
-    @_commands.setEmitCallback @_onCommand
+    @_commands.setCallback @_onCommand
+    @_events = new script.ScriptEventHandler()
+    @_events.setCallback @_onEvent
     addEventListener 'message', @_handleMessage
 
   registerChatEvents: (emitter) ->
-    emitter.on 'command'
+    @_events.listenTo emitter
 
   addScriptFrame: (frame) ->
     @_frames.push frame
@@ -28,6 +30,9 @@ class ScriptHandler extends EventEmitter
 
   _onCommand: (commandArgs...) =>
     @emit commandArgs...
+
+  _onEvent: (eventObj) =>
+    # TODO determine which frames should receive the eventObj
 
   tearDown: ->
     removeEventListener 'message', @_handleEvent

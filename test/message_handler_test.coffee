@@ -80,3 +80,8 @@ describe 'A message handler', ->
     expect(mock._handlerMap.drink).toHaveBeenCalledWith 'water'
     expect(onRun).toHaveBeenCalledWith()
 
+  it 'can listen to an event emitter', ->
+    emitter = new EventEmitter()
+    mh.listenTo emitter
+    emitter.emit 'eat', 'bacon', 'pie'
+    expect(onEat).toHaveBeenCalledWith 'bacon', 'pie'

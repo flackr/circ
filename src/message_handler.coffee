@@ -9,6 +9,12 @@ class MessageHandler
   setSource: (source) ->
     @_source = source
 
+  listenTo: (emitter) ->
+    for type of @_handlerMap
+      emitter.on type, (args...) => @handle type, args...
+    for handler in @_mergedHandlers
+      handler.listeneTo emitter
+
   merge: (handlerObject) ->
     @_mergedHandlers.push handlerObject
 

@@ -6,7 +6,7 @@ class ScriptCommandHandler extends MessageHandler
     super
     @registerHandlers @_commands
 
-  setEmitCallback: (@_emit) ->
+  setCallback: (@_onCommand) ->
 
   handle: (@_type, args...) ->
     @_checksPassed = true
@@ -15,19 +15,19 @@ class ScriptCommandHandler extends MessageHandler
 
   _commands:
     register_command: (args) ->
-      @_emitCommand args, 'command'
+      @_sendCommand args, 'command'
 
     input: (args) ->
-      @_emitCommand args, 'channel', 'server', 'input'
+      @_sendCommand args, 'channel', 'server', 'input'
 
     notify: (args) ->
-      @_emitCommand args, 'title', 'body', 'id', 'timeout'
+      @_sendCommand args, 'title', 'body', 'id', 'timeout'
 
-  _emitCommand: (argObj, params...) ->
+  _sendCommand: (argObj, params...) ->
     (@_check argObj[param]? for param in params)
     return unless @_checksPassed
     a = [argObj.type, (argObj[param] for param in params)...]
-    @_emit argObj.type, (argObj[param] for param in params)...
+    @_onCommand argObj.type, (argObj[param] for param in params)...
 
   _check: (cond) ->
     return if cond or not @_checksPassed

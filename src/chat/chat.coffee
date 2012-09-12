@@ -142,7 +142,6 @@ class Chat extends EventEmitter
       cmd = text[1..].split(/\s+/)
       type = cmd[0].toLowerCase()
       if @chatCommands.canHandle type
-        @emit 'command', type, cmd[1..]...
         @chatCommands.handle type, cmd[1..]...
       else
         console.log "no such command"

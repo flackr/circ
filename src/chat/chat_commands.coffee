@@ -8,6 +8,10 @@ class ChatCommands extends MessageHandler
   getCommands: ->
     Object.keys @_chatCommands
 
+  handle: (type, params...) ->
+    @_source.emit 'command', type, params...
+    super type, params...
+
   _chatCommands:
     join: (opt_chan) ->
       if conn = @currentWindow.conn
