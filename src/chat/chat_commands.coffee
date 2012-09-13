@@ -8,8 +8,7 @@ class ChatCommands extends MessageHandler
   getCommands: ->
     Object.keys @_chatCommands
 
-  handle: (type, params...) ->
-    @_source.emit 'command', type, params...
+  handle: (type, server, chanel, params...) ->
     super type, params...
 
   _chatCommands:

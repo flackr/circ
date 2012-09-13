@@ -1,0 +1,3 @@
+class ScriptInterceptor extends MessageHandler
+
+  

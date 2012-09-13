@@ -1,4 +1,15 @@
+userInput = new UserInputHandler
+
+scriptHandler = new ScriptHandler
+userInput = scriptHandler.intercept(userInput)
+
 chat = new window.chat.Chat
+chat.setUserInput userInput
+chat.setScriptEvents scriptHandler
+chat.interceptIRCEvents scriptHandler.intercept
+
+userInput.setContext chat
+scriptHandler.setChatEvents chat
 
 #scriptHandler = new window.script.ScriptHandler()
 #scriptHandler.registerChatEvents chat
@@ -18,21 +29,3 @@ chat = new window.chat.Chat
 #  console.log 'posted message to frame'
 #
 #setTimeout(pm, 100)
-
-$cmd = $('#cmd')
-$cmd.focus()
-
-$(window).keydown (e) ->
-  unless e.metaKey or e.ctrlKey
-    e.currentTarget = $('#cmd')[0]
-    $cmd.focus()
-  if e.altKey and 48 <= e.which <= 57
-    chat.onTextInput "/win " + (e.which - 48)
-    e.preventDefault()
-
-$cmd.keydown (e) ->
-  if e.which == 13
-    input = $cmd.val()
-    if input.length > 0
-      $cmd.val('')
-      chat.onTextInput input

@@ -1,4 +1,4 @@
-describe 'A script command handler', ->
+xdescribe 'A script command handler', ->
   sc = onCommand = undefined
 
   handle = (argObj) ->

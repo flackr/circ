@@ -32,7 +32,17 @@ class Chat extends EventEmitter
 
     @connections = {}
 
-  registerScriptEvents: (emitter) ->
+  setUserInput: (userInput) ->
+    @chatCommands.listenTo userInput
+    userInput.on 'switch_window', (winNum) =>
+      @switchToWindow @winList[winNum] if @winList[winNum]?
+
+  setScriptEvents: (scriptEvents) ->
+    # TODO
+    #scriptEvents.on 'notify', @createNotification
+    #scriptEvents.on 'print', @printText
+
+  interceptIRCEvents: (@ircIntercepter) ->
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
@@ -41,13 +51,14 @@ class Chat extends EventEmitter
     else
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, windows:{}}
-      irc.on 'connect', => @onConnected conn
-      irc.on 'disconnect', => @onDisconnected conn
-      irc.on 'message', (target, type, args...) =>
-        @onIRCMessage conn, target, type, args...
-      irc.on 'joined', (chan) => @onJoined conn, chan
-      irc.on 'names', (chan, names) => @onNames conn, chan, names
-      irc.on 'parted', (chan) => @onParted conn, chan
+      ircEvents = @ircIntercepter?(irc, name) ? irc
+      ircEvents.on 'connect', => @onConnected conn
+      ircEvents.on 'disconnect', => @onDisconnected conn
+      ircEvents.on 'message', (chan, type, args...) =>
+        @onIRCMessage conn, chan, type, args...
+      ircEvents.on 'joined', (chan) => @onJoined conn, chan
+      ircEvents.on 'names', (chan, names) => @onNames conn, chan, names
+      ircEvents.on 'parted', (chan) => @onParted conn, chan
     irc.setPreferredNick @previousNick if @previousNick?
     irc.connect(server, port)
     @systemWindow.conn = conn
@@ -85,19 +96,19 @@ class Chat extends EventEmitter
       @channelDisplay.disconnect chan
       win.message '', '(You left the channel)', type:'system'
 
-  onIRCMessage: (conn, target, type, args...) =>
-    if not target?
+  onIRCMessage: (conn, chan, type, args...) =>
+    if not chan?
       system_handlers[type].apply @systemWindow, [conn].concat(args)
       return
 
-    win = conn.windows[target]
+    win = conn.windows[chan]
     if not win
-      @systemWindow.message conn.name, "unknown message: #{target}(#{type}): #{JSON.stringify args}"
-      console.warn "message to unknown target", conn.name, target, type, args
+      @systemWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify args}"
+      console.warn "message to unknown chan", conn.name, chan, type, args
       return
 
     if not @ircResponseHandler.canHandle type
-      console.warn "received unknown message", conn.name, target, type, args
+      console.warn "received unknown message", conn.name, chan, type, args
       return
 
     @ircResponseHandler.setWindow(win)
@@ -136,16 +147,5 @@ class Chat extends EventEmitter
     for win in @winList
       return win if win.target == chan
     undefined
-
-  onTextInput: (text) ->
-    if text[0] == '/'
-      cmd = text[1..].split(/\s+/)
-      type = cmd[0].toLowerCase()
-      if @chatCommands.canHandle type
-        @chatCommands.handle type, cmd[1..]...
-      else
-        console.log "no such command"
-    else
-      @chatCommands.handle 'say', text
 
 exports.Chat = Chat
