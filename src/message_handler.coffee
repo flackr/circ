@@ -12,8 +12,6 @@ class MessageHandler
   listenTo: (emitter) ->
     for type of @_handlerMap
       emitter.on type, (args...) => @handle type, args...
-    for handler in @_mergedHandlers
-      handler.listeneTo emitter
 
   merge: (handlerObject) ->
     @_mergedHandlers.push handlerObject
@@ -25,11 +23,11 @@ class MessageHandler
   registerHandler: (type, handler) ->
     @_handlerMap[type] = handler
 
-  handle: (type, params...) ->
-    assert @canHandle(type)
-    @_handlerMap[type]?.apply @_source, params
-    for handler in @_mergedHandlers
-      handler._handlerMap[type]?.apply @_source, params
+  handle: (@type, params...) ->
+    assert @canHandle(@type)
+    @_handlerMap[@type]?.apply @_source, params
+    for handler in @_mergedHandlers when handler.canHandle @type
+      handler.handle @type, params...
 
   canHandle: (type) ->
     return true if type of @_handlerMap

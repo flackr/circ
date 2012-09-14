@@ -8,8 +8,10 @@ class ChatCommands extends MessageHandler
   getCommands: ->
     Object.keys @_chatCommands
 
-  handle: (type, server, chanel, params...) ->
-    super type, params...
+  listenTo: (emitter) ->
+    emitter.on 'command', (server, channel, command, args...) =>
+      if @canHandle command
+        @handle command, args...
 
   _chatCommands:
     join: (opt_chan) ->

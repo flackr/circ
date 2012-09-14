@@ -1,15 +1,15 @@
 userInput = new UserInputHandler
+scriptHandler = new window.script.ScriptHandler
+chat = new window.chat.Chat
 
-scriptHandler = new ScriptHandler
+userInput.setContext chat
+
+scriptHandler.intercept chat
 userInput = scriptHandler.intercept(userInput)
 
-chat = new window.chat.Chat
 chat.setUserInput userInput
 chat.setScriptEvents scriptHandler
 chat.interceptIRCEvents scriptHandler.intercept
-
-userInput.setContext chat
-scriptHandler.setChatEvents chat
 
 #scriptHandler = new window.script.ScriptHandler()
 #scriptHandler.registerChatEvents chat

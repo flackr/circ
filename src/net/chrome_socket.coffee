@@ -20,8 +20,8 @@ class ChromeSocket extends net.AbstractTCPSocket
 
   _onConnect: (rc) =>
     if rc < 0
-      # TODO: I'm pretty sure we should never get a -1 here..
-      # TODO: we should destroy the socket when we get an error.
+      # Can get -109, -105, -102 when entering a server we can't connect to
+      # TODO make better error messages
       @emit 'error', rc
     else
       @emit 'connect'

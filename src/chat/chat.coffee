@@ -6,8 +6,9 @@ class Chat extends EventEmitter
     @$windowContainer = $('#chat')
 
     @ircResponseHandler = new chat.IRCResponseHandler()
-    @chatCommands = new chat.ChatCommands(this)
-    @chatCommands.merge new chat.DeveloperCommands(this)
+    @chatCommands = new chat.ChatCommands this
+    devCommands = new chat.DeveloperCommands @chatCommands
+    @chatCommands.merge devCommands
 
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (chan) =>
@@ -42,7 +43,7 @@ class Chat extends EventEmitter
     #scriptEvents.on 'notify', @createNotification
     #scriptEvents.on 'print', @printText
 
-  interceptIRCEvents: (@ircIntercepter) ->
+  interceptIRCEvents: (@ircInterceptor) ->
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
@@ -51,7 +52,7 @@ class Chat extends EventEmitter
     else
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, windows:{}}
-      ircEvents = @ircIntercepter?(irc, name) ? irc
+      ircEvents = @ircInterceptor?(irc, name) ? irc
       ircEvents.on 'connect', => @onConnected conn
       ircEvents.on 'disconnect', => @onDisconnected conn
       ircEvents.on 'message', (chan, type, args...) =>

@@ -8,10 +8,10 @@ class ScriptCommandHandler extends MessageHandler
 
   setCallback: (@_onCommand) ->
 
-  handle: (@_type, args...) ->
+  handle: (type, args...) ->
     @_checksPassed = true
-    assert args[0].type is @_type
-    super @_type, args...
+    assert args[0].type is type
+    super type, args...
 
   _commands:
     register_command: (args) ->
@@ -31,7 +31,7 @@ class ScriptCommandHandler extends MessageHandler
 
   _check: (cond) ->
     return if cond or not @_checksPassed
-    console.warn 'script command', @_type, 'was malformated'
+    console.warn 'script command', @type, 'was malformated'
     @_checksPassed = false
 
 exports.ScriptCommandHandler = ScriptCommandHandler

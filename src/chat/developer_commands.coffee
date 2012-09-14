@@ -1,44 +1,47 @@
 exports = window.chat ?= {}
 
 class DeveloperCommands extends MessageHandler
-  constructor: (source) ->
-    super source
+  constructor: (@_commandHandler) ->
+    super undefined
     @registerHandlers @_developerCommands
 
   _developerCommands:
     1: ->
-      @onTextInput "/server irc.corp.google.com"
+      @_handleCommand "server", "irc.corp.google.com"
 
     2: ->
-      @onTextInput "/nick sugarman#{Math.floor(Math.random() * 100)}"
+      @_handleCommand "nick", "sugarman#{Math.floor(Math.random() * 100)}"
 
     3: ->
-      @onTextInput "/join #sugarman"
+      @_handleCommand "join", "#sugarman"
 
     4: ->
-      @onTextInput "hello thar #{irc.util.randomName()}!"
+      @_handleCommand "say", "hello thar #{irc.util.randomName()}!"
 
     5: ->
-      @onTextInput "/join #sugarman2"
+      @_handleCommand "join", "#sugarman2"
 
     6: ->
-      @onTextInput "/say Hey #{irc.util.randomName()}!"
+      @_handleCommand "say", "Hey #{irc.util.randomName()}!"
 
     7: ->
-      @onTextInput "/server irc.freenode.net"
+      @_handleCommand "server", "irc.freenode.net"
 
     8: ->
-      @onTextInput "/win 0"
-      @onTextInput "/join #sugarman"
+      @_handleCommand "win", "0"
+      @_handleCommand "join", "#sugarman"
 
     q: ->
-      @onTextInput "/quit quitting a server"
+      @_handleCommand "quit", "quitting a server"
 
     q1: ->
-      @onTextInput "/win 1"
-      @onTextInput "/quit quitting a sever in window 1"
+      @_handleCommand "win", "1"
+      @_handleCommand "quit", "quitting a sever in window 1"
 
     n: ->
       new chat.Notification('test', 'hi!').show()
+
+  _handleCommand: (command, text) ->
+    @_commandHandler.handle command, text.split(' ')...
 
 exports.DeveloperCommands = DeveloperCommands
