@@ -2,18 +2,20 @@ exports = window.script ?= {}
 
 class ScriptLoader
   constructor: ->
-    @_frameToScriptMap = {}
+    @_scripts = {}
     addEventListener('message', @_sendSourceCode)
 
   _sendSourceCode: (e) =>
-    if (script = @_frameToScriptMap[e.source]) and e.data.type == 'onload'
-      e.source.postMessage { type: 'script', script: script }, '*'
-      delete @_frameToScriptMap[e.source]
+    script = window.script.Script.getScriptFromFrame @_scripts, e.source
+    if script? and e.data.type == 'onload'
+      script.postMessage { type: 'script', script: script }
+      delete @_scripts[script.id]
 
   loadIntoFrame: (sourceCode) ->
     frame = @_createIframe()
-    @_frameToScriptMap[frame] = sourceCode
-    frame
+    script = new window.script.Script sourceCode, frame
+    @_scripts[script.id] = script
+    script
 
   _createIframe: ->
     iframe = document.createElement('iframe')

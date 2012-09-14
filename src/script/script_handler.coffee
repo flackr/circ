@@ -3,9 +3,7 @@ exports = window.script ?= {}
 class ScriptHandler extends EventEmitter
   constructor: ->
     super
-    @_frames = {}
-    @_frameCount = 0
-    @_hookedCommandMap = {}
+    @_scripts = {}
     @_pendingCommandsMap = {}
     @_commandCount = 0
     @_emitterContext = {}
@@ -37,58 +35,43 @@ class ScriptHandler extends EventEmitter
     emitCommand = ['command', arguments...]
     id = @_commandCount++
     assert not (id of @_pendingCommandsMap)
-    for fid, frame of @_frames when @_hookedCommandMap[fid]?
-      if command in @_hookedCommandMap[fid]
-        frame.postMessage { type: 'command', context: {server, channel}, command, args, id }, '*'
-        @_pendingCommandsMap[id] ?= {}
-        @_pendingCommandsMap[id].frames ?= []
-        @_pendingCommandsMap[id].frames.push frame
-        @_pendingCommandsMap[id].command ?= emitCommand
+    for sid, script of @_scripts when command in script.hookedCommands
+      script.postMessage { type: 'command', context: {server, channel}, command, args, id }
+      @_pendingCommandsMap[id] ?= {}
+      @_pendingCommandsMap[id].scripts ?= []
+      @_pendingCommandsMap[id].scripts.push script
+      @_pendingCommandsMap[id].command ?= emitCommand
     if not (id of @_pendingCommandsMap)
       @emit emitCommand...
 
-  addScriptFrame: (frame) ->
-    id = @_frameCount++
-    @_frames[id] = frame
-    frame.id = id
-
-  _getIDForFrame: (frame) ->
-    for id, f of @_frames
-      return id if f == frame
-    return undefined
-
-  _removeElement: (array, toRemove) =>
-    for e, i in array
-      if toRemove == e
-        array.splice i, 1
-        return
+  addScript: (script) ->
+    @_scripts[script.id] = script
 
   _handleMessage: (e) =>
-    frameID = @_getIDForFrame e.source
-    return unless frameID? and e.data?.type
+    script = window.script.Script.getScriptFromFrame e.source
+    return unless script? and e.data?.type
     switch e.data.type
       when 'hook_command'
         return unless e.data.command
-        @_hookedCommandMap[frameID] ?= []
-        @_hookedCommandMap[frameID].push e.data.command
+        script.hookedCommands.push e.data.command
 
       when 'propagation'
         id = e.data.id
-        frames = @_pendingCommandsMap[id]?.frames
+        scripts = @_pendingCommandsMap[id]?.scripts
         command = @_pendingCommandsMap[id]?.command
-        return unless frames? and command? and e.source in frames
+        return unless scripts? and command? and e.source in scripts
         if e.data.prevent is 'all'
           delete @_pendingCommandsMap[id]
         else if e.data.prevent is 'none'
-          @_removeElement frames, e.source
-          if frames.length == 0
+          util.removeFromArray scripts, e.source
+          if scripts.length == 0
             delete @_pendingCommandsMap[id]
             @emit command
         else
           console.warn 'received unknown propagation prevention type:', e.data.prevent
 
       when 'command'
-        # TODO add the frameid to a blacklist so we don't go into a loop
+        # TODO add the script id to a blacklist so we don't go into a loop
         # TODO check args for correctness
         d = e.data
         @_handleCommand d.context.server, d.context.channel, d.command, d.args...
