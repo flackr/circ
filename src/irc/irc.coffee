@@ -124,6 +124,16 @@ class IRC extends EventEmitter
       @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
         cmd.params...
     else
-      @emit 'message', undefined, 'unknown', cmd
+      @emitMessage 'unknown', undefined, cmd
+
+  emit: (name, channel, args...) ->
+    event = new Event 'server', name, args...
+    event.setContext @server, channel
+    super event.type, event
+
+  emitMessage: (name, channel, args...) ->
+    event = new Event 'message', name, args...
+    event.setContext @server, channel
+    IRC.__super__.emit.call(this, event.type, event)
 
 exports.IRC = IRC

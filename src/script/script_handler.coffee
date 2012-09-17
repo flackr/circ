@@ -4,19 +4,17 @@ class ScriptHandler extends EventEmitter
   constructor: ->
     super
     @_scripts = {}
-    @_pendingCommandsMap = {}
-    @_commandCount = 0
-    @_emitterContext = {}
-#    @_commands = new script.ScriptCommandHandler()
-#    @_commands.setCallback @_onCommand
-#    @_events = new script.ScriptEventHandler()
-#    @_events.setCallback @_onEvent
+    @_pendingEvents = {}
+    @_eventCount = 0
     @_emitters = []
-    @_hookedEvents = [ 'command' ]
+    @_hookableEvents = [ 'command', 'server' ]
     addEventListener 'message', @_handleMessage
 
+  addScript: (script) ->
+    @_scripts[script.id] = script
+
   on: (ev, cb) ->
-    if not (ev in @_hookedEvents)
+    if not (ev in @_hookableEvents)
       @_forwardEvent ev, cb
     else
       super ev, cb
@@ -25,56 +23,52 @@ class ScriptHandler extends EventEmitter
     for emitter in @_emitters
       emitter.on ev, cb
 
-  intercept: (emitter, opt_context) =>
+  intercept: (emitter) =>
     @_emitters.push emitter
-    @_emitterContext[emitter] = opt_context
-    emitter.on 'command', @_handleCommand
+    for event in @_hookableEvents
+      emitter.on event, @_handleEvent
     this
 
-  _handleCommand: (server, channel, command, args...) =>
-    emitCommand = ['command', arguments...]
-    id = @_commandCount++
-    assert not (id of @_pendingCommandsMap)
-    for sid, script of @_scripts when command in script.hookedCommands
-      script.postMessage { type: 'command', context: {server, channel}, command, args, id }
-      @_pendingCommandsMap[id] ?= {}
-      @_pendingCommandsMap[id].scripts ?= []
-      @_pendingCommandsMap[id].scripts.push script
-      @_pendingCommandsMap[id].command ?= emitCommand
-    if not (id of @_pendingCommandsMap)
-      @emit emitCommand...
+  _handleEvent: (e) =>
+    id = @_eventCount++
+    e.id = id
+    assert not (id of @_pendingEvents)
+    for sid, script of @_scripts when e.hook in script.hookedMessages
+      script.postMessage e
+      @_pendingEvents[id] ?= {}
+      @_pendingEvents[id].scripts ?= []
+      @_pendingEvents[id].scripts.push script
+      @_pendingEvents[id].event ?= e
+    if not (id of @_pendingEvents)
+      @emit e.type, e
 
-  addScript: (script) ->
-    @_scripts[script.id] = script
-
-  _handleMessage: (e) =>
-    script = window.script.Script.getScriptFromFrame @_scripts, e.source
-    return unless script? and e.data?.type
-    switch e.data.type
-      when 'hook_command'
-        return unless e.data.command
-        script.hookedCommands.push e.data.command
+  _handleMessage: (message) =>
+    e = message.data
+    script = window.script.Script.getScriptFromFrame @_scripts, message.source
+    return unless script?
+    switch e.type
+      when 'hook_command', 'hook_server', 'hook_message'
+        script.hookedMessages.push e.type[5..] + e.name
 
       when 'propagation'
-        id = e.data.id
-        scripts = @_pendingCommandsMap[id]?.scripts
-        command = @_pendingCommandsMap[id]?.command
-        return unless scripts? and command? and script in scripts
-        if e.data.prevent is 'all'
-          delete @_pendingCommandsMap[id]
-        else if e.data.prevent is 'none'
+        id = e.id
+        scripts = @_pendingEvents[id]?.scripts
+        pendingEvent = @_pendingEvents[id]?.event
+        return unless scripts? and pendingEvent? and script in scripts
+        if e.prevent is 'all'
+          delete @_pendingEvents[id]
+        else if e.prevent is 'none'
           removeFromArray scripts, script
           if scripts.length == 0
-            delete @_pendingCommandsMap[id]
-            @emit command
+            delete @_pendingEvents[id]
+            @emit pendingEvent.type, pendingEvent
         else
-          console.warn 'received unknown propagation prevention type:', e.data.prevent
+          console.warn 'received unknown propagation prevention type:', e.prevent
 
-      when 'command'
+      when 'command', 'sevrer', 'message'
         # TODO add the script id to a blacklist so we don't go into a loop
         # TODO check args for correctness
-        d = e.data
-        @_handleCommand d.context.server, d.context.channel, d.command, d.args...
+        @_handleEvent e
 
   tearDown: ->
     removeEventListener 'message', @_handleEvent

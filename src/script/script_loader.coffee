@@ -8,7 +8,6 @@ class ScriptLoader
   _sendSourceCode: (e) =>
     script = window.script.Script.getScriptFromFrame @_scripts, e.source
     if script? and e.data.type == 'onload'
-      console.log 'got onload!'
       script.postMessage { type: 'source_code', sourceCode: script.sourceCode }
       delete @_scripts[script.id]
 

@@ -53,16 +53,39 @@ class Chat extends EventEmitter
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, windows:{}}
       ircEvents = @ircInterceptor?(irc, name) ? irc
-      ircEvents.on 'connect', => @onConnected conn
-      ircEvents.on 'disconnect', => @onDisconnected conn
-      ircEvents.on 'message', (chan, type, args...) =>
-        @onIRCMessage conn, chan, type, args...
-      ircEvents.on 'joined', (chan) => @onJoined conn, chan
-      ircEvents.on 'names', (chan, names) => @onNames conn, chan, names
-      ircEvents.on 'parted', (chan) => @onParted conn, chan
+      ircEvents.on 'server', (e) => @onServerEvent conn, e
+      ircEvents.on 'message', (e) => @onMessageEvent conn, e
     irc.setPreferredNick @previousNick if @previousNick?
     irc.connect(server, port)
     @systemWindow.conn = conn
+
+  onServerEvent: (conn, e) ->
+    switch e.name
+      when 'connect' then @onConnected conn
+      when 'disconnect' then @onDisconnected conn
+      when 'joined' then @onJoined conn, e.context.channel, e.args...
+      when 'names' then @onNames conn, e.context.channel, e.args...
+      when 'parted' then @onParted conn, e.context.channel, e.args...
+
+  onMessageEvent: (conn, e) ->
+    chan = e.context.channel
+    type = e.name
+    if not chan?
+      system_handlers[type].apply @systemWindow, [conn].concat(e.args)
+      return
+
+    win = conn.windows[chan]
+    if not win
+      @systemWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify e.args}"
+      console.warn "message to unknown chan", conn.name, chan, type, e.args
+      return
+
+    if not @ircResponseHandler.canHandle type
+      console.warn "received unknown message", conn.name, chan, type, e.args
+      return
+
+    @ircResponseHandler.setWindow(win)
+    @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->
     @systemWindow.message '', "Connected to #{conn.name}"
@@ -96,24 +119,6 @@ class Chat extends EventEmitter
     if win = conn.windows[chan]
       @channelDisplay.disconnect chan
       win.message '', '(You left the channel)', type:'system'
-
-  onIRCMessage: (conn, chan, type, args...) =>
-    if not chan?
-      system_handlers[type].apply @systemWindow, [conn].concat(args)
-      return
-
-    win = conn.windows[chan]
-    if not win
-      @systemWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify args}"
-      console.warn "message to unknown chan", conn.name, chan, type, args
-      return
-
-    if not @ircResponseHandler.canHandle type
-      console.warn "received unknown message", conn.name, chan, type, args
-      return
-
-    @ircResponseHandler.setWindow(win)
-    @ircResponseHandler.handle type, args...
 
   system_handlers =
     welcome: (conn, msg) ->

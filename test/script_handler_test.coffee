@@ -1,8 +1,13 @@
 describe 'A script handler', ->
   script1 = script2 = sh = emitter = onEmit = undefined
 
-  sendMessage = (script, data) ->
-    sh._handleMessage { source: script.frame, data }
+  sendMessage = (script, event) ->
+    sh._handleMessage { source: script.frame, data: event }
+
+  emit = (type, server, channel, name, args...) ->
+    event = new Event(type, name, args...)
+    event.setContext server, channel
+    emitter.emit type, event
 
   onCommand = jasmine.createSpy('onCommand')
   onUnknown = jasmine.createSpy('onUnknown')
@@ -26,42 +31,47 @@ describe 'A script handler', ->
   afterEach ->
     sh.tearDown()
 
-  it "intercepts events that have been hooked", ->
-    sendMessage script1, { type: 'hook_command', command: 'say' }
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+  it "intercepts user commands that have been hooked", ->
+    sendMessage script1, { type: 'hook_command', name: 'say' }
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+    expect(sh.emit).not.toHaveBeenCalled()
+
+  it "intercepts server messages that have been hooked", ->
+    sendMessage script1, { type: 'hook_server', name: 'joined' }
+    emit 'server', 'freenode', '', 'joined', '#bash'
     expect(sh.emit).not.toHaveBeenCalled()
 
   it "doesn't intercept events that haven't been hooked", ->
     sh.on 'command', onCommand
     sh.on 'unknown', onUnknown
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
-    emitter.emit 'unknown', 'blah'
-    expect(onCommand).toHaveBeenCalledWith('freenode', '#bash', 'say', 'hey', 'there!')
-    expect(onUnknown).toHaveBeenCalledWith('blah')
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+    emit 'unknown'
+    expect(onCommand).toHaveBeenCalled()
+    expect(onUnknown).toHaveBeenCalled()
 
   it "sends an event when a hooked event is entered", ->
-    sendMessage script1, { type: 'hook_command', command: 'say' }
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
-    data = script1.postMessage.mostRecentCall.args[0]
+    sendMessage script1, { type: 'hook_command', name: 'say' }
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+    event = script1.postMessage.mostRecentCall.args[0]
 
-    expect(data.type).toBe 'command'
-    expect(data.context.server).toBe 'freenode'
-    expect(data.context.channel).toBe '#bash'
-    expect(data.command).toBe 'say'
-    expect(data.args).toEqual ['hey', 'there!']
-    expect(data.id).toEqual(jasmine.any(Number))
+    expect(event.type).toBe 'command'
+    expect(event.context.server).toBe 'freenode'
+    expect(event.context.channel).toBe '#bash'
+    expect(event.name).toBe 'say'
+    expect(event.args).toEqual ['hey', 'there!']
+    expect(event.id).toEqual(jasmine.any(Number))
 
-  it "sends events only to the registered scripts", ->
-    sendMessage script1, { type: 'hook_command', command: 'say' }
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+  it "sends events only to the scripts that have hooked them", ->
+    sendMessage script1, { type: 'hook_command', name: 'say' }
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
 
     expect(script1.postMessage).toHaveBeenCalled()
     expect(script2.postMessage).not.toHaveBeenCalled()
 
   it "forwards events only after receiving 'prevent: none' from all scripts", ->
-    sendMessage script1, { type: 'hook_command', command: 'say' }
-    sendMessage script2, { type: 'hook_command', command: 'say' }
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+    sendMessage script1, { type: 'hook_command', name: 'say' }
+    sendMessage script2, { type: 'hook_command', name: 'say' }
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
@@ -71,9 +81,9 @@ describe 'A script handler', ->
     expect(sh.emit).toHaveBeenCalled()
 
   it "swallows events when received 'prevent: all' from at least one script", ->
-    sendMessage script1, { type: 'hook_command', command: 'say' }
-    sendMessage script2, { type: 'hook_command', command: 'say' }
-    emitter.emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
+    sendMessage script1, { type: 'hook_command', name: 'say' }
+    sendMessage script2, { type: 'hook_command', name: 'say' }
+    emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
@@ -85,8 +95,8 @@ describe 'A script handler', ->
   it "sends 'command' when a registered command is entered", ->
     sendMessage script1, {
       type: 'command', context: { server: 'freenode', channel: '#bash' },
-      command: 'say', args: ['hi', 'there!'] }
-    expect(sh.emit).toHaveBeenCalledWith 'command', 'freenode', '#bash', 'say', 'hi', 'there!'
+      name: 'say', args: ['hi', 'there!'] }
+    expect(sh.emit).toHaveBeenCalled()
 
   xit "sends 'message' when a message is sent from a user", ->
 

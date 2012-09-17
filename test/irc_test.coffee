@@ -69,6 +69,10 @@ describe 'An IRC client', ->
 
     describe 'then connects', ->
 
+      joinChannel = (chan, nick='sugarman') ->
+        socket.respondWithData ":#{nick}!sugarman@company.com JOIN :#{chan}\r\n"
+        waitsForArrayBufferConversion()
+
       beforeEach ->
         resetSpies()
         socket.respondWithData ":cameron.freenode.net 001 sugarman :Welcome\r\n"
@@ -81,6 +85,14 @@ describe 'An IRC client', ->
       it 'emits connect', ->
         runs ->
           expect(chat.onConnected).toHaveBeenCalled()
+
+      it 'emits a welcome message', ->
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalled()
+          args = chat.onIRCMessage.mostRecentCall.args
+          expect(args[1]).toBeUndefined() # channel
+          expect(args[2]).toBe 'welcome' # type
+          expect(args[3]).toEqual jasmine.any String # message
 
       it "properly creates commands on doCommand()", ->
         irc.doCommand 'JOIN', '#awesome'
@@ -95,11 +107,20 @@ describe 'An IRC client', ->
           expect(socket.received.argsForCall[2]).toMatch /NICK sugarman\s*/
           expect(socket.received.argsForCall[3]).toMatch /PART #awesome :this channel is not awesome\s*/
 
-      it 'emits join after joining a room', ->
-        socket.respondWithData ":sugarman!sugarman@company.com JOIN :#awesome\r\n"
-        waitsForArrayBufferConversion()
+      it "emits 'join' after joining a room", ->
+        joinChannel('#awesome')
         runs ->
           expect(chat.onJoined).toHaveBeenCalled()
+
+      it "emits a message when someone else joins a room", ->
+        joinChannel '#awesome'
+        joinChannel '#awesome', 'bill'
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalled()
+          args = chat.onIRCMessage.mostRecentCall.args
+          expect(args[1]).toBe '#awesome'
+          expect(args[2]).toBe 'join'
+          expect(args[3]).toBe 'bill'
 
       it "responds to a PING with a PONG", ->
         socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"

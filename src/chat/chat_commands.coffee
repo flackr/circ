@@ -9,9 +9,9 @@ class ChatCommands extends MessageHandler
     Object.keys @_chatCommands
 
   listenTo: (emitter) ->
-    emitter.on 'command', (server, channel, command, args...) =>
-      if @canHandle command
-        @handle command, args...
+    emitter.on 'command', (e) =>
+      if @canHandle e.name
+        @handle e.name, e.args...
 
   _chatCommands:
     join: (opt_chan) ->
@@ -27,14 +27,15 @@ class ChatCommands extends MessageHandler
       num = parseInt(num)
       @switchToWindow @winList[num] if num < @winList.length
 
-    say: (text...) ->
+    say: (text) ->
       if (target = @currentWindow.target) and (conn = @currentWindow.conn)
-        msg = text.join(' ')
-        @onIRCMessage conn, target, 'privmsg', conn.irc.nick, msg
-        conn.irc.doCommand 'PRIVMSG', target, msg
+        event = new Event 'message', 'privmsg', conn.irc.nick, text
+        event.setContext conn.name, target
+        @onMessageEvent conn, event
+        conn.irc.doCommand 'PRIVMSG', target, text
 
-    me: (text...) ->
-      commands.say.call this, '\u0001ACTION '+text.join(' ')+'\u0001'
+    me: (text) ->
+      commands.say.call this, '\u0001ACTION '+text+'\u0001'
 
     nick: (newNick) ->
       if conn = @currentWindow.conn

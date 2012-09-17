@@ -12,7 +12,7 @@ class ServerResponseHandler extends MessageHandler
       @nick = target
       @emit 'connect'
       @state = 'connected'
-      @emit 'message', undefined, 'welcome', msg
+      @emitMessage 'welcome', undefined, msg
       for name,c of @channels
         @sendIfConnected 'JOIN', name
 
@@ -39,7 +39,7 @@ class ServerResponseHandler extends MessageHandler
       for chanName, chan of @channels when normNick of chan.names
         delete chan.names[normNick]
         chan.names[newNormNick] = newNick
-        @emit 'message', chanName, 'nick', from.nick, newNick
+        @emitMessage 'nick', chanName, from.nick, newNick
 
     JOIN: (from, chan) ->
       if @util.nicksEqual from.nick, @nick
@@ -50,16 +50,16 @@ class ServerResponseHandler extends MessageHandler
         @emit 'joined', chan
       else if c = @channels[chan]
         c.names[@util.normaliseNick from.nick] = from.nick
-        @emit 'message', chan, 'join', from.nick
+        @emitMessage 'join', chan, from.nick
       else
-        console.warn "Got JOIN for channel we're not in (#{channel})"
+        console.warn "Got JOIN for channel we're not in (#{chan})"
 
     PART: (from, chan) ->
       weLeft = @util.nicksEqual from.nick, @nick
       if c = @channels[chan]
         unless weLeft
           delete c.names[@util.normaliseNick from.nick]
-          @emit 'message', chan, 'part', from.nick
+          @emitMessage 'part', chan, from.nick
       else
         console.warn "Got PART for channel we're not in (#{channel})"
 
@@ -71,12 +71,12 @@ class ServerResponseHandler extends MessageHandler
       normNick = @util.normaliseNick from.nick
       for chanName, chan of @channels when normNick of chan.names
         delete chan.names[normNick]
-        @emit 'message', chanName, 'quit', from.nick, reason
+        @emitMessage 'quit', chanName, from.nick, reason
 
     PRIVMSG: (from, target, msg) ->
       # TODO: normalise channel target names
       # TODO: should we pass more info about from?
-      @emit 'message', target, 'privmsg', from.nick, msg
+      @emitMessage 'privmsg', target, from.nick, msg
 
     PING: (from, payload) ->
       @send 'PONG', payload
@@ -86,7 +86,7 @@ class ServerResponseHandler extends MessageHandler
     # ERR_NICKNAMEINUSE
     433: (from, nick, msg) ->
       @preferredNick += '_'
-      @emit 'message', undefined, 'nickinuse', nick, @preferredNick, msg
+      @emitMessage 'nickinuse', undefined, nick, @preferredNick, msg
       @send 'NICK', @preferredNick
 
 exports.ServerResponseHandler = ServerResponseHandler

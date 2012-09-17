@@ -3,7 +3,7 @@ exports = window.script ?= {}
 class Script
   constructor: (@sourceCode, @frame) ->
     @id = Script.getUniqueID()
-    @hookedCommands = []
+    @hookedMessages = []
 
   postMessage: (msg) ->
     @frame.postMessage msg, '*'

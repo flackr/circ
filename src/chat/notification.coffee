@@ -9,7 +9,6 @@ class Notification extends EventEmitter
       @_image, @_title, @_message)
 
     @notification.onclick = =>
-      console.log 'CLICKED'
       @cancel()
       @emit 'clicked'
 

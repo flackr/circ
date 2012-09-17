@@ -29,13 +29,15 @@ class UserInputHandler extends EventEmitter
         @_handleTextInput input
 
   _handleTextInput: (text) =>
-    type = 'say'
+    name = 'say'
     if text[0] == '/'
       words = text[1..].split(/\s+/)
-      type = words[0].toLowerCase()
-      text = if words.length > 1 then words[1..] else undefined
+      name = words[0].toLowerCase()
+      text = if words.length > 1 then words[1..].join ' ' else undefined
     server = @context.currentWindow.conn?.name
     channel = @context.currentWindow.target
-    @emit 'command', server, channel, type, text
+    event = new Event 'command', name, text
+    event.setContext server, channel
+    @emit event.type, event
 
 exports.UserInputHandler = UserInputHandler

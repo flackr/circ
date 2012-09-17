@@ -1,18 +1,21 @@
 exports = window.chat ?= {}
 
 class MockChat
-  constructor: (irc) ->
-    irc.on 'connect', => @onConnected()
-    irc.on 'disconnect', => @onDisconnected()
-    irc.on 'message', (target, type, args...) =>
-      @onIRCMessage target, type, args...
-    irc.on 'joined', (chan) => @onJoined chan
-    irc.on 'parted', (chan) => @onJoined chan
+  constructor: (irc, name='freenode.net') ->
+    conn = {irc:irc, name, windows:{}}
+    irc.on 'server', (e) =>
+      switch e.name
+        when 'connect' then @onConnected conn
+        when 'disconnect' then @onDisconnected conn
+        when 'joined' then @onJoined conn, e.context.channel, e.args...
+        when 'names' then @onNames conn, e.context.channel, e.args...
+        when 'parted' then @onParted conn, e.context.channel, e.args...
+    irc.on 'message', (e) => @onIRCMessage conn, e.context.channel, e.name, e.args...
 
-  onConnected: () ->
-  onDisconnected: () ->
-  onIRCMessage: (target, type, args...) ->
-  onJoined: (chan) ->
-  onParted: (chan) ->
+  onConnected: ->
+  onDisconnected: ->
+  onIRCMessage: ->
+  onJoined: ->
+  onParted: ->
 
 exports.MockChat = MockChat
