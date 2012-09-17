@@ -1,9 +1,9 @@
 window.parent.postMessage({type: 'onload'}, '*')
 
 onMessage = (e) ->
-  return if e.data.type != 'script' or not e.data.script?
+  return unless e.data.type == 'source_code' and e.data.sourceCode?
   removeEventListener 'message', onMessage
-  eval e.data.script
+  eval e.data.sourceCode
   return
 
 addEventListener 'message', onMessage

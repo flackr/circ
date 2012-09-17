@@ -1,7 +1,7 @@
 exports = window.script ?= {}
 
 class Script
-  constructor: (@source, @frame) ->
+  constructor: (@sourceCode, @frame) ->
     @id = Script.getUniqueID()
     @hookedCommands = []
 
@@ -10,7 +10,7 @@ class Script
 
   @getScriptFromFrame: (scripts, frame) ->
     for id, script of scripts
-      return script if scripts.frame == frame
+      return script if script.frame == frame
     return undefined
 
   @scriptCount: 0

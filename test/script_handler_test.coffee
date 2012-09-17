@@ -2,19 +2,23 @@ describe 'A script handler', ->
   script1 = script2 = sh = emitter = onEmit = undefined
 
   sendMessage = (script, data) ->
-    sh._handleMessage { source: script, data: data }
+    sh._handleMessage { source: script.frame, data }
 
   onCommand = jasmine.createSpy('onCommand')
   onUnknown = jasmine.createSpy('onUnknown')
 
   beforeEach ->
-    script1 = jasmine.createSpyObj 'script1', ['postMessage']
-    script2 = jasmine.createSpyObj 'script2', ['postMessage']
+    mockFrame1 = { postMessage: -> }
+    mockFrame2 = { postMessage: -> }
+    script1 = new window.script.Script '1', mockFrame1
+    script2 = new window.script.Script '2', mockFrame2
+    spyOn script1, 'postMessage'
+    spyOn script2, 'postMessage'
     sh = new window.script.ScriptHandler()
     spyOn(sh, 'emit').andCallThrough()
     emitter = new EventEmitter
-    sh.addScriptFrame(script1)
-    sh.addScriptFrame(script2)
+    sh.addScript(script1)
+    sh.addScript(script2)
     sh.intercept emitter
     onCommand.reset()
     onUnknown.reset()

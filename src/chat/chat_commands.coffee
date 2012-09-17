@@ -67,7 +67,7 @@ class ChatCommands extends MessageHandler
         conn.irc.doCommand 'PART', target, reason.join(' ')
 
     load: ->
-      script.loader.loadIntoFrameFromFileSystem (script) =>
+      script.loader.createScriptFromFileSystem (script) =>
         @emit 'script_loaded', script
 
 chat.ChatCommands = ChatCommands

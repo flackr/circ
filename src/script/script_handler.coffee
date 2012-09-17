@@ -48,7 +48,7 @@ class ScriptHandler extends EventEmitter
     @_scripts[script.id] = script
 
   _handleMessage: (e) =>
-    script = window.script.Script.getScriptFromFrame e.source
+    script = window.script.Script.getScriptFromFrame @_scripts, e.source
     return unless script? and e.data?.type
     switch e.data.type
       when 'hook_command'
@@ -59,11 +59,11 @@ class ScriptHandler extends EventEmitter
         id = e.data.id
         scripts = @_pendingCommandsMap[id]?.scripts
         command = @_pendingCommandsMap[id]?.command
-        return unless scripts? and command? and e.source in scripts
+        return unless scripts? and command? and script in scripts
         if e.data.prevent is 'all'
           delete @_pendingCommandsMap[id]
         else if e.data.prevent is 'none'
-          util.removeFromArray scripts, e.source
+          removeFromArray scripts, script
           if scripts.length == 0
             delete @_pendingCommandsMap[id]
             @emit command

@@ -5,7 +5,7 @@ describe 'A script loader', ->
   onMessage = jasmine.createSpy 'onMessage'
   addEventListener 'message', onMessage
 
-  script = """
+  sourceCode = """
     var data = { msg: 'hi!', script: window.script };
     parent.window.postMessage(data, '*');
     addEventListener('message', function(e) {
@@ -13,7 +13,7 @@ describe 'A script loader', ->
     });
   """
 
-  maliciousScript = """
+  maliciousSourceCode = """
     chromeAPI = 'none';
     try {
       chromeAPI = window.parent.chrome;
@@ -33,13 +33,13 @@ describe 'A script loader', ->
   afterEach ->
     $('iframe').remove()
 
-  it 'creates an invisible iframe on loadIntoFrame()', ->
-    frame = sl.loadIntoFrame script
+  it 'creates an invisible iframe on createScript()', ->
+    script = sl.createScript sourceCode
     expect($('iframe').length).toEqual numFrames + 1
     expect($('iframe')[0].style.display).toBe 'none'
 
   it 'calls eval() on the script source code', ->
-    frame = sl.loadIntoFrame script
+    script = sl.createScript sourceCode
     waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data
@@ -47,7 +47,7 @@ describe 'A script loader', ->
       expect(data.script).toBeUndefined()
 
   it 'has the script run in a sandbox', ->
-    frame = sl.loadIntoFrame maliciousScript
+    script = sl.createScript maliciousSourceCode
     waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data

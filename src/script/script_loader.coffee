@@ -8,10 +8,11 @@ class ScriptLoader
   _sendSourceCode: (e) =>
     script = window.script.Script.getScriptFromFrame @_scripts, e.source
     if script? and e.data.type == 'onload'
-      script.postMessage { type: 'script', script: script }
+      console.log 'got onload!'
+      script.postMessage { type: 'source_code', sourceCode: script.sourceCode }
       delete @_scripts[script.id]
 
-  loadIntoFrame: (sourceCode) ->
+  createScript: (sourceCode) ->
     frame = @_createIframe()
     script = new window.script.Script sourceCode, frame
     @_scripts[script.id] = script
@@ -24,7 +25,7 @@ class ScriptLoader
     document.body.appendChild(iframe)
     iframe.contentWindow
 
-  loadIntoFrameFromFileSystem: (callback) ->
+  createScriptFromFileSystem: (callback) ->
     chrome.fileSystem.chooseFile { type: 'openFile' }, (f) =>
       @_onChosenFileToOpen f, callback
 
@@ -35,7 +36,7 @@ class ScriptLoader
       fileReader.onload = (e) =>
         sourceCode = e.target.result
         try
-          frame = @loadIntoFrame sourceCode
+          frame = @createScript sourceCode
           callback frame
         catch error
           console.error 'failed to eval:', error.toString()
