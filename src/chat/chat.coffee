@@ -33,17 +33,19 @@ class Chat extends EventEmitter
 
     @connections = {}
 
-  setUserInput: (userInput) ->
+  listenToUserInput: (userInput) ->
     @chatCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
       @switchToWindow @winList[winNum] if @winList[winNum]?
 
-  setScriptEvents: (scriptEvents) ->
+  listenToScriptEvents: (scriptEvents) ->
     # TODO
     #scriptEvents.on 'notify', @createNotification
     #scriptEvents.on 'print', @printText
 
-  interceptIRCEvents: (@ircInterceptor) ->
+  listenToIRCEvents: (@ircEvents) ->
+    @ircEvents.on 'server', @onIRCEvent
+    @ircEvents.on 'message', @onIRCEvent
 
   connect: (server, port = 6667) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
@@ -52,14 +54,20 @@ class Chat extends EventEmitter
     else
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, windows:{}}
-      ircEvents = @ircInterceptor?(irc, name) ? irc
-      ircEvents.on 'server', (e) => @onServerEvent conn, e
-      ircEvents.on 'message', (e) => @onMessageEvent conn, e
+      @ircEvents.addEventsFrom irc
     irc.setPreferredNick @previousNick if @previousNick?
     irc.connect(server, port)
     @systemWindow.conn = conn
 
-  onServerEvent: (conn, e) ->
+  onIRCEvent: (e) =>
+    conn = @connections[e.context.server]
+    if not conn?
+      console.warn 'got event', e.type, e.name, 'on unknown connection', e.context.server
+      return
+    if e.type is 'server' then @onServerEvent conn, e
+    else @onMessageEvent conn, e
+
+  onServerEvent: (conn, e) =>
     switch e.name
       when 'connect' then @onConnected conn
       when 'disconnect' then @onDisconnected conn
@@ -67,7 +75,7 @@ class Chat extends EventEmitter
       when 'names' then @onNames conn, e.context.channel, e.args...
       when 'parted' then @onParted conn, e.context.channel, e.args...
 
-  onMessageEvent: (conn, e) ->
+  onMessageEvent: (conn, e) =>
     chan = e.context.channel
     type = e.name
     if not chan?

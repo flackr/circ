@@ -12,7 +12,8 @@
     ]},
     "notifications",
     "storage",
-    "fileSystem"
+    "fileSystem",
+    "unlimitedStorage"
   ],
 
   "app": {

@@ -7,7 +7,7 @@ class ScriptHandler extends EventEmitter
     @_pendingEvents = {}
     @_eventCount = 0
     @_emitters = []
-    @_hookableEvents = [ 'command', 'server' ]
+    @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
 
   addScript: (script) ->
@@ -23,11 +23,10 @@ class ScriptHandler extends EventEmitter
     for emitter in @_emitters
       emitter.on ev, cb
 
-  intercept: (emitter) =>
+  addEventsFrom: (emitter) ->
     @_emitters.push emitter
     for event in @_hookableEvents
       emitter.on event, @_handleEvent
-    this
 
   _handleEvent: (e) =>
     id = @_eventCount++
@@ -50,25 +49,25 @@ class ScriptHandler extends EventEmitter
       when 'hook_command', 'hook_server', 'hook_message'
         script.hookedMessages.push e.type[5..] + e.name
 
-      when 'propagation'
+      when 'propagate'
         id = e.id
         scripts = @_pendingEvents[id]?.scripts
         pendingEvent = @_pendingEvents[id]?.event
         return unless scripts? and pendingEvent? and script in scripts
-        if e.prevent is 'all'
+        if e.name is 'none'
           delete @_pendingEvents[id]
-        else if e.prevent is 'none'
+        else if e.name is 'all'
           removeFromArray scripts, script
           if scripts.length == 0
             delete @_pendingEvents[id]
             @emit pendingEvent.type, pendingEvent
         else
-          console.warn 'received unknown propagation prevention type:', e.prevent
+          console.warn 'received unknown propagation type:', e.name
 
       when 'command', 'sevrer', 'message'
         # TODO add the script id to a blacklist so we don't go into a loop
         # TODO check args for correctness
-        @_handleEvent e
+        @_handleEvent Event.wrap(e)
 
   tearDown: ->
     removeEventListener 'message', @_handleEvent

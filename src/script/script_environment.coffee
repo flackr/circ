@@ -1,9 +1,10 @@
 window.parent.postMessage({type: 'onload'}, '*')
 
-onMessage = (e) ->
+onInitMessage = (e) ->
   return unless e.data.type == 'source_code' and e.data.sourceCode?
-  removeEventListener 'message', onMessage
+  removeEventListener 'message', onInitMessage
+  initEnvironment()
   eval e.data.sourceCode
   return
 
-addEventListener 'message', onMessage
+addEventListener 'message', onInitMessage

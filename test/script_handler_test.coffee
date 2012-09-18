@@ -24,7 +24,7 @@ describe 'A script handler', ->
     emitter = new EventEmitter
     sh.addScript(script1)
     sh.addScript(script2)
-    sh.intercept emitter
+    sh.addEventsFrom emitter
     onCommand.reset()
     onUnknown.reset()
 
@@ -68,28 +68,28 @@ describe 'A script handler', ->
     expect(script1.postMessage).toHaveBeenCalled()
     expect(script2.postMessage).not.toHaveBeenCalled()
 
-  it "forwards events only after receiving 'prevent: none' from all scripts", ->
+  it "forwards events only after receiving 'propagate: all' from all scripts", ->
     sendMessage script1, { type: 'hook_command', name: 'say' }
     sendMessage script2, { type: 'hook_command', name: 'say' }
     emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
-    sendMessage script1, { type: 'propagation', prevent: 'none', id: id1 }
+    sendMessage script1, { type: 'propagate', name: 'all', id: id1 }
     expect(sh.emit).not.toHaveBeenCalled()
-    sendMessage script2, { type: 'propagation', prevent: 'none', id: id2 }
+    sendMessage script2, { type: 'propagate', name: 'all', id: id2 }
     expect(sh.emit).toHaveBeenCalled()
 
-  it "swallows events when received 'prevent: all' from at least one script", ->
+  it "swallows events when received 'propagate: none' from at least one script", ->
     sendMessage script1, { type: 'hook_command', name: 'say' }
     sendMessage script2, { type: 'hook_command', name: 'say' }
     emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
-    sendMessage script1, { type: 'propagation', prevent: 'all', id: id1 }
+    sendMessage script1, { type: 'propagate', name: 'all', id: id1 }
     expect(sh.emit).not.toHaveBeenCalled()
-    sendMessage script2, { type: 'propagation', prevent: 'none', id: id2 }
+    sendMessage script2, { type: 'propagate', name: 'none', id: id2 }
     expect(sh.emit).not.toHaveBeenCalled()
 
   it "sends 'command' when a registered command is entered", ->

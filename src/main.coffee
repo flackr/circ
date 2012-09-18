@@ -4,9 +4,9 @@ chat = new window.chat.Chat
 
 userInput.setContext chat
 
-scriptHandler.intercept chat
-userInput = scriptHandler.intercept(userInput)
+scriptHandler.addEventsFrom chat
+scriptHandler.addEventsFrom userInput
 
-chat.setUserInput userInput
-chat.setScriptEvents scriptHandler
-chat.interceptIRCEvents scriptHandler.intercept
+chat.listenToUserInput scriptHandler
+chat.listenToScriptEvents scriptHandler
+chat.listenToIRCEvents scriptHandler
