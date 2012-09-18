@@ -1,12 +1,14 @@
 body {
   font-family: monospace;
   margin: 0; padding: 0;
+  background-color: lightgray;
 }
 
 #main {
   display: -webkit-box;
   -webkit-box-orient: horizontal;
   height: 100%;
+  background-color: white;
 }
 
 #channels {
