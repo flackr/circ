@@ -6,6 +6,7 @@ userInput.setContext chat
 
 scriptHandler.addEventsFrom chat
 scriptHandler.addEventsFrom userInput
+scriptHandler.listenToScriptEvents chat
 
 chat.listenToUserInput scriptHandler
 chat.listenToScriptEvents scriptHandler

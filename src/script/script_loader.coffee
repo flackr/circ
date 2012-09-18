@@ -19,7 +19,7 @@ class ScriptLoader
 
   _createIframe: ->
     iframe = document.createElement('iframe')
-    $(iframe).attr('src', 'script_frame.html')
+    iframe.src = 'script_frame.html'
     iframe.style.display = 'none'
     document.body.appendChild(iframe)
     iframe.contentWindow

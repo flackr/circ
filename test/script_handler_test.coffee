@@ -75,9 +75,9 @@ describe 'A script handler', ->
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
-    sendMessage script1, { type: 'propagate', name: 'all', id: id1 }
+    sendMessage script1, { type: 'propagate', name: 'all', args: [id1] }
     expect(sh.emit).not.toHaveBeenCalled()
-    sendMessage script2, { type: 'propagate', name: 'all', id: id2 }
+    sendMessage script2, { type: 'propagate', name: 'all', args: [id2] }
     expect(sh.emit).toHaveBeenCalled()
 
   it "swallows events when received 'propagate: none' from at least one script", ->
@@ -87,9 +87,9 @@ describe 'A script handler', ->
     id1 = script1.postMessage.mostRecentCall.args[0].id
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
-    sendMessage script1, { type: 'propagate', name: 'all', id: id1 }
+    sendMessage script1, { type: 'propagate', name: 'all', args: [id1] }
     expect(sh.emit).not.toHaveBeenCalled()
-    sendMessage script2, { type: 'propagate', name: 'none', id: id2 }
+    sendMessage script2, { type: 'propagate', name: 'none', args: [id2] }
     expect(sh.emit).not.toHaveBeenCalled()
 
   it "sends 'command' when a registered command is entered", ->

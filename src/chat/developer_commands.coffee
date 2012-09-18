@@ -41,6 +41,9 @@ class DeveloperCommands extends MessageHandler
     n: ->
       new chat.Notification('test', 'hi!').show()
 
+    l: ->
+      @_handleCommand "load", ""
+
   _handleCommand: (command, text) ->
     @_commandHandler.handle command, text.split(' ')...
 

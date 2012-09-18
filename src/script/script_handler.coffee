@@ -10,7 +10,10 @@ class ScriptHandler extends EventEmitter
     @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
 
-  addScript: (script) ->
+  listenToScriptEvents: (emitter) ->
+    emitter.on 'script_loaded', @addScript
+
+  addScript: (script) =>
     @_scripts[script.id] = script
 
   on: (ev, cb) ->
@@ -50,7 +53,7 @@ class ScriptHandler extends EventEmitter
         script.hookedMessages.push e.type[5..] + e.name
 
       when 'propagate'
-        id = e.id
+        id = e.args?[0]
         scripts = @_pendingEvents[id]?.scripts
         pendingEvent = @_pendingEvents[id]?.event
         return unless scripts? and pendingEvent? and script in scripts

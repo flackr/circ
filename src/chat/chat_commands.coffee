@@ -71,4 +71,4 @@ class ChatCommands extends MessageHandler
       script.loader.createScriptFromFileSystem (script) =>
         @emit 'script_loaded', script
 
-chat.ChatCommands = ChatCommands
+exports.ChatCommands = ChatCommands
