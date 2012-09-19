@@ -36,7 +36,7 @@ class DeveloperCommands extends MessageHandler
 
     q1: ->
       @_handleCommand "win", "1"
-      @_handleCommand "quit", "quitting a sever in window 1"
+      @_handleCommand "quit", "quitting a server in window 1"
 
     n: ->
       new chat.Notification('test', 'hi!').show()

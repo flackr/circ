@@ -6,10 +6,10 @@ class ChannelList extends chat.HTMLList
     super $ '#channels'
     @lastSelected = undefined
 
-  select: (channel) ->
-    @removeClass @lastSelected if @lastSelected?
-    @lastSelected = channel
-    @addClass channel, 'selected'
+  select: (server, channel) ->
+    @removeClass @lastSelected, 'selected' if @lastSelected?
+    @lastSelected = @_getID server, channel
+    @addClass @_getID(server, channel), 'selected'
 
   selectNext: ->
     # TODO implement - used with ALT down/right
@@ -17,14 +17,41 @@ class ChannelList extends chat.HTMLList
   selectPrevious: ->
     # TODO implement - used with ALT up/left
 
-  add: (chan) ->
-    super chan
-    @disconnect(chan)
+  insert: (i, server, chan) ->
+    super i, @_getID server, chan
+    @_formatNode server,chan
 
-  disconnect: (channel) ->
-    @rename channel, '(' + channel + ')'
+  add: (server, chan) ->
+    super @_getID server, chan
+    @_formatNode server,chan
 
-  connect: (channel) ->
-    @rename channel, channel
+  _formatNode: (server, chan) ->
+    @disconnect(server, chan)
+    if chan?
+      @addClass @_getID(server, chan), 'indent'
+
+  disconnect: (server, channel) ->
+    @rename @_getID(server, channel), @_getDisconnectedName server, channel
+
+  connect: (server, channel) ->
+    @rename @_getID(server, channel), @_getName server, channel
+
+  _getName: (server, channel) ->
+    if channel?
+      return '- ' + channel
+    return server
+
+  _getDisconnectedName: (server, channel) ->
+    if channel?
+      return '- (' + channel + ')'
+    return '(' + server + ')'
+
+  _getID: (server, channel) ->
+    if not channel?
+      return server
+    return server + ' ' + channel
+
+  _handleClick: (node) ->
+    @emit 'clicked', node.name.split(' ')...
 
 exports.ChannelList = ChannelList

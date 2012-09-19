@@ -25,7 +25,8 @@ class ChatCommands extends MessageHandler
 
     win: (num) ->
       num = parseInt(num)
-      @switchToWindow @winList[num] if num < @winList.length
+      win = @winList.get num
+      @switchToWindow win if win?
 
     say: (text) ->
       if (target = @currentWindow.target) and (conn = @currentWindow.conn)

@@ -1,15 +1,18 @@
 exports = window.chat ?= {}
 
 class Window
+
+  setTarget: (@target) ->
+    nickDisplay = $ "<ol id='nicks'>"
+    @$container.append nickDisplay
+    @nicks = new chat.NickList(nickDisplay)
+
   constructor: (@name) ->
     @$container = $ "<div id='window-container'>"
     @$messageContainer = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
-    nickDisplay = $ "<ol id='nicks'>"
     @$messageContainer.append @$messages
     @$container.append @$messageContainer
-    @$container.append nickDisplay
-    @nicks = new chat.NickList(nickDisplay)
 
   detach: ->
     @scroll = @$messageContainer.scrollTop()

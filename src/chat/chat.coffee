@@ -1,6 +1,8 @@
 exports = window.chat ?= {}
 
 class Chat extends EventEmitter
+  @NoConnName = 'none'
+
   constructor: ->
     super
     @$windowContainer = $('#chat')
@@ -11,9 +13,9 @@ class Chat extends EventEmitter
     @chatCommands.merge devCommands
 
     @channelDisplay = new chat.ChannelList()
-    @channelDisplay.on 'clicked', (chan) =>
-      win = @_getWindowFromChan(chan)
-      @switchToWindow win
+    @channelDisplay.on 'clicked', (server, chan) =>
+      win = @winList.get server, chan
+      @switchToWindow win if win?
 
     @previousNick = undefined
     # TODO: don't let the user do anything until we load settings
@@ -21,13 +23,13 @@ class Chat extends EventEmitter
       if settings?.nick
         @previousNick = settings.nick
 
-    @systemWindow = new chat.Window('system')
-    @switchToWindow @systemWindow
-    @winList = [@systemWindow]
+    @channelDisplay.add Chat.NoConnName
+    @switchToWindow new chat.Window Chat.NoConnName
+    @winList = new chat.WindowList()
 
-    @systemWindow.message '', "Welcome to irciii, a v2 Chrome app."
-    @systemWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
-    @systemWindow.message '', "Alt+[0-9] switches windows."
+    @currentWindow.message '', "Welcome to irciii, a v2 Chrome app."
+    @currentWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
+    @currentWindow.message '', "Alt+[0-9] switches windows."
 
     @updateStatus 'hi!'
 
@@ -36,7 +38,8 @@ class Chat extends EventEmitter
   listenToUserInput: (userInput) ->
     @chatCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
-      @switchToWindow @winList[winNum] if @winList[winNum]?
+      win = @winList.getChannelWindow winNum - 1
+      @switchToWindow win if win?
 
   listenToScriptEvents: (scriptEvents) ->
     # TODO
@@ -52,12 +55,22 @@ class Chat extends EventEmitter
     if irc = @connections[name]?.irc
       return if irc.state in ['connected', 'connecting']
     else
+      win = @currentWindow
+      if win.name == Chat.NoConnName
+        @channelDisplay.remove Chat.NoConnName
+        win.name = name
+      else
+        win = new chat.Window(name)
       irc = new window.irc.IRC
-      conn = @connections[name] = {irc:irc, name, windows:{}}
+      conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
+      win.conn = conn
+      @winList.add win
       @ircEvents.addEventsFrom irc
-    irc.setPreferredNick @previousNick if @previousNick?
+      @channelDisplay.add conn.name
+      if win == @currentWindow
+        @channelDisplay.select name
+      irc.setPreferredNick @previousNick if @previousNick?
     irc.connect(server, port)
-    @systemWindow.conn = conn
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]
@@ -79,12 +92,12 @@ class Chat extends EventEmitter
     chan = e.context.channel
     type = e.name
     if not chan?
-      system_handlers[type].apply @systemWindow, [conn].concat(e.args)
+      system_handlers[type].apply conn.serverWindow, [conn].concat(e.args)
       return
 
     win = conn.windows[chan]
     if not win
-      @systemWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify e.args}"
+      conn.serverWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify e.args}"
       console.warn "message to unknown chan", conn.name, chan, type, e.args
       return
 
@@ -96,27 +109,30 @@ class Chat extends EventEmitter
     @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->
-    @systemWindow.message '', "Connected to #{conn.name}"
+    conn.serverWindow.message '', "Connected to #{conn.name}"
+    @channelDisplay.connect conn.name
     for chan, win of conn.windows
       win.message '', '(connected)', type:'system'
 
   onDisconnected: (conn) ->
-    @systemWindow.message '', "Disconnected from #{conn.name}"
+    conn.serverWindow.message '', "Disconnected from #{conn.name}"
+    @channelDisplay.disconnect conn.name
     for chan, win of conn.windows
-      @channelDisplay.disconnect chan
+      @channelDisplay.disconnect conn.name, chan
       win.message '', '(disconnected)', type:'system'
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
-    @channelDisplay.connect chan
+    @channelDisplay.connect conn.name, chan
     win.nicks.clear()
     win.message '', '(You joined the channel)', type:'system'
 
   _createWindowForChannel: (conn, chan) ->
     win = conn.windows[chan]
     if not win
-      @channelDisplay.add chan
       win = @makeWin conn, chan
+      i = @winList.indexOf win
+      @channelDisplay.insert i, conn.name, chan
     win
 
   onNames: (conn, chan, nicks) ->
@@ -125,7 +141,7 @@ class Chat extends EventEmitter
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
-      @channelDisplay.disconnect chan
+      @channelDisplay.disconnect conn.name, chan
       win.message '', '(You left the channel)', type:'system'
 
   system_handlers =
@@ -140,8 +156,8 @@ class Chat extends EventEmitter
     throw new Error("we already have a window for that") if conn.windows[chan]
     win = conn.windows[chan] = new chat.Window(chan)
     win.conn = conn
-    win.target = chan
-    @winList.push(win)
+    win.setTarget chan
+    @winList.add win
     win
 
   updateStatus: (status) ->
@@ -154,12 +170,10 @@ class Chat extends EventEmitter
     @currentWindow.detach() if @currentWindow
     win.attachTo @$windowContainer
     @currentWindow = win
-    @channelDisplay.select win.target
+    if win.conn?
+      @channelDisplay.select win.conn.name, win.target
+    else
+      @channelDisplay.select Chat.NoConnName
     @updateStatus()
-
-  _getWindowFromChan: (chan) ->
-    for win in @winList
-      return win if win.target == chan
-    undefined
 
 exports.Chat = Chat

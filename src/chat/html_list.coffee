@@ -14,6 +14,15 @@ class HTMLList extends EventEmitter
         node = @_createNode name
         @$list.append node.html
 
+  insert: (index, name) ->
+    return if name in @nodes
+    node = @_createNode name
+    for nameLi, i in $ 'li', @$list
+      if i >= index
+        node.html.insertBefore $(nameLi)
+        return
+    @$list.append node.html
+
   remove: (name) ->
     if node = @nodes[name]
       node.html.remove()
@@ -26,8 +35,8 @@ class HTMLList extends EventEmitter
   addClass: (name, c) ->
     @nodes[name]?.html.addClass(c)
 
-  removeClass: (name) ->
-    @nodes[name]?.html.removeClass()
+  removeClass: (name, c) ->
+    @nodes[name]?.html.removeClass(c)
 
   clearClasses: ->
     for name of @nodes
