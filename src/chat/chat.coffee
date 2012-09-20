@@ -41,10 +41,10 @@ class Chat extends EventEmitter
       win = @winList.getChannelWindow winNum - 1
       @switchToWindow win if win?
 
-  listenToScriptEvents: (scriptEvents) ->
+  listenToScriptEvents: (@scriptHandler) ->
     # TODO
-    #scriptEvents.on 'notify', @createNotification
-    #scriptEvents.on 'print', @printText
+    #scriptHandler.on 'notify', @createNotification
+    #scriptHandler.on 'print', @printText
 
   listenToIRCEvents: (@ircEvents) ->
     @ircEvents.on 'server', @onIRCEvent

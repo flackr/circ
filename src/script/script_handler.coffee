@@ -50,7 +50,7 @@ class ScriptHandler extends EventEmitter
     return unless script?
     switch e.type
       when 'hook_command', 'hook_server', 'hook_message'
-        script.hookedMessages.push e.type[5..] + e.name
+        script.hookedMessages.push e.type[5..] + ' ' + e.name
 
       when 'propagate'
         id = e.args?[0]
