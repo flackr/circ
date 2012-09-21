@@ -3,31 +3,37 @@ exports = window.chat ?= {}
 class Window
 
   setTarget: (@target) ->
-    nickDisplay = $ "<ol id='nicks'>"
-    @$container.append nickDisplay
-    @nicks = new chat.NickList(nickDisplay)
+    nicks = $ "<ol id='nicks'>"
+    nickDisplay = $ "<div id='nick-display'>"
+    nickWrapper = $ "<div id='nick-display-container'>"
+    nickDisplay.append nicks
+    nickWrapper.append nickDisplay
+    @$container.append nickWrapper
+    @nicks = new chat.NickList(nicks)
 
   constructor: (@name) ->
     @$container = $ "<div id='window-container'>"
-    @$messageContainer = $ "<div id='chat-container'>"
     @$messages = $ "<div id='chat-messages'>"
-    @$messageContainer.append @$messages
-    @$container.append @$messageContainer
+    @$chatDisplay = $ "<div id='chat-display'>"
+    chatDisplayContainer = $ "<div id='chat-display-container'>"
+    chatDisplayContainer.append @$chatDisplay
+    @$chatDisplay.append @$messages
+    @$container.append chatDisplayContainer
 
   detach: ->
-    @scroll = @$messageContainer.scrollTop()
+    @scroll = @$chatDisplay.scrollTop()
     @wasScrolledDown = @isScrolledDown()
     @$container.detach()
 
   attachTo: (container) ->
     container.prepend @$container
     if @wasScrolledDown
-      @scroll = @$messageContainer[0].scrollHeight
-    @$messageContainer.scrollTop(@scroll)
+      @scroll = @$chatDisplay[0].scrollHeight
+    @$chatDisplay.scrollTop(@scroll)
 
   isScrolledDown: ->
-    scrollBottom = @$messageContainer.scrollTop() + @$messageContainer.height()
-    scrollBottom == @$messageContainer[0].scrollHeight
+    scrollBottom = @$chatDisplay.scrollTop() + @$chatDisplay.height()
+    scrollBottom == @$chatDisplay[0].scrollHeight
 
   message: (from, msg, opts={}) ->
     extra_classes = [opts.type]
@@ -39,7 +45,7 @@ class Window
     </div>
     """)
     if not @isScrolledDown()
-      @$messageContainer.scrollTop(@$messageContainer[0].scrollHeight)
+      @$chatDisplay.scrollTop(@$chatDisplay[0].scrollHeight)
 
   displayHelp: (commands) ->
     # TODO format nicely

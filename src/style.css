@@ -11,16 +11,24 @@ body {
   background-color: white;
 }
 
-#channels {
+#channel-display-container {
+  display: -webkit-box;
   border-right: 2px solid lightgray;
+}
+
+#channel-display {
   overflow-y: auto;
   overflow-x: hidden;
-  width: 140;
+  display: -webkit-box;
+}
+
+#channels {
   list-style: none;
   font-family: Helvetica, arial, sans-serif;
   font-size: 14px;
   margin: 0;
   padding: 0;
+  width: 140;
   padding-bottom: 0;
 }
 
@@ -51,9 +59,15 @@ body {
   -webkit-box-flex: 1;
 }
 
-#chat-container {
+#chat-display-container {
   -webkit-box-flex: 1;
+  display: -webkit-box;
+}
+
+#chat-display {
   overflow-y: scroll;
+  -webkit-box-flex: 1;
+  width: 100%;
 }
 
 #chat-messages {
@@ -95,16 +109,24 @@ body {
   width: 100%;
 }
 
-#nicks {
+#nick-display-container {
+  display: -webkit-box;
+}
+
+#nick-display {
   overflow-y: auto;
   overflow-x: hidden;
+  display: -webkit-box;
+}
+
+#nicks {
   width: 100;
   font-family: Helvetica, arial, sans-serif;
   font-size: 14px;
+  list-style: none;
   margin: 0;
   padding: 4px;
   padding-bottom: 0;
-  list-style: none;
 }
 
 #nicks li {
