@@ -1,0 +1,34 @@
+.message.circ {
+  color: black;
+}
+
+.message.system {
+  color: #005816;
+}
+
+.message.system,
+.part,
+.nick,
+.quit,
+.join {
+  color: #040064;
+}
+
+.message.system .text {
+  color: #00380E;
+}
+
+.message.privmsg {
+  color: black;
+}
+
+.message.privmsg.self {
+  color: gray;
+}
+
+.message.privmsg.mention {
+  color: darkred;
+}
+.message.privmsg.mention .source {
+  font-weight: bold;
+}

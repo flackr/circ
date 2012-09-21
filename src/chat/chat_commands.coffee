@@ -36,7 +36,7 @@ class ChatCommands extends MessageHandler
         conn.irc.doCommand 'PRIVMSG', target, text
 
     me: (text) ->
-      commands.say.call this, '\u0001ACTION '+text+'\u0001'
+      @chatCommands.handle 'say', '\u0001ACTION '+text+'\u0001'
 
     nick: (newNick) ->
       if conn = @currentWindow.conn
@@ -57,7 +57,7 @@ class ChatCommands extends MessageHandler
          (target = @currentWindow.target) and
          (names = conn.irc.channels[target]?.names)
         names = (v for k,v of names).sort()
-        @currentWindow.message '', JSON.stringify names
+        @currentWindow.message '*', JSON.stringify names
 
     help: ->
       commands = @chatCommands.getCommands()

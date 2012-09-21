@@ -27,9 +27,9 @@ class Chat extends EventEmitter
     @switchToWindow new chat.Window Chat.NoConnName
     @winList = new chat.WindowList()
 
-    @currentWindow.message '', "Welcome to irciii, a v2 Chrome app."
-    @currentWindow.message '', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>."
-    @currentWindow.message '', "Alt+[0-9] switches windows."
+    @currentWindow.message '*', "Welcome to irciii, a v2 Chrome app.", "circ"
+    @currentWindow.message '*', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
+    @currentWindow.message '*', "Alt+[0-9] switches windows.", "circ"
 
     @updateStatus 'hi!'
 
@@ -97,7 +97,6 @@ class Chat extends EventEmitter
 
     win = conn.windows[chan]
     if not win
-      conn.serverWindow.message conn.name, "unknown message: #{chan}(#{type}): #{JSON.stringify e.args}"
       console.warn "message to unknown chan", conn.name, chan, type, e.args
       return
 
@@ -106,26 +105,26 @@ class Chat extends EventEmitter
       return
 
     @ircResponseHandler.setWindow(win)
+    @ircResponseHandler.setStyle(e.style)
     @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->
-    conn.serverWindow.message '', "Connected to #{conn.name}"
+    @emitMessage 'connect', conn.name
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
-      win.message '', '(connected)', type:'system'
+      @emitMessage 'connect', conn.name, win.target
 
   onDisconnected: (conn) ->
-    conn.serverWindow.message '', "Disconnected from #{conn.name}"
+    @emitMessage 'disconnect', conn.name
     @channelDisplay.disconnect conn.name
     for chan, win of conn.windows
       @channelDisplay.disconnect conn.name, chan
-      win.message '', '(disconnected)', type:'system'
+      @emitMessage 'disconnect', conn.name, win.target
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
     @channelDisplay.connect conn.name, chan
     win.nicks.clear()
-    win.message '', '(You joined the channel)', type:'system'
 
   _createWindowForChannel: (conn, chan) ->
     win = conn.windows[chan]
@@ -142,15 +141,18 @@ class Chat extends EventEmitter
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
       @channelDisplay.disconnect conn.name, chan
-      win.message '', '(You left the channel)', type:'system'
 
   system_handlers =
     welcome: (conn, msg) ->
-      @message conn.name, msg, type: 'welcome'
+      @message '*', msg, 'welcome'
     unknown: (conn, cmd) ->
-      @message conn.name, cmd.command + ' ' + cmd.params.join(' ')
+      @message '*', cmd.command + ' ' + cmd.params.join(' ')
     nickinuse: (conn, oldnick, newnick, msg) ->
-      @message conn.name, "Nickname #{oldnick} already in use: #{msg}"
+      @message '*', "Nickname #{oldnick} already in use: #{msg}"
+    connect: ->
+      @message '*', "Connected. Now logging in..."
+    disconnect: ->
+      @message '*', "Disconnected"
 
   makeWin: (conn, chan) ->
     throw new Error("we already have a window for that") if conn.windows[chan]
@@ -175,5 +177,10 @@ class Chat extends EventEmitter
     else
       @channelDisplay.select Chat.NoConnName
     @updateStatus()
+
+  emitMessage: (name, server, channel, args...) ->
+    event = new Event 'message', name, args...
+    event.setContext server, channel
+    @emit event.type, event
 
 exports.Chat = Chat

@@ -41,31 +41,31 @@ class ServerResponseHandler extends MessageHandler
         chan.names[newNormNick] = newNick
         @emitMessage 'nick', chanName, from.nick, newNick
 
-    JOIN: (from, chan) ->
-      if @util.nicksEqual from.nick, @nick
-        if c = @channels[chan]
-          c.names = []
+    JOIN: (from, chanName) ->
+      isOwnNick = @util.nicksEqual from.nick, @nick
+      chan = @channels[chanName]
+      if isOwnNick
+        if chan?
+          chan.names = []
         else
-          @channels[chan] = {names:[]}
-        @emit 'joined', chan
-      else if c = @channels[chan]
-        c.names[@util.normaliseNick from.nick] = from.nick
-        @emitMessage 'join', chan, from.nick
+          chan = @channels[chanName] = {names:[]}
+        @emit 'joined', chanName
+      if chan?
+        chan.names[@util.normaliseNick from.nick] = from.nick
+        @emitMessage 'join', chanName, from.nick
       else
         console.warn "Got JOIN for channel we're not in (#{chan})"
 
     PART: (from, chan) ->
-      weLeft = @util.nicksEqual from.nick, @nick
       if c = @channels[chan]
-        unless weLeft
+        @emitMessage 'part', chan, from.nick
+        if @util.nicksEqual from.nick, @nick
+          c.names = []
+          @emit 'parted', chan
+        else
           delete c.names[@util.normaliseNick from.nick]
-          @emitMessage 'part', chan, from.nick
       else
-        console.warn "Got PART for channel we're not in (#{channel})"
-
-      if weLeft
-        @channels[chan]?.names = []
-        @emit 'parted', chan
+        console.warn "Got PART for channel we're not in (#{chan})"
 
     QUIT: (from, reason) ->
       normNick = @util.normaliseNick from.nick

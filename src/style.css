@@ -28,7 +28,7 @@ body {
   font-size: 14px;
   margin: 0;
   padding: 0;
-  width: 140;
+  width: 135;
   padding-bottom: 0;
 }
 
@@ -67,6 +67,7 @@ body {
 #chat-display {
   overflow-y: scroll;
   -webkit-box-flex: 1;
+  padding-bottom: 2px;
   width: 100%;
 }
 
@@ -76,29 +77,18 @@ body {
 
 .message {
   display: table-row;
+  color: #999;
 }
 .message .source {
   display: table-cell;
-  text-align: right;
   padding: 0 4px;
+  text-align: right;
   border-right: 1px solid lightgray;
-  min-width: 125px;
+  max-width: 125px;
 }
 .message .text {
   display: table-cell;
   padding: 0 4px;
-  color: #999;
-}
-
-.message.privmsg .text {
-  color: black;
-}
-
-#entry {
-}
-
-#status {
-  background-color: lightgray;
 }
 
 #cmd {
@@ -132,4 +122,8 @@ body {
 #nicks li {
   padding: 0 4px;
   border-radius: 2px 0 0 2px;
+}
+
+#status {
+  background-color: lightgray;
 }

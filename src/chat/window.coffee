@@ -35,11 +35,10 @@ class Window
     scrollBottom = @$chatDisplay.scrollTop() + @$chatDisplay.height()
     scrollBottom == @$chatDisplay[0].scrollHeight
 
-  message: (from, msg, opts={}) ->
-    extra_classes = [opts.type]
+  message: (from, msg, style...) ->
     msg = display msg
     @$messages.append $("""
-    <div class='message #{extra_classes.join(' ')}'>
+    <div class='message #{style.join(' ')}'>
       <div class='source'>#{escapeHTML from}</div>
       <div class='text'>#{msg}</div>
     </div>
