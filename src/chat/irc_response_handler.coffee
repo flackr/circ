@@ -64,7 +64,7 @@ class IRCResponseHandler extends MessageHandler
   _notifyNickMentioned: (from, msg) ->
     #TODO cancel notification when focus is gained on the channel
     #TODO add callback to focus conversation when user clicks on notification
-    notification = new chat.NickMentionedNotification(from, msg)
+    notification = new chat.NickMentionedNotification(@win.target, from, msg)
     notification.show()
 
   _isOwnNick: (nick) ->
