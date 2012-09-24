@@ -1,75 +1,76 @@
 exports = window.chat ?= {}
 
 class ChatCommands extends MessageHandler
-  constructor: (source) ->
-    super source
-    @registerHandlers @_chatCommands
+  constructor: (@chat) ->
+    super
 
   getCommands: ->
-    Object.keys @_chatCommands
+    Object.keys @_handlers
 
   listenTo: (emitter) ->
     emitter.on 'command', (e) =>
       if @canHandle e.name
         @handle e.name, e.args...
 
-  _chatCommands:
+  _handlers:
     join: (opt_chan) ->
-      if conn = @currentWindow.conn
+      if conn = @chat.currentWindow.conn
         return if not (conn.irc.state is 'connected')
-        chan = opt_chan ? @currentWindow.target
+        chan = opt_chan ? @chat.currentWindow.target
         return if not chan
-        win = @_createWindowForChannel conn, chan
-        @switchToWindow win
-        @currentWindow.conn.irc.doCommand 'JOIN', chan
+        win = @chat._createWindowForChannel conn, chan
+        @chat.switchToWindow win
+        @chat.currentWindow.conn.irc.doCommand 'JOIN', chan
 
     win: (num) ->
       num = parseInt(num)
-      win = @winList.get num
-      @switchToWindow win if win?
+      win = @chat.winList.get num
+      @chat.switchToWindow win if win?
 
-    say: (text) ->
-      if (target = @currentWindow.target) and (conn = @currentWindow.conn)
+    say: (text...) ->
+      if (target = @chat.currentWindow.target) and (conn = @chat.currentWindow.conn)
+        text = text.join ' '
         event = new Event 'message', 'privmsg', conn.irc.nick, text
         event.setContext conn.name, target
-        @onMessageEvent conn, event
+        @chat.onMessageEvent conn, event
         conn.irc.doCommand 'PRIVMSG', target, text
 
-    me: (text) ->
-      @chatCommands.handle 'say', '\u0001ACTION '+text+'\u0001'
+    me: (text...) ->
+      text = text.join ' '
+      @chat.chatCommands.handle 'say', '\u0001ACTION '+text+'\u0001'
 
     nick: (newNick) ->
-      if conn = @currentWindow.conn
+      if conn = @chat.currentWindow.conn
         # TODO: HRHRMRHM
         chrome.storage.sync.set({nick: newNick})
         conn.irc.doCommand 'NICK', newNick
 
     server: (server, port) -> # connect to server
-      @connect server, if port then parseInt port
+      @chat.connect server, if port then parseInt port
 
     quit: (reason...) ->
-      if conn = @currentWindow.conn
+      if conn = @chat.currentWindow.conn
         reason = if reason.length == 0 then 'Client Quit' else reason.join(' ')
         conn.irc.quit reason
 
     names: ->
-      if (conn = @currentWindow.conn) and
-         (target = @currentWindow.target) and
+      if (conn = @chat.currentWindow.conn) and
+         (target = @chat.currentWindow.target) and
          (names = conn.irc.channels[target]?.names)
         names = (v for k,v of names).sort()
-        @currentWindow.message '*', JSON.stringify names
+        @chat.currentWindow.message '*', JSON.stringify names
 
     help: ->
-      commands = @chatCommands.getCommands()
-      @currentWindow.displayHelp commands
+      commands = @chat.chatCommands.getCommands()
+      @chat.currentWindow.displayHelp commands
 
     part: (reason...) ->
-      if (conn = @currentWindow.conn) and
-         (target = @currentWindow.target)
+      if (conn = @chat.currentWindow.conn) and
+         (target = @chat.currentWindow.target)
         conn.irc.doCommand 'PART', target, reason.join(' ')
 
     load: ->
       script.loader.createScriptFromFileSystem (script) =>
-        @emit 'script_loaded', script
+        @chat.emit 'script_loaded', script
 
 exports.ChatCommands = ChatCommands

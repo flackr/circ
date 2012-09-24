@@ -1,16 +1,12 @@
 exports = window
 
 class MessageHandler
-  constructor: (source=this) ->
-    @_source = source
-    @_handlerMap ?= {}
+  constructor: () ->
+    @_handlers ?= {}
     @_mergedHandlers = []
 
-  setSource: (source) ->
-    @_source = source
-
   listenTo: (emitter) ->
-    for type of @_handlerMap
+    for type of @_handlers
       emitter.on type, (args...) => @handle type, args...
 
   merge: (handlerObject) ->
@@ -21,16 +17,16 @@ class MessageHandler
       @registerHandler type, handler
 
   registerHandler: (type, handler) ->
-    @_handlerMap[type] = handler
+    @_handlers[type] = handler
 
   handle: (@type, params...) ->
-    assert @canHandle(@type)
-    @_handlerMap[@type]?.apply @_source, params
+    assert @canHandle @type
+    @_handlers[@type]?.apply this, params
     for handler in @_mergedHandlers when handler.canHandle @type
       handler.handle @type, params...
 
   canHandle: (type) ->
-    return true if type of @_handlerMap
+    return true if type of @_handlers
     for handler in @_mergedHandlers
       return true if handler.canHandle(type)
     return false

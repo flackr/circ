@@ -2,10 +2,9 @@ exports = window.chat ?= {}
 
 class DeveloperCommands extends MessageHandler
   constructor: (@_commandHandler) ->
-    super undefined
-    @registerHandlers @_developerCommands
+    super
 
-  _developerCommands:
+  _handlers:
     1: ->
       @_handleCommand "server", "irc.corp.google.com"
 

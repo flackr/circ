@@ -1,15 +1,12 @@
 exports = window.chat ?= {}
 
 class IRCResponseHandler extends MessageHandler
-  constructor: (@chat) ->
-    super
-    @registerHandlers @_ircResponses
 
   setWindow: (@win) ->
 
   setStyle: (@style) ->
 
-  _ircResponses:
+  _handlers:
     join: (nick) ->
       console.log 'ON JOIN', nick, @win.conn.irc.nick
       if @_isOwnNick nick
@@ -57,6 +54,9 @@ class IRCResponseHandler extends MessageHandler
         @_message '*', "#{from} #{m[1]}", 'privmsg action', style...
       else
         @_message from, msg, 'privmsg', style...
+
+    system: (text) ->
+      @_message '*', text, 'server'
 
   _message: (from, msg, style...) ->
     @win.message from, msg, style..., @style...

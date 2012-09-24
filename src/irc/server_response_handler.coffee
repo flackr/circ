@@ -2,91 +2,90 @@ exports = window.irc ?= {}
 
 class ServerResponseHandler extends MessageHandler
 
-  constructor: (source) ->
-    super source
-    @registerHandlers @_serverResponses
+  constructor: (@irc) ->
+    super
 
-  _serverResponses:
+  _handlers:
     # RPL_WELCOME
     1: (from, target, msg) ->
-      @nick = target
-      @emit 'connect'
-      @state = 'connected'
-      @emitMessage 'welcome', undefined, msg
-      for name,c of @channels
-        @sendIfConnected 'JOIN', name
+      @irc.nick = target
+      @irc.emit 'connect'
+      @irc.state = 'connected'
+      @irc.emitMessage 'welcome', undefined, msg
+      for name,c of @irc.channels
+        @irc.sendIfConnected 'JOIN', name
 
     # RPL_NAMREPLY
     353: (from, target, privacy, channel, names) ->
-      l = (@partialNameLists[channel] ||= {})
+      l = (@irc.partialNameLists[channel] ||= {})
       newNames = []
       for n in names.split(/\x20/)
         n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
-        l[@util.normaliseNick n] = n
+        l[irc.util.normaliseNick n] = n
         newNames.push n
-      @emit 'names', channel, newNames
+      @irc.emit 'names', channel, newNames
     # RPL_ENDOFNAMES
     366: (from, target, channel, _) ->
-      if @channels[channel]
-        @channels[channel].names = @partialNameLists[channel]
-      delete @partialNameLists[channel]
+      if @irc.channels[channel]
+        @irc.channels[channel].names = @irc.partialNameLists[channel]
+      delete @irc.partialNameLists[channel]
 
     NICK: (from, newNick, msg) ->
-      if @util.nicksEqual from.nick, @nick
-        @nick = newNick
-      normNick = @util.normaliseNick from.nick
-      newNormNick = @util.normaliseNick newNick
-      for chanName, chan of @channels when normNick of chan.names
+      if irc.util.nicksEqual from.nick, @irc.nick
+        @irc.nick = newNick
+      normNick = @irc.util.normaliseNick from.nick
+      newNormNick = @irc.util.normaliseNick newNick
+      for chanName, chan of @irc.channels when normNick of chan.names
         delete chan.names[normNick]
         chan.names[newNormNick] = newNick
-        @emitMessage 'nick', chanName, from.nick, newNick
+        @irc.emitMessage 'nick', chanName, from.nick, newNick
 
     JOIN: (from, chanName) ->
-      isOwnNick = @util.nicksEqual from.nick, @nick
-      chan = @channels[chanName]
+      isOwnNick = irc.util.nicksEqual from.nick, @irc.nick
+      chan = @irc.channels[chanName]
       if isOwnNick
         if chan?
           chan.names = []
         else
-          chan = @channels[chanName] = {names:[]}
-        @emit 'joined', chanName
+          chan = @irc.channels[chanName] = {names:[]}
+        @irc.emit 'joined', chanName
       if chan?
-        chan.names[@util.normaliseNick from.nick] = from.nick
-        @emitMessage 'join', chanName, from.nick
+        chan.names[irc.util.normaliseNick from.nick] = from.nick
+        @irc.emitMessage 'join', chanName, from.nick
       else
         console.warn "Got JOIN for channel we're not in (#{chan})"
 
     PART: (from, chan) ->
-      if c = @channels[chan]
-        @emitMessage 'part', chan, from.nick
-        if @util.nicksEqual from.nick, @nick
+      if c = @irc.channels[chan]
+        @irc.emitMessage 'part', chan, from.nick
+        if irc.util.nicksEqual from.nick, @irc.nick
           c.names = []
-          @emit 'parted', chan
+          @irc.emit 'parted', chan
         else
-          delete c.names[@util.normaliseNick from.nick]
+          delete c.names[irc.util.normaliseNick from.nick]
       else
         console.warn "Got PART for channel we're not in (#{chan})"
 
     QUIT: (from, reason) ->
-      normNick = @util.normaliseNick from.nick
-      for chanName, chan of @channels when normNick of chan.names
+      normNick = irc.util.normaliseNick from.nick
+      for chanName, chan of @irc.channels when normNick of chan.names
         delete chan.names[normNick]
-        @emitMessage 'quit', chanName, from.nick, reason
+        @irc.emitMessage 'quit', chanName, from.nick, reason
 
     PRIVMSG: (from, target, msg) ->
       # TODO: normalise channel target names
       # TODO: should we pass more info about from?
-      @emitMessage 'privmsg', target, from.nick, msg
+      @irc.emitMessage 'privmsg', target, from.nick, msg
 
     PING: (from, payload) ->
-      @send 'PONG', payload
+      @irc.send 'PONG', payload
 
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
     # ERR_NICKNAMEINUSE
     433: (from, nick, msg) ->
-      @preferredNick += '_'
-      @emitMessage 'nickinuse', undefined, nick, @preferredNick, msg
-      @send 'NICK', @preferredNick
+      @irc.preferredNick += '_'
+      @irc.emitMessage 'nickinuse', undefined, nick, @irc.preferredNick, msg
+      @irc.send 'NICK', @irc.preferredNick
 
 exports.ServerResponseHandler = ServerResponseHandler

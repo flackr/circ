@@ -8,8 +8,8 @@ describe 'A message handler', ->
   beforeEach ->
     mh = new MessageHandler()
     mock = new test.MockMessageHandler()
-    spyOn(mock._handlerMap, 'eat')
-    spyOn(mock._handlerMap, 'drink')
+    spyOn(mock._handlers, 'eat')
+    spyOn(mock._handlers, 'drink')
 
   it 'it reports that it can handle registered messages', ->
     mh.registerHandler 'eat', onEat
@@ -61,8 +61,8 @@ describe 'A message handler', ->
     expect(mock.canHandle('drink')).toBe true
     expect(mock.canHandle('run')).toBe false
     mock.handle 'eat', 'bacon', 'pie'
-    expect(mock._handlerMap.eat).toHaveBeenCalledWith 'bacon', 'pie'
-    expect(mock._handlerMap.drink).not.toHaveBeenCalled()
+    expect(mock._handlers.eat).toHaveBeenCalledWith 'bacon', 'pie'
+    expect(mock._handlers.drink).not.toHaveBeenCalled()
 
   it 'can merge handlers', ->
     mh.registerHandler 'eat', onEat
@@ -76,8 +76,8 @@ describe 'A message handler', ->
     mh.handle 'drink', 'water'
     mh.handle 'run'
     expect(onEat).toHaveBeenCalledWith 'bacon', 'pie'
-    expect(mock._handlerMap.eat).toHaveBeenCalledWith 'bacon', 'pie'
-    expect(mock._handlerMap.drink).toHaveBeenCalledWith 'water'
+    expect(mock._handlers.eat).toHaveBeenCalledWith 'bacon', 'pie'
+    expect(mock._handlers.drink).toHaveBeenCalledWith 'water'
     expect(onRun).toHaveBeenCalledWith()
 
   it 'can listen to an event emitter', ->

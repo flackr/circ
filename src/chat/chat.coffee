@@ -7,7 +7,7 @@ class Chat extends EventEmitter
     super
     @$windowContainer = $('#chat')
 
-    @ircResponseHandler = new chat.IRCResponseHandler()
+    @ircResponseHandler = new chat.IRCResponseHandler
     @chatCommands = new chat.ChatCommands this
     devCommands = new chat.DeveloperCommands @chatCommands
     @chatCommands.merge devCommands

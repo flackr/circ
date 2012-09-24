@@ -3,7 +3,7 @@ exports = window.chat ?= {}
 class NickMentionedNotification extends window.chat.Notification
   constructor: (from, msg) ->
     msg = msg[..72] + '...' if msg.length > 75
-    super "#{from} mentioned you", msg
+    super "#{from} mentioned you", '"' + msg + '"'
 
   @shouldNotify: (nick, msg) ->
     return false if not nick?
