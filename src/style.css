@@ -11,6 +11,12 @@ body {
   background-color: white;
 }
 
+li {
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+
 #channel-display-container {
   display: -webkit-box;
   border-right: 2px solid lightgray;

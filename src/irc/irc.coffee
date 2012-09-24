@@ -4,7 +4,7 @@ class IRC extends EventEmitter
   constructor: (@socket=new net.ChromeSocket) ->
     super
     @util = irc.util
-    @preferredNick = "irc5-#{@util.randomName()}"
+    @preferredNick = "circ-#{@util.randomName()}"
 
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
