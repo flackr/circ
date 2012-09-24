@@ -31,7 +31,7 @@ class Chat extends EventEmitter
     @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
 
-    @updateStatus 'Welcome to CIRC! Type /help to see a full list of comamnds.'
+    @updateStatus()
 
     @connections = {}
 
@@ -67,9 +67,10 @@ class Chat extends EventEmitter
       @winList.add win
       @ircEvents.addEventsFrom irc
       @channelDisplay.add conn.name
-      if win == @currentWindow
-        @channelDisplay.select name
       irc.setPreferredNick @previousNick if @previousNick?
+      if win == @currentWindow
+        @updateStatus()
+        @channelDisplay.select name
     irc.connect(server, port)
 
   onIRCEvent: (e) =>
@@ -164,7 +165,8 @@ class Chat extends EventEmitter
 
   updateStatus: (status) ->
     if !status
-      status = "[#{@currentWindow.conn?.irc.nick}] #{@currentWindow.target}"
+      nick = @currentWindow.conn?.irc.nick ? @currentWindow.conn?.irc.preferredNick
+      status = "[#{nick}] #{@currentWindow.target ? ''}"
     $('#status').text(status)
 
   switchToWindow: (win) ->
