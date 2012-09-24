@@ -27,11 +27,11 @@ class Chat extends EventEmitter
     @switchToWindow new chat.Window Chat.NoConnName
     @winList = new chat.WindowList()
 
-    @currentWindow.message '*', "Welcome to irciii, a v2 Chrome app.", "circ"
-    @currentWindow.message '*', "Type /connect <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
-    @currentWindow.message '*', "Alt+[0-9] switches windows.", "circ"
+    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app.", "circ"
+    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
+    @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
 
-    @updateStatus 'hi!'
+    @updateStatus 'Welcome to CIRC! Type /help to see a full list of comamnds.'
 
     @connections = {}
 
