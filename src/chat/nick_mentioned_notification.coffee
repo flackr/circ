@@ -7,16 +7,16 @@ class NickMentionedNotification extends window.chat.Notification
 
   @shouldNotify: (nick, msg) ->
     return false if not nick?
-    # TODO have optional underscores if it doesn't conflict with another name
+    nick = nick.replace /_+$/, '' # remove trailing underscores
     msgToTest = @_prepMessageForRegex msg, nick
     ///
       \#nick\#     # the nickname
+      _*           # any number of underscores
       ([!?.]* |    # any number of ! ? .
-      [-:;~\*]?)  # or one ending punctuation
+      [-:;~\*]?)   # or one ending punctuation
       (?!\S)       # can't be followed by a letter
     ///i.test msgToTest
 
-  # do negative lookbehind and replace nick with a placeholder
   @_prepMessageForRegex: (msg, nick) ->
     msg = msg.replace(/,/g, ' ') # treat commas as whitespace
     msg = msg.replace(/\#nick\#/gi, 'a')

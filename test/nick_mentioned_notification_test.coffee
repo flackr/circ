@@ -56,7 +56,7 @@ describe 'A nick mentioned notification', ->
     expect(notification.shouldNotify('sallyjoe', 'sallyjoe1')).toBe false
     expect(notification.shouldNotify('sallyjoe', '1sallyjoe')).toBe false
 
-  xit 'should match with optional underscores', ->
+  it 'should match with optional underscores', ->
     expect(notification.shouldNotify('sallyjoe', 'sallyjoe______')).toBe true
     expect(notification.shouldNotify('sallyjoe', '@sallyjoe_... you there?')).toBe true
     expect(notification.shouldNotify('sallyjoe__', 'sallyjoe')).toBe true
