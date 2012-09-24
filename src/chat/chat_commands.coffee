@@ -69,6 +69,13 @@ class ChatCommands extends MessageHandler
          (target = @chat.currentWindow.target)
         conn.irc.doCommand 'PART', target, reason.join(' ')
 
+    do: (args...) ->
+      start = 0
+      if (conn = @chat.currentWindow.conn)
+        channel = @chat.currentWindow.target
+        ircCommand = chat.customCommandParser.parse channel, args...
+        conn.irc.doCommand ircCommand...
+
     load: ->
       script.loader.createScriptFromFileSystem (script) =>
         @chat.emit 'script_loaded', script
