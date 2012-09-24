@@ -3,9 +3,12 @@ exports = window.chat ?= {}
 class CustomCommandParser
 
   parse: (channel, args...) ->
-    # TODO don't always add the channel as a param (e.g. /nick)
-    params = @_mergeQuotedWords args[1..]
-    [args[0].toUpperCase(), channel, params...]
+    if args[1] == '$chan'
+      params = @_mergeQuotedWords args[2..]
+      [args[0].toUpperCase(), channel, params...]
+    else
+      params = @_mergeQuotedWords args[1..]
+      [args[0].toUpperCase(), params...]
 
   _mergeQuotedWords: (words) ->
     start = -1
