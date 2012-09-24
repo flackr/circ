@@ -25,6 +25,7 @@ class IRCResponseHandler extends MessageHandler
     nick: (from, to) ->
       if @_isOwnNick to
         @_message '*', "(You are now known as #{to})", 'system'
+        @updateStatus()
       else
         @_message '*', "#{from} is now known as #{to}.", 'nick'
       @win.nicks.replace from, to

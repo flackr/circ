@@ -22,6 +22,7 @@ class Chat extends EventEmitter
     chrome.storage.sync.get 'nick', (settings) =>
       if settings?.nick
         @previousNick = settings.nick
+        @updateStatus()
 
     @channelDisplay.add Chat.NoConnName
     @switchToWindow new chat.Window Chat.NoConnName
@@ -30,8 +31,6 @@ class Chat extends EventEmitter
     @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app.", "circ"
     @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
-
-    @updateStatus()
 
     @connections = {}
 
@@ -69,7 +68,6 @@ class Chat extends EventEmitter
       @channelDisplay.add conn.name
       irc.setPreferredNick @previousNick if @previousNick?
       if win == @currentWindow
-        @updateStatus()
         @channelDisplay.select name
     irc.connect(server, port)
 
@@ -111,6 +109,7 @@ class Chat extends EventEmitter
 
   onConnected: (conn) ->
     @emitMessage 'connect', conn.name
+    @updateStatus()
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
       @emitMessage 'connect', conn.name, win.target
@@ -165,7 +164,7 @@ class Chat extends EventEmitter
 
   updateStatus: (status) ->
     if !status
-      nick = @currentWindow.conn?.irc.nick ? @currentWindow.conn?.irc.preferredNick
+      nick = @currentWindow.conn?.irc.nick ? @previousNick
       status = "[#{nick}] #{@currentWindow.target ? ''}"
     $('#status').text(status)
 
