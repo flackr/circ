@@ -15,6 +15,7 @@ class IRC extends EventEmitter
     @socket.on 'close', (err) => @onClose err
     @data = @util.emptySocketData()
 
+    @exponentialBackoff = 0
     @partialNameLists = {}
     @channels = {}
     @serverResponseHandler = new irc.ServerResponseHandler(this)
@@ -59,7 +60,7 @@ class IRC extends EventEmitter
     @socket.setTimeout 60000, @onTimeout
 
   onError: (err) ->
-    console.error "socket error", err
+    @emitMessage 'error', undefined, "Socket Error: #{err}"
     @setReconnect()
     @socket.close()
 
@@ -76,8 +77,9 @@ class IRC extends EventEmitter
 
   setReconnect: ->
     @state = 'reconnecting'
-    # TODO: exponential backoff
-    @reconnect_timer = setTimeout @reconnect, 10000
+    backoff = 2000 * Math.pow 2, @exponentialBackoff
+    @reconnect_timer = setTimeout @reconnect, backoff
+    @exponentialBackoff++ unless @exponentialBackoff > 4
 
   reconnect: =>
     @connect()

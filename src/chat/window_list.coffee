@@ -3,6 +3,7 @@ exports = window.chat ?= {}
 class WindowList
   constructor: ->
     @_servers = []
+    @length = 0
 
   get: (serverName, chan) ->
     if typeof arguments[0] == 'number'
@@ -46,6 +47,7 @@ class WindowList
       @_addChannelWindow win
     else
       @_addServerWindow win
+    @length++
 
   _addChannelWindow: (win) ->
     assert win.conn?.name?
@@ -69,10 +71,12 @@ class WindowList
       if server.name == win.conn?.name
         if not win.target?
           @_servers.splice i, 1
-          return [server.serverWindow].concat server.windows
+          @length -= server.windows.length + 1
+          return server.windows.concat [server.serverWindow]
         for candidate, i in server.windows
           if candidate.target == win.target
             server.windows.splice i, 1
+            @length--
             return [candidate]
     return []
 

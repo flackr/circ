@@ -4,7 +4,7 @@ class ChromeSocket extends net.AbstractTCPSocket
   connect: (host, port) ->
     @_active()
     go = (err, addr) =>
-      return @emit 'error', "couldn't resolve: #{err}" if err
+      return @emit 'error', "DNS couldn't resolve: #{err}" if err
       @_active()
       chrome.socket.create 'tcp', {}, (si) =>
         @socketId = si.socketId
@@ -22,7 +22,7 @@ class ChromeSocket extends net.AbstractTCPSocket
     if rc < 0
       # Can get -109, -105, -102 when entering a server we can't connect to
       # TODO make better error messages
-      @emit 'error', rc
+      @emit 'error', "couldn't connect to socket: " + rc
     else
       @emit 'connect'
       chrome.socket.read @socketId, @_onRead
@@ -45,12 +45,12 @@ class ChromeSocket extends net.AbstractTCPSocket
       if writeInfo.resultCode < 0
         console.error "SOCKET ERROR on write: ", writeInfo.resultCode
       if writeInfo.bytesWritten == data.byteLength
-        @emit 'drain' # TODO not sure if this works, don't rely on this message
+        @emit 'drain'
       else
         console.error "Waaah can't handle non-complete writes"
 
   close: ->
-    chrome.socket.disconnect @socketId
+    chrome.socket.disconnect @socketId if @socketId?
     @emit 'close'
 
   @resolve: (host, cb) ->

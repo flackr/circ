@@ -52,6 +52,15 @@ describe 'A window list', ->
     for i in [0..5]
       expect(wl.get i).toBe windows[i]
 
+  it "length returns the number of windows", ->
+    expect(wl.length).toBe 0
+    joinMultipleServersAndChannels()
+    expect(wl.length).toBe 6
+    wl.remove windows[0]
+    expect(wl.length).toBe 3
+    wl.add windows[0]
+    expect(wl.length).toBe 4
+
   it "getChannelWindow returns undefined when called on a deleted window", ->
     joinMultipleServersAndChannels()
     wl.remove windows[0]

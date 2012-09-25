@@ -45,13 +45,26 @@ class ChatCommands extends MessageHandler
         chrome.storage.sync.set({nick: newNick})
         conn.irc.doCommand 'NICK', newNick
 
+    connect: -> @handle 'server', arguments...
     server: (server, port) -> # connect to server
-      @chat.connect server, if port then parseInt port
+      server ?= @chat.currentWindow.conn?.name
+      if server?
+        @chat.connect server, if port then parseInt port
 
     quit: (reason...) ->
       if conn = @chat.currentWindow.conn
-        reason = if reason.length == 0 then 'Client Quit' else reason.join(' ')
-        conn.irc.quit reason
+        if conn.irc.state == 'reconnecting'
+          @handle 'giveup'
+        else if conn.irc.state == 'connected'
+          reason = if reason.length == 0 then 'Client Quit' else reason.join(' ')
+          conn.irc.quit reason
+          @chat.removeWindow @chat.winList.get conn.name
+
+    giveup: ->
+      if conn = @chat.currentWindow.conn
+        return unless conn.irc.state == 'reconnecting'
+        @chat.removeWindow()
+        conn.irc.giveup()
 
     names: ->
       if (conn = @chat.currentWindow.conn) and
@@ -68,7 +81,7 @@ class ChatCommands extends MessageHandler
       win = @chat.currentWindow
       if (conn = win.conn) and (target = win.target)
         conn.irc.doCommand 'PART', target, reason.join(' ')
-        @chat.removeWindow(win)
+        @chat.removeWindow()
 
     do: (args...) ->
       start = 0

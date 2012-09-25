@@ -1,7 +1,6 @@
 exports = window.chat ?= {}
 
 class Chat extends EventEmitter
-  @NoConnName = 'none'
 
   constructor: ->
     super
@@ -24,12 +23,13 @@ class Chat extends EventEmitter
         @previousNick = settings.nick
         @updateStatus()
 
-    @channelDisplay.add Chat.NoConnName
-    @switchToWindow new chat.Window Chat.NoConnName
+    @emptyWindow = new chat.Window 'none'
+    @channelDisplay.add @emptyWindow.name
+    @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
 
     @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app.", "circ"
-    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "circ"
+    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>. Type /help to see a full list of commands.", "circ"
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
 
     @connections = {}
@@ -54,12 +54,7 @@ class Chat extends EventEmitter
     if irc = @connections[name]?.irc
       return if irc.state in ['connected', 'connecting']
     else
-      win = @currentWindow
-      if win.name == Chat.NoConnName
-        @channelDisplay.remove Chat.NoConnName
-        win.name = name
-      else
-        win = new chat.Window(name)
+      win = new chat.Window(name)
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
       win.conn = conn
@@ -67,14 +62,14 @@ class Chat extends EventEmitter
       @ircEvents.addEventsFrom irc
       @channelDisplay.add conn.name
       irc.setPreferredNick @previousNick if @previousNick?
-      if win == @currentWindow
-        @channelDisplay.select name
+      if @currentWindow == @emptyWindow
+        @channelDisplay.remove @emptyWindow.name
+        @switchToWindow win
     irc.connect(server, port)
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]
     if not conn?
-      console.warn 'got event', e.type, e.name, 'on unknown connection', e.context.server
       return
     if e.type is 'server' then @onServerEvent conn, e
     else @onMessageEvent conn, e
@@ -141,21 +136,36 @@ class Chat extends EventEmitter
     if win = conn.windows[chan]
       @channelDisplay.disconnect conn.name, chan
 
-  removeWindow: (win) ->
-    @channelDisplay.remove win.conn.name, win.target
+  removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
-    @winList.remove win
-    delete @connections[win.conn.name].windows[win.target]
+    removedWindows = @winList.remove win
+    for win in removedWindows
+      @_eraseWindow win
+    @_selectNextWindow(index)
+
+  _eraseWindow: (win) ->
+    @channelDisplay.remove win.conn.name, win.target
+    if win.target?
+      delete @connections[win.conn.name].windows[win.target]
+    else
+      delete @connections[win.conn.name]
     win.remove()
-    return unless @currentWindow == win
-    nextWin = @winList.get(index) ? @winList.get(index - 1)
-    @switchToWindow nextWin
+
+  _selectNextWindow: (preferredIndex) ->
+    if @winList.length is 0
+      @channelDisplay.add @emptyWindow.name
+      @switchToWindow @emptyWindow
+    else if @winList.indexOf(@currentWindow) == -1
+      nextWin = @winList.get(preferredIndex) ? @winList.get(preferredIndex - 1)
+      @switchToWindow nextWin
 
   system_handlers =
     welcome: (conn, msg) ->
       @message '*', msg, 'welcome'
     unknown: (conn, cmd) ->
       @message '*', cmd.command + ' ' + cmd.params.join(' ')
+    error: (conn, err) ->
+      @message '*', err
     nickinuse: (conn, oldnick, newnick, msg) ->
       @message '*', "Nickname #{oldnick} already in use: #{msg}"
     connect: ->
