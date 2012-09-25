@@ -111,7 +111,7 @@ describe 'A user input handler', ->
       downArrow()
       expect(onVal.mostRecentCall.args[0]).toBe 'bye'
 
-    it "displas the current input value as most current previous command", ->
+    it "displays the current input value as most current previous command", ->
       type('hi')
       upArrow()
       downArrow()

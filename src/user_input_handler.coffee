@@ -9,8 +9,7 @@ class UserInputHandler extends EventEmitter
   constructor: (@input, @window) ->
     super
     @input.focus()
-    callback = (args...) => @input.val args...
-    @inputStack = new InputStack callback, callback
+    @inputStack = new InputStack
     @autoComplete = new AutoComplete
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
@@ -37,9 +36,11 @@ class UserInputHandler extends EventEmitter
     if e.which == UserInputHandler.UP or e.which == UserInputHandler.DOWN
       e.preventDefault()
       if e.which == UserInputHandler.UP
-        @inputStack.showPreviousInput()
+        @inputStack.setCurrentText @input.val()
+        input = @inputStack.showPreviousInput()
       else
-        @inputStack.showNextInput()
+        input = @inputStack.showNextInput()
+      @input.val(input) if input?
     else
       @inputStack.reset()
 
