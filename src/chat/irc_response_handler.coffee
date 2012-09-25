@@ -46,6 +46,7 @@ class IRCResponseHandler extends MessageHandler
       nick = @win.conn?.irc.nick
       nickMentioned = not @_isOwnNick(from) and
         chat.NickMentionedNotification.shouldNotify(nick, msg)
+
       if nickMentioned
         @_notifyNickMentioned from, msg
 

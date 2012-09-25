@@ -7,9 +7,9 @@ class UserInputHandler extends EventEmitter
 
   constructor: (@input, @window) ->
     super
-    @previousCommands = ['']
-    @previousCommandIndex = 0
     @input.focus()
+    callback = (args...) => @input.val args...
+    @inputStack = new InputStack callback, callback
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
 
@@ -24,23 +24,11 @@ class UserInputHandler extends EventEmitter
       e.preventDefault()
 
     if e.which == UserInputHandler.UP
-      @_showPreviousCommand()
+      @inputStack.showPreviousInput()
     else if e.which == UserInputHandler.DOWN
-      @_showNextCommand()
+      @inputStack.showNextInput()
     else
-      @previousCommandIndex = 0
-
-  _showPreviousCommand: ->
-    if @previousCommandIndex == 0
-      @previousCommands[0] = @input.val()
-    unless @previousCommandIndex >= @previousCommands.length - 1
-      @previousCommandIndex++
-      @input.val @previousCommands[@previousCommandIndex]
-
-  _showNextCommand: ->
-    unless @previousCommandIndex <= 0
-      @previousCommandIndex--
-      @input.val @previousCommands[@previousCommandIndex]
+      @inputStack.reset()
 
   _handleKeydown: (e) =>
     if e.which == UserInputHandler.ENTER_KEY
@@ -50,7 +38,7 @@ class UserInputHandler extends EventEmitter
         @_handleTextInput text
 
   _handleTextInput: (text) =>
-    @previousCommands.splice 1, 0, text
+    @inputStack.addInput text
     words = text.split(/\s+/)
     if text[0] == '/'
       name = words[0][1..].toLowerCase()
