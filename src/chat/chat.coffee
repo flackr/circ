@@ -30,6 +30,7 @@ class Chat extends EventEmitter
     @winList = new chat.WindowList()
 
     @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app.", "circ"
+    @currentWindow.message '*', "Visit https://github.com/noahsug/ircv to file any bugs or feature requests.", "circ"
     @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>. Type /help to see a full list of commands.", "circ"
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
 
