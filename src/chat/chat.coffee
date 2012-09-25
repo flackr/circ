@@ -107,18 +107,18 @@ class Chat extends EventEmitter
     @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->
-    @emitMessage 'connect', conn.name
+    @handleMessage 'connect', conn.name
     @updateStatus()
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
-      @emitMessage 'connect', conn.name, win.target
+      @handleMessage 'connect', conn.name, win.target
 
   onDisconnected: (conn) ->
-    @emitMessage 'disconnect', conn.name
+    @handleMessage 'disconnect', conn.name
     @channelDisplay.disconnect conn.name
     for chan, win of conn.windows
       @channelDisplay.disconnect conn.name, chan
-      @emitMessage 'disconnect', conn.name, win.target
+      @handleMessage 'disconnect', conn.name, win.target
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
@@ -192,9 +192,11 @@ class Chat extends EventEmitter
       @channelDisplay.select Chat.NoConnName
     @updateStatus()
 
-  emitMessage: (name, server, channel, args...) ->
+  handleMessage: (name, server, channel, args...) ->
     event = new Event 'message', name, args...
     event.setContext server, channel
+    # message is emitted to the script handler,
+    # which decides if it should send it back
     @emit event.type, event
 
 exports.Chat = Chat

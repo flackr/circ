@@ -4,31 +4,52 @@ class UserInputHandler extends EventEmitter
   @ENTER_KEY = 13
   @UP = 38
   @DOWN = 40
+  @TAB = 9
 
   constructor: (@input, @window) ->
     super
     @input.focus()
     callback = (args...) => @input.val args...
     @inputStack = new InputStack callback, callback
+    @autoComplete = new AutoComplete
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
 
   setContext: (@context) ->
 
   _handleGlobalKeydown: (e) =>
+    @_handleFocusingInput e
+    @_handleSwitchingWindows e
+    @_handleShowingPreviousCommands e
+    @_handleAutoComplete e
+
+  _handleFocusingInput: (e) ->
     unless e.metaKey or e.ctrlKey
       e.currentTarget = @input[0]
       @input.focus()
+
+  _handleSwitchingWindows: (e) ->
     if e.altKey and 48 <= e.which <= 57
       @emit 'switch_window', e.which - 48
       e.preventDefault()
 
-    if e.which == UserInputHandler.UP
-      @inputStack.showPreviousInput()
-    else if e.which == UserInputHandler.DOWN
-      @inputStack.showNextInput()
+  _handleShowingPreviousCommands: (e) ->
+    if e.which == UserInputHandler.UP or e.which == UserInputHandler.DOWN
+      e.preventDefault()
+      if e.which == UserInputHandler.UP
+        @inputStack.showPreviousInput()
+      else
+        @inputStack.showNextInput()
     else
       @inputStack.reset()
+
+  _handleAutoComplete: (e) ->
+    if e.which == UserInputHandler.TAB
+      e.preventDefault()
+      unless @input.val() == ''
+        @input.val @autoComplete.getCompletion(@input.val())
+    else
+      @autoComplete.reset()
 
   _handleKeydown: (e) =>
     if e.which == UserInputHandler.ENTER_KEY

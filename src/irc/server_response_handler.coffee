@@ -20,7 +20,8 @@ class ServerResponseHandler extends MessageHandler
       l = (@irc.partialNameLists[channel] ||= {})
       newNames = []
       for n in names.split(/\x20/)
-        n = n.replace /^[@+]/, '' # TODO: read the prefixes and modes that they imply out of the 005 message
+        # TODO: read the prefixes and modes that they imply out of the 005 message
+        n = n.replace /^[@+]/, ''
         l[irc.util.normaliseNick n] = n
         newNames.push n
       @irc.emit 'names', channel, newNames
