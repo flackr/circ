@@ -10,7 +10,6 @@ class IRCResponseHandler extends MessageHandler
 
   _handlers:
     join: (nick) ->
-      console.log 'ON JOIN', nick, @win.conn.irc.nick
       if @_isOwnNick nick
         @_message '*', "(You joined the channel)", 'system'
       else

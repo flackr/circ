@@ -52,7 +52,7 @@ describe 'A window list', ->
     for i in [0..5]
       expect(wl.get i).toBe windows[i]
 
-  it "length returns the number of windows", ->
+  it "has a length property which is equal to the number of windows", ->
     expect(wl.length).toBe 0
     joinMultipleServersAndChannels()
     expect(wl.length).toBe 6
@@ -61,14 +61,14 @@ describe 'A window list', ->
     wl.add windows[0]
     expect(wl.length).toBe 4
 
-  it "getChannelWindow returns undefined when called on a deleted window", ->
+  it "returns undefined when getChannelWindow is called on a deleted window", ->
     joinMultipleServersAndChannels()
     wl.remove windows[0]
     wl.remove windows[4]
     expect(wl.getChannelWindow 'freenode').toBeUndefined()
     expect(wl.getChannelWindow 'dalnet', '#bash').toBeUndefined()
 
-  it "deleting a server window deletes all of its channel windows", ->
+  it "deletes all channel windows when their server window is deleted", ->
     joinMultipleServersAndChannels()
     wl.remove windows[0]
     wl.remove windows[4]

@@ -15,13 +15,20 @@ describe 'A user input handler', ->
     val = text
     keyDown 13
 
+  upArrow = ->
+    keyDown 38
+
+  downArrow = ->
+    keyDown 40
+
   input =
     keydown: (cb) => inputKeyDown = cb
     focus: ->
-    val: ->
+    val: (text) ->
       if arguments.length == 0
         return val
-      onVal()
+      val = text
+      onVal(text)
 
   window =
     keydown: (cb) => windowKeyDown = cb
@@ -67,3 +74,65 @@ describe 'A user input handler', ->
     expect(e.name).toBe 'kick'
     expect(e.context).toEqual { server: 'freenode.net', channel: '#bash' }
     expect(e.args).toEqual 'sugarman for spamming /dance'.split ' '
+
+  it "uses the up arrow to show previous commands", ->
+    type 'hi'
+    type 'bye'
+
+    upArrow()
+    expect(onVal.mostRecentCall.args[0]).toBe 'bye'
+
+    upArrow()
+    expect(onVal.mostRecentCall.args[0]).toBe 'hi'
+
+  it "does nothing when the up arrow is pressed and there is no more previous command", ->
+    upArrow()
+    expect(onVal).not.toHaveBeenCalled()
+
+    val = 'current text'
+    upArrow()
+    expect(onVal).not.toHaveBeenCalled()
+
+    type 'hi'
+    upArrow()
+    onVal.reset()
+
+    upArrow()
+    upArrow()
+    expect(onVal).not.toHaveBeenCalled()
+
+  it "uses the down arrow to move back toward current commands", ->
+    type 'hi'
+    type 'bye'
+    upArrow()
+    upArrow()
+    downArrow()
+    expect(onVal.mostRecentCall.args[0]).toBe 'bye'
+
+  it "displas the current input value as most current previous command", ->
+    type('hi')
+    upArrow()
+    downArrow()
+    expect(onVal.mostRecentCall.args[0]).toBe ''
+
+    type('hi')
+    val = 'current text'
+    upArrow()
+    downArrow()
+    expect(onVal.mostRecentCall.args[0]).toBe 'current text'
+
+  it "does nothing when the down arrow is pressed but there is no more current command", ->
+    downArrow()
+    expect(onVal).not.toHaveBeenCalled()
+
+    val = 'current text'
+    downArrow()
+    expect(onVal).not.toHaveBeenCalled()
+
+    type('hi')
+    upArrow()
+    downArrow()
+    onVal.reset()
+    downArrow()
+    downArrow()
+    expect(onVal).not.toHaveBeenCalled()
