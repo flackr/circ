@@ -25,6 +25,7 @@ class IRC extends EventEmitter
 
   # user-facing
   connect: (@server=@server, @port=@port) ->
+    # TODO handle case where /quit was already called before fully connected
     return if @state not in ['disconnected', 'reconnecting']
     clearTimeout @reconnect_timer if @reconnect_timer
     @reconnect_timer = null
