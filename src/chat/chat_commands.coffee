@@ -65,9 +65,10 @@ class ChatCommands extends MessageHandler
       @chat.currentWindow.displayHelp commands
 
     part: (reason...) ->
-      if (conn = @chat.currentWindow.conn) and
-         (target = @chat.currentWindow.target)
+      win = @chat.currentWindow
+      if (conn = win.conn) and (target = win.target)
         conn.irc.doCommand 'PART', target, reason.join(' ')
+        @chat.removeWindow(win)
 
     do: (args...) ->
       start = 0

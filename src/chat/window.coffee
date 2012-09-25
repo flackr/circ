@@ -25,6 +25,9 @@ class Window
     @wasScrolledDown = @isScrolledDown()
     @$container.detach()
 
+  remove: ->
+    @$container.remove()
+
   attachTo: (container) ->
     container.prepend @$container
     if @wasScrolledDown

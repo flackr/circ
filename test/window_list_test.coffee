@@ -30,6 +30,12 @@ describe 'A window list', ->
     wl.add createWindow 'freenode'
     wl.add createWindow 'freenode', '#bash'
 
+  it 'can have windows removed', ->
+    wl.add createWindow 'freenode'
+    wl.add createWindow 'freenode', '#bash'
+    wl.remove windows[0]
+    wl.remove windows[1]
+
   it 'throws an error when a channel window is added with no corresponding connection window', ->
     addChannelWindow = -> wl.add createWindow 'freenode', '#bash'
     expect(addChannelWindow).toThrow()
@@ -44,7 +50,21 @@ describe 'A window list', ->
   it "returns the nth window on get(n)", ->
     joinMultipleServersAndChannels()
     for i in [0..5]
-      expect(wl.get i).toBe windows[window]
+      expect(wl.get i).toBe windows[i]
+
+  it "getChannelWindow returns undefined when called on a deleted window", ->
+    joinMultipleServersAndChannels()
+    wl.remove windows[0]
+    wl.remove windows[4]
+    expect(wl.getChannelWindow 'freenode').toBeUndefined()
+    expect(wl.getChannelWindow 'dalnet', '#bash').toBeUndefined()
+
+  it "deleting a server window deletes all of its channel windows", ->
+    joinMultipleServersAndChannels()
+    wl.remove windows[0]
+    wl.remove windows[4]
+    for i, window in [-1, -1, -1, 0, -1, 1]
+      expect(wl.indexOf windows[window]).toBe i
 
   it "returns the nth channel window on getChannelWindow(n)", ->
     joinMultipleServersAndChannels()

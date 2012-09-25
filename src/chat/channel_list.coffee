@@ -11,11 +11,8 @@ class ChannelList extends chat.HTMLList
     @lastSelected = @_getID server, channel
     @addClass @_getID(server, channel), 'selected'
 
-  selectNext: ->
-    # TODO implement - used with ALT down/right
-
-  selectPrevious: ->
-    # TODO implement - used with ALT up/left
+  remove: (server, chan) ->
+    super @_getID server, chan
 
   insert: (i, server, chan) ->
     super i, @_getID server, chan

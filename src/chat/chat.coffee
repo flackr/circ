@@ -96,7 +96,6 @@ class Chat extends EventEmitter
 
     win = conn.windows[chan]
     if not win
-      console.warn "message to unknown chan", conn.name, chan, type, e.args
       return
 
     if not @ircResponseHandler.canHandle type
@@ -141,6 +140,16 @@ class Chat extends EventEmitter
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
       @channelDisplay.disconnect conn.name, chan
+
+  removeWindow: (win) ->
+    @channelDisplay.remove win.conn.name, win.target
+    index = @winList.indexOf win
+    @winList.remove win
+    delete @connections[win.conn.name].windows[win.target]
+    win.remove()
+    return unless @currentWindow == win
+    nextWin = @winList.get(index) ? @winList.get(index - 1)
+    @switchToWindow nextWin
 
   system_handlers =
     welcome: (conn, msg) ->
