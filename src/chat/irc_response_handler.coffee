@@ -1,6 +1,8 @@
 exports = window.chat ?= {}
 
 class IRCResponseHandler extends MessageHandler
+  constructor: (@chat) ->
+    super
 
   setWindow: (@win) ->
 
@@ -24,8 +26,8 @@ class IRCResponseHandler extends MessageHandler
 
     nick: (from, to) ->
       if @_isOwnNick to
+        @chat.updateStatus()
         @_message '*', "(You are now known as #{to})", 'system'
-        @updateStatus()
       else
         @_message '*', "#{from} is now known as #{to}.", 'nick'
       @win.nicks.replace from, to

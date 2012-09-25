@@ -33,6 +33,7 @@ class ServerResponseHandler extends MessageHandler
     NICK: (from, newNick, msg) ->
       if irc.util.nicksEqual from.nick, @irc.nick
         @irc.nick = newNick
+        @irc.emitMessage 'nick_changed', undefined, newNick
       normNick = @irc.util.normaliseNick from.nick
       newNormNick = @irc.util.normaliseNick newNick
       for chanName, chan of @irc.channels when normNick of chan.names
@@ -84,6 +85,7 @@ class ServerResponseHandler extends MessageHandler
 
     # ERR_NICKNAMEINUSE
     433: (from, nick, msg) ->
+      @irc.preferredNick = msg
       @irc.preferredNick += '_'
       @irc.emitMessage 'nickinuse', undefined, nick, @irc.preferredNick, msg
       @irc.send 'NICK', @irc.preferredNick

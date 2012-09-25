@@ -6,7 +6,8 @@ class Chat extends EventEmitter
     super
     @$windowContainer = $('#chat')
 
-    @ircResponseHandler = new chat.IRCResponseHandler
+    @ircResponseHandler = new chat.IRCResponseHandler this
+    @systemMessageHandler = new chat.SystemMessageHandler this
     @chatCommands = new chat.ChatCommands this
     devCommands = new chat.DeveloperCommands @chatCommands
     @chatCommands.merge devCommands
@@ -55,6 +56,7 @@ class Chat extends EventEmitter
       return if irc.state in ['connected', 'connecting']
     else
       win = new chat.Window(name)
+      win.message '*', "Connecting to #{server}..."
       irc = new window.irc.IRC
       conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
       win.conn = conn
@@ -86,7 +88,10 @@ class Chat extends EventEmitter
     chan = e.context.channel
     type = e.name
     if not chan?
-      system_handlers[type].apply conn.serverWindow, [conn].concat(e.args)
+      if @systemMessageHandler.canHandle type
+        @systemMessageHandler.handle type, conn, e.args...
+      else
+        console.warn "received unknown system message", conn.name, type, e.args
       return
 
     win = conn.windows[chan]
@@ -158,20 +163,6 @@ class Chat extends EventEmitter
     else if @winList.indexOf(@currentWindow) == -1
       nextWin = @winList.get(preferredIndex) ? @winList.get(preferredIndex - 1)
       @switchToWindow nextWin
-
-  system_handlers =
-    welcome: (conn, msg) ->
-      @message '*', msg, 'welcome'
-    unknown: (conn, cmd) ->
-      @message '*', cmd.command + ' ' + cmd.params.join(' ')
-    error: (conn, err) ->
-      @message '*', err
-    nickinuse: (conn, oldnick, newnick, msg) ->
-      @message '*', "Nickname #{oldnick} already in use: #{msg}"
-    connect: ->
-      @message '*', "Connected. Now logging in..."
-    disconnect: ->
-      @message '*', "Disconnected"
 
   makeWin: (conn, chan) ->
     throw new Error("we already have a window for that") if conn.windows[chan]
