@@ -29,8 +29,7 @@ class Chat extends EventEmitter
     @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
 
-    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app.", "circ"
-    @currentWindow.message '*', "Visit https://github.com/noahsug/ircv to file any bugs or feature requests.", "circ"
+    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app. Visit https://github.com/noahsug/ircv to file a bug or feature request.", "circ"
     @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>. Type /help to see a full list of commands.", "circ"
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "circ"
 
@@ -174,9 +173,12 @@ class Chat extends EventEmitter
     win
 
   updateStatus: (status) ->
-    if !status
+    unless status
       nick = @currentWindow.conn?.irc.nick ? @previousNick
-      status = "[#{nick}] #{@currentWindow.target ? ''}"
+      if nick?
+        status = "[#{nick}] #{@currentWindow.target ? ''}"
+      else
+        status = 'Welcome!'
     $('#status').text(status)
 
   switchToWindow: (win) ->

@@ -40,9 +40,10 @@ class ChatCommands extends MessageHandler
       @chat.chatCommands.handle 'say', '\u0001ACTION '+text+'\u0001'
 
     nick: (newNick) ->
+      @chat.previousNick = newNick
+      chrome.storage.sync.set({nick: newNick})
+      @chat.updateStatus()
       if conn = @chat.currentWindow.conn
-        # TODO: HRHRMRHM
-        chrome.storage.sync.set({nick: newNick})
         conn.irc.doCommand 'NICK', newNick
 
     connect: -> @handle 'server', arguments...
