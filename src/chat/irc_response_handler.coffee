@@ -54,16 +54,14 @@ class IRCResponseHandler extends MessageHandler
       @_message '*', '(Connected)', 'system'
 
     privmsg: (from, msg) ->
-      nick = @win.conn?.irc.nick
+      nick = @win.conn.irc.nick
+      style = []
       nickMentioned = not @_isOwnNick(from) and
         chat.NickMentionedNotification.shouldNotify(nick, msg)
+      @_handleNotifications from, msg, nickMentioned
 
-      if nickMentioned and not window.document.hasFocus()
-        @_notifyNickMentioned from, msg
-
-      style = []
-      if nickMentioned then style.push 'mention'
-      if @_isOwnNick(from) then style.push 'self'
+      style.push 'mention' if nickMentioned
+      style.push 'self' if @_isOwnNick(from)
       if m = /^\u0001ACTION (.*)\u0001/.exec msg
         @_message '*', "#{from} #{m[1]}", 'privmsg action', style...
       else
@@ -71,6 +69,14 @@ class IRCResponseHandler extends MessageHandler
 
     system: (text) ->
       @_message '*', text, 'server'
+
+  _handleNotifications: (from, msg, nickMentioned) ->
+    return if @win.target is @chat.currentWindow.target
+    @chat.channelDisplay.activity @win.conn.name, @win.target
+    if nickMentioned
+      @_notifyNickMentioned from, msg if not window.document.hasFocus()
+      @chat.channelDisplay.mention @win.conn.name, @win.target
+
 
   _message: (from, msg, style...) ->
     @win.message from, msg, style..., @style...

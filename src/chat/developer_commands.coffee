@@ -21,7 +21,7 @@ class DeveloperCommands extends MessageHandler
       @_handleCommand "join", "#sugarman2"
 
     6: ->
-      @_handleCommand "server", "irc.dal.net"
+      @_handleCommand "server", "poop.irc.net"
 
     7: ->
       @_handleCommand "server", "irc.freenode.net"

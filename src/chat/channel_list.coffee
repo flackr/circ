@@ -8,8 +8,17 @@ class ChannelList extends chat.HTMLList
 
   select: (server, channel) ->
     @removeClass @lastSelected, 'selected' if @lastSelected?
-    @lastSelected = @_getID server, channel
-    @addClass @_getID(server, channel), 'selected'
+    currentWindow = @_getID server, channel
+    @lastSelected = currentWindow
+    @removeClass currentWindow, 'activity'
+    @removeClass currentWindow, 'mention'
+    @addClass currentWindow, 'selected'
+
+  activity: (server, channel) ->
+    @addClass @_getID(server, channel), 'activity'
+
+  mention: (server, channel) ->
+    @addClass @_getID(server, channel), 'mention'
 
   remove: (server, chan) ->
     super @_getID server, chan

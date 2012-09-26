@@ -51,6 +51,14 @@ li {
   background-color: DDD;
 }
 
+#channels li.activity {
+  font-weight: bold;
+}
+
+#channels li.mention {
+  color: darkred;
+}
+
 .longword { word-break: break-all; }
 
 #chat {
