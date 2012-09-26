@@ -21,21 +21,10 @@ class DeveloperCommands extends MessageHandler
       @_handleCommand "join", "#sugarman2"
 
     6: ->
-      @_handleCommand "say", "Hey #{irc.util.randomName()}!"
+      @_handleCommand "server", "irc.dal.net"
 
     7: ->
       @_handleCommand "server", "irc.freenode.net"
-
-    8: ->
-      @_handleCommand "win", "0"
-      @_handleCommand "join", "#sugarman"
-
-    q: ->
-      @_handleCommand "quit", "quitting a server"
-
-    q1: ->
-      @_handleCommand "win", "1"
-      @_handleCommand "quit", "quitting a server in window 1"
 
     n: ->
       new chat.Notification('test', 'hi!').show()

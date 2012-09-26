@@ -17,7 +17,10 @@ class UserInputHandler extends EventEmitter
   _getCompletions: =>
     chan = @context.currentWindow.target
     nicks = @context.currentWindow.conn?.irc.channels[chan]?.names
-    return if nicks? then (nick for norm, nick of nicks) else []
+    if nicks?
+      ownNick = @context.currentWindow.conn.irc.nick
+      return (nick for norm, nick of nicks when nick isnt ownNick)
+    return []
 
   setContext: (@context) ->
 
