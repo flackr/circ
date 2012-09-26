@@ -34,17 +34,20 @@ class IRC extends EventEmitter
 
   # user-facing
   quit: (reason) ->
-    return if @state != 'connected'
-    @send 'QUIT', reason
-    @state = 'disconnected'
-    @endSocketOnDrain = true
+    if @state in ['connected', 'disconnecting']
+      @send 'QUIT', reason ? @quitReason
+      @state = 'disconnected'
+      @endSocketOnDrain = true
+    else
+      @quitReason = reason
+      @state = 'disconnecting'
 
   # user-facing
   giveup: ->
-    return if @state != 'reconnecting'
-    clearTimeout @reconnect_timer
-    @reconnect_timer = null
-    @state = 'disconnected'
+    return unless @state is 'reconnecting'
+      clearTimeout @reconnect_timer
+      @reconnect_timer = null
+      @state = 'disconnected'
 
   # user-facing
   doCommand: (cmd, args...) ->

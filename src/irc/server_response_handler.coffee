@@ -8,6 +8,9 @@ class ServerResponseHandler extends MessageHandler
   _handlers:
     # RPL_WELCOME
     1: (from, target, msg) ->
+      if @irc.state is 'disconnecting'
+        @irc.quit()
+        return
       @irc.nick = target
       @irc.emit 'connect'
       @irc.state = 'connected'

@@ -90,7 +90,6 @@ li {
   padding: 0 4px;
   text-align: right;
   border-right: 1px solid lightgray;
-  max-width: 125px;
 }
 .message .text {
   display: table-cell;

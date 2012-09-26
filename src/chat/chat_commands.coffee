@@ -53,15 +53,13 @@ class ChatCommands extends MessageHandler
         @chat.connect server, if port then parseInt port
 
     quit: (reason...) ->
-      if conn = @chat.currentWindow.conn
-        # TODO handle case where irc is connecting
-        return unless conn.irc.state in ['reconnecting', 'connected']
-        if conn.irc.state == 'reconnecting'
-          conn.irc.giveup()
-        else
-          reason = if reason.length == 0 then 'Client Quit' else reason.join(' ')
-          conn.irc.quit reason
-        @chat.removeWindow @chat.winList.get conn.name
+      return unless (conn = @chat.currentWindow.conn)
+      if conn.irc.state == 'reconnecting'
+        conn.irc.giveup()
+      else
+        reason = if reason.length is 0 then 'Client Quit' else reason.join(' ')
+        conn.irc.quit reason
+      @chat.removeWindow @chat.winList.get conn.name
 
     names: ->
       if (conn = @chat.currentWindow.conn) and
