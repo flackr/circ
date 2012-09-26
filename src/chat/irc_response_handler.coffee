@@ -77,7 +77,6 @@ class IRCResponseHandler extends MessageHandler
       @_notifyNickMentioned from, msg if not window.document.hasFocus()
       @chat.channelDisplay.mention @win.conn.name, @win.target
 
-
   _message: (from, msg, style...) ->
     @win.message from, msg, style..., @style...
 

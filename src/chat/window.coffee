@@ -1,17 +1,10 @@
 exports = window.chat ?= {}
 
 class Window
-
-  setTarget: (@target) ->
-    nicks = $ "<ol id='nicks'>"
-    nickDisplay = $ "<div id='nick-display'>"
-    nickWrapper = $ "<div id='nick-display-container'>"
-    nickDisplay.append nicks
-    nickWrapper.append nickDisplay
-    @$container.append nickWrapper
-    @nicks = new chat.NickList(nicks)
+  @SCROLLED_DOWN_BUFFER = 8
 
   constructor: (@name) ->
+    @wasScrolledDown = true
     @$container = $ "<div id='window-container'>"
     @$messages = $ "<div id='chat-messages'>"
     @$chatDisplay = $ "<div id='chat-display'>"
@@ -19,6 +12,18 @@ class Window
     chatDisplayContainer.append @$chatDisplay
     @$chatDisplay.append @$messages
     @$container.append chatDisplayContainer
+
+  setTarget: (@target) ->
+    @_addNickList()
+
+  _addNickList: ->
+    nicks = $ "<ol id='nicks'>"
+    nickDisplay = $ "<div id='nick-display'>"
+    nickWrapper = $ "<div id='nick-display-container'>"
+    nickDisplay.append nicks
+    nickWrapper.append nickDisplay
+    @$container.append nickWrapper
+    @nicks = new chat.NickList(nicks)
 
   detach: ->
     @scroll = @$chatDisplay.scrollTop()
@@ -35,19 +40,23 @@ class Window
     @$chatDisplay.scrollTop(@scroll)
 
   isScrolledDown: ->
-    scrollBottom = @$chatDisplay.scrollTop() + @$chatDisplay.height()
-    scrollBottom == @$chatDisplay[0].scrollHeight
+    scrollPosition = @$chatDisplay.scrollTop() + @$chatDisplay.height()
+    scrollPosition >= @$chatDisplay[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
 
   message: (from, msg, style...) ->
     msg = display msg
+    wasScrolledDown = @isScrolledDown()
     @$messages.append $("""
     <div class='message #{style.join(' ')}'>
       <div class='source'>#{escapeHTML from}</div>
       <div class='text'>#{msg}</div>
     </div>
     """)
-    if not @isScrolledDown()
-      @$chatDisplay.scrollTop(@$chatDisplay[0].scrollHeight)
+    if wasScrolledDown
+      @scrollToBottom()
+
+  scrollToBottom: ->
+    @$chatDisplay.scrollTop(@$chatDisplay[0].scrollHeight)
 
   displayHelp: (commands) ->
     # TODO format nicely
