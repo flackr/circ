@@ -80,7 +80,7 @@ class ChatCommands extends MessageHandler
         conn.irc.doCommand 'PART', target, reason.join(' ')
         @chat.removeWindow()
 
-    do: (args...) ->
+    raw: (args...) ->
       start = 0
       if (conn = @chat.currentWindow.conn)
         channel = @chat.currentWindow.target
@@ -90,5 +90,10 @@ class ChatCommands extends MessageHandler
     load: ->
       script.loader.createScriptFromFileSystem (script) =>
         @chat.emit 'script_loaded', script
+
+    topic: (topic...) ->
+      win = @chat.currentWindow
+      return unless (conn = win.conn) and (target = win.target)
+      conn.irc.doCommand 'TOPIC', target, topic.join ' '
 
 exports.ChatCommands = ChatCommands

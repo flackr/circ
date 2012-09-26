@@ -21,6 +21,7 @@ class MockSocket extends net.AbstractTCPSocket
 
   respondWithData: (msg) ->
     @_active()
+    msg += '\r\n'
     irc.util.toSocketData msg, ((data) => @respond 'data', data)
 
 exports.MockSocket = MockSocket

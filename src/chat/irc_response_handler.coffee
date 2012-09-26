@@ -9,6 +9,17 @@ class IRCResponseHandler extends MessageHandler
   setStyle: (@style) ->
 
   _handlers:
+    topic: (topic, from) ->
+      @chat.updateStatus()
+      if not topic
+        @_message '*', 'No topic is set', 'circ'
+      else if not from
+        @_message '*', "The topic is: #{topic}", 'circ'
+      else if @_isOwnNick from
+        @_message '*', "(You changed the topic to: #{topic})", 'system'
+      else
+        @_message '*', "#{from} changed the topic to: #{topic}", 'system_other'
+
     join: (nick) ->
       if @_isOwnNick nick
         @_message '*', "(You joined the channel)", 'system'

@@ -6,16 +6,12 @@
   color: #005816;
 }
 
-.message.system,
-.part,
-.nick,
-.quit,
-.join {
+message.system_other,
+message.part,
+message.nick,
+message.quit,
+message.join {
   color: #040064;
-}
-
-.message.system .text {
-  color: #00380E;
 }
 
 .message.privmsg {

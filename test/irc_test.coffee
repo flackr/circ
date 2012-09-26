@@ -62,7 +62,7 @@ describe 'An IRC client', ->
         expect(socket.received.argsForCall[1]).toMatch /USER sugarman 0 \* :.+/
 
     it 'appends an underscore when the desired nick is in use', ->
-      socket.respondWithData ":irc.freenode.net 433 * sugarman :Nickname is already in use.\r\n"
+      socket.respondWithData ":irc.freenode.net 433 * sugarman :Nickname is already in use."
       waitsForArrayBufferConversion()
       runs ->
         expect(socket.received.mostRecentCall.args).toMatch /NICK sugarman_\s*/
@@ -70,12 +70,12 @@ describe 'An IRC client', ->
     describe 'then connects', ->
 
       joinChannel = (chan, nick='sugarman') ->
-        socket.respondWithData ":#{nick}!sugarman@company.com JOIN :#{chan}\r\n"
+        socket.respondWithData ":#{nick}!sugarman@company.com JOIN :#{chan}"
         waitsForArrayBufferConversion()
 
       beforeEach ->
         resetSpies()
-        socket.respondWithData ":cameron.freenode.net 001 sugarman :Welcome\r\n"
+        socket.respondWithData ":cameron.freenode.net 001 sugarman :Welcome"
         waitsForArrayBufferConversion()
 
       it "is in the 'connected' state", ->
@@ -90,9 +90,9 @@ describe 'An IRC client', ->
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalled()
           args = chat.onIRCMessage.mostRecentCall.args
-          expect(args[1]).toBeUndefined() # channel
-          expect(args[2]).toBe 'welcome' # type
-          expect(args[3]).toEqual jasmine.any String # message
+          expect(args[0]).toBeUndefined() # channel
+          expect(args[1]).toBe 'welcome' # type
+          expect(args[2]).toEqual jasmine.any String # message
 
       it "properly creates commands on doCommand()", ->
         irc.doCommand 'JOIN', '#awesome'
@@ -116,14 +116,10 @@ describe 'An IRC client', ->
         joinChannel '#awesome'
         joinChannel '#awesome', 'bill'
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalled()
-          args = chat.onIRCMessage.mostRecentCall.args
-          expect(args[1]).toBe '#awesome'
-          expect(args[2]).toBe 'join'
-          expect(args[3]).toBe 'bill'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'join', 'bill'
 
       it "responds to a PING with a PONG", ->
-        socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"
+        socket.respondWithData "PING :#{(new Date()).getTime()}"
         waitsForArrayBufferConversion()
         runs ->
           expect(socket.received.callCount).toBe 1
@@ -138,7 +134,7 @@ describe 'An IRC client', ->
 
       it "doesn't send a PING if regularly active", ->
         jasmine.Clock.tick(50000)
-        socket.respondWithData "PING :#{(new Date()).getTime()}\r\n"
+        socket.respondWithData "PING :#{(new Date()).getTime()}"
         jasmine.Clock.tick(50000)
         irc.doCommand 'JOIN', '#awesome'
         waitsForArrayBufferConversion() # wait for JOIN
@@ -156,3 +152,24 @@ describe 'An IRC client', ->
           expect(socket.received.mostRecentCall.args).toMatch /QUIT :this is my reason\s*/
           expect(irc.state).toBe 'disconnected'
           expect(socket.close).toHaveBeenCalled()
+
+      it "emits 'topic' after someone sets the topic", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":sugarman_i!~sugarman@09-stuff.company.com TOPIC #awesome :I am setting the topic!"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', 'I am setting the topic!', 'sugarman_i'
+
+      it "emits 'topic' after joining a room with a topic", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":freenode.net 332 sugarman #awesome :I am setting the topic!"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', 'I am setting the topic!', undefined
+
+      it "emits 'topic' with no topic argument after receiving rpl_notopic", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":freenode.net 331 sugarman #awesome :No topic is set."
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', undefined, undefined

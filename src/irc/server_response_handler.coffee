@@ -66,7 +66,7 @@ class ServerResponseHandler extends MessageHandler
         else
           delete c.names[irc.util.normaliseNick from.nick]
       else
-        console.warn "Got PART for channel we're not in (#{chan})"
+        console.warn "Got TOPIC for a channel we're not in: #{chan}"
 
     QUIT: (from, reason) ->
       normNick = irc.util.normaliseNick from.nick
@@ -90,5 +90,24 @@ class ServerResponseHandler extends MessageHandler
       @irc.preferredNick += '_'
       @irc.emitMessage 'nickinuse', undefined, nick, @irc.preferredNick, msg
       @irc.send 'NICK', @irc.preferredNick
+
+    TOPIC: (from, channel, topic) ->
+      if @irc.channels[channel]?
+        @irc.channels[channel].topic = topic
+        @irc.emitMessage 'topic', channel, topic, from.nick
+      else
+        console.warn "Got TOPIC for a channel we're not in: #{channel}"
+
+    # rpl_notopic
+    331: (from, to, channel, msg) ->
+      @handle 'TOPIC', {}, channel
+
+    # rpl_topic
+    332: (from, to, channel, topic) ->
+      @handle 'TOPIC', {}, channel, topic
+
+    # rpl_topicwhotime
+    333: (from, to, channel, who, time) ->
+      # TODO show who set the topic and when
 
 exports.ServerResponseHandler = ServerResponseHandler

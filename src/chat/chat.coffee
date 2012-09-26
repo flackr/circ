@@ -107,18 +107,18 @@ class Chat extends EventEmitter
     @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->
-    @handleMessage 'connect', conn.name
+    @displayMessage 'connect', conn.name
     @updateStatus()
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
-      @handleMessage 'connect', conn.name, win.target
+      @displayMessage 'connect', conn.name, win.target
 
   onDisconnected: (conn) ->
-    @handleMessage 'disconnect', conn.name
+    @displayMessage 'disconnect', conn.name
     @channelDisplay.disconnect conn.name
     for chan, win of conn.windows
       @channelDisplay.disconnect conn.name, chan
-      @handleMessage 'disconnect', conn.name, win.target
+      @displayMessage 'disconnect', conn.name, win.target
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
@@ -174,11 +174,14 @@ class Chat extends EventEmitter
 
   updateStatus: (status) ->
     unless status
+      status = ''
       nick = @currentWindow.conn?.irc.nick ? @previousNick
-      if nick?
-        status = "[#{nick}] #{@currentWindow.target ? ''}"
-      else
-        status = 'Welcome!'
+      channel = @currentWindow.target
+      topic = @currentWindow.conn?.irc.channels[channel]?.topic
+      status += "[#{nick}] " if nick?
+      status += "#{channel} " if channel?
+      status += "- #{topic}" if topic?
+      status = 'Welcome!' if status == ''
     $('#status').text(status)
 
   switchToWindow: (win) ->
@@ -192,11 +195,10 @@ class Chat extends EventEmitter
       @channelDisplay.select Chat.NoConnName
     @updateStatus()
 
-  handleMessage: (name, server, channel, args...) ->
+  # emits message to script handler, which decides if it should send it back
+  displayMessage: (name, server, channel, args...) ->
     event = new Event 'message', name, args...
     event.setContext server, channel
-    # message is emitted to the script handler,
-    # which decides if it should send it back
     @emit event.type, event
 
 exports.Chat = Chat
