@@ -58,7 +58,7 @@ class IRCResponseHandler extends MessageHandler
       nickMentioned = not @_isOwnNick(from) and
         chat.NickMentionedNotification.shouldNotify(nick, msg)
 
-      if nickMentioned
+      if nickMentioned and not window.document.hasFocus()
         @_notifyNickMentioned from, msg
 
       style = []
