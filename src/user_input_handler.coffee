@@ -10,9 +10,14 @@ class UserInputHandler extends EventEmitter
     super
     @input.focus()
     @inputStack = new InputStack
-    @autoComplete = new AutoComplete
+    @autoComplete = new AutoComplete @_getCompletions
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
+
+  _getCompletions: =>
+    chan = @context.currentWindow.target
+    nicks = @context.currentWindow.conn?.irc.channels[chan]?.names
+    return if nicks? then (nick for norm, nick of nicks) else []
 
   setContext: (@context) ->
 
@@ -48,7 +53,10 @@ class UserInputHandler extends EventEmitter
     if e.which == UserInputHandler.TAB
       e.preventDefault()
       unless @input.val() == ''
-        @input.val @autoComplete.getCompletion(@input.val())
+        words = @input.val().split /\s/
+        completion = @autoComplete.getCompletion words[words.length-1]
+        words[words.length-1] = completion
+        @input.val words.join ' '
     else
       @autoComplete.reset()
 

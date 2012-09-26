@@ -1,8 +1,9 @@
 exports = window
 
 class AutoComplete
-  constructor: ->
+  constructor: (opt_getCompletionsCallback) ->
     @_completions = []
+    @_getCompletions = opt_getCompletionsCallback
 
     @_currentCompletions = []
     @_currentStub = undefined
@@ -20,15 +21,22 @@ class AutoComplete
 
   getCompletion: (opt_stub) ->
     unless @_currentStub
+      @_buildCompletions()
       @_currentStub = opt_stub
       @_findCompletions()
     @_getNextCompletion()
 
+  _buildCompletions: ->
+    if @_getCompletions?
+      @setCompletions @_getCompletions()
+
   _findCompletions: ->
     @_currentCompletions = []
     @_completionIndex = 0
+    ignoreCase = not /[A-Z]/.test @_currentStub
     for completion in @_completions
-      if completion.indexOf(@_currentStub) is 0
+      candidate = if ignoreCase then completion.toLowerCase() else completion
+      if candidate.indexOf(@_currentStub) is 0
         @_currentCompletions.push completion
 
   _getNextCompletion: ->

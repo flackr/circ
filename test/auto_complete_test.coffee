@@ -40,3 +40,14 @@ describe 'Auto complete', ->
     expect(ac.getCompletion 'b').toBe 'bye'
     expect(ac.getCompletion 'hi').toBe 'bee'
     expect(ac.getCompletion 'h').toBe 'bye'
+
+  it 'ignores case if the stub has no caps', ->
+    ac.setCompletions ['Hi', 'heLLo', 'help']
+    expect(ac.getCompletion 'h').toBe 'Hi'
+    expect(ac.getCompletion()).toBe 'heLLo'
+    expect(ac.getCompletion()).toBe 'help'
+
+  it 'does not ignore case if the stub contains one or more capital letter', ->
+    ac.setCompletions ['Hi', 'heLLo', 'help']
+    expect(ac.getCompletion 'H').toBe 'Hi'
+    expect(ac.getCompletion 'H').toBe 'Hi'
