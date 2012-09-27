@@ -88,16 +88,16 @@ class ServerResponseHandler extends MessageHandler
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
     # ERR_NICKNAMEINUSE
-    433: (from, nick, msg) ->
-      @irc.preferredNick = msg
+    433: (from, nick, inUse) ->
+      @irc.preferredNick = inUse
       @irc.preferredNick += '_'
-      @irc.emitMessage 'nickinuse', undefined, nick, @irc.preferredNick, msg
+      @irc.emitMessage 'nickinuse', undefined, @irc.preferredNick, inUse
       @irc.send 'NICK', @irc.preferredNick
 
     TOPIC: (from, channel, topic) ->
       if @irc.channels[channel]?
         @irc.channels[channel].topic = topic
-        @irc.emitMessage 'topic', channel, topic, from.nick
+        @irc.emitMessage 'topic', channel, from.nick, topic
       else
         console.warn "Got TOPIC for a channel we're not in: #{channel}"
 
@@ -127,5 +127,7 @@ class ServerResponseHandler extends MessageHandler
     482: (from, to, chan, msg) ->
       @irc.emitMessage 'error', chan, msg
 
+    MODE: (from, chan, mode, to) ->
+      @irc.emitMessage 'mode', chan, from.nick, to, mode
 
 exports.ServerResponseHandler = ServerResponseHandler

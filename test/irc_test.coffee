@@ -158,14 +158,16 @@ describe 'An IRC client', ->
         socket.respondWithData ":sugarman_i!~sugarman@09-stuff.company.com TOPIC #awesome :I am setting the topic!"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', 'I am setting the topic!', 'sugarman_i'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', 'sugarman_i',
+              'I am setting the topic!'
 
       it "emits 'topic' after joining a room with a topic", ->
         joinChannel '#awesome'
         socket.respondWithData ":freenode.net 332 sugarman #awesome :I am setting the topic!"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', 'I am setting the topic!', undefined
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', undefined,
+              'I am setting the topic!'
 
       it "emits 'topic' with no topic argument after receiving rpl_notopic", ->
         joinChannel '#awesome'
@@ -179,14 +181,16 @@ describe 'An IRC client', ->
         socket.respondWithData ":jerk!user@65.93.146.49 KICK #awesome someguy :just cause"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick', 'jerk', 'someguy', 'just cause'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick',
+              'jerk', 'someguy', 'just cause'
 
       it "emits 'part' and a 'kick' message when receives KICK for self", ->
         joinChannel '#awesome'
         socket.respondWithData ":jerk!user@65.93.146.49 KICK #awesome sugarman :just cause"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick', 'jerk', 'sugarman', 'just cause'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick',
+              'jerk', 'sugarman', 'just cause'
           expect(chat.onParted).toHaveBeenCalledWith '#awesome'
 
       it "emits 'error' with the given message when doing a command without privilege", ->
@@ -194,4 +198,13 @@ describe 'An IRC client', ->
         socket.respondWithData ":freenode.net 482 sugarman #awesome :You're not a channel operator"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'error', "You're not a channel operator"
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'error',
+              "You're not a channel operator"
+
+      it "emits a message when someone is given channel operator status", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":nice_guy!nice@guy.com MODE #awesome +o sugarman"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'mode', 'nice_guy',
+              'sugarman', '+o'

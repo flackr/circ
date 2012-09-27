@@ -8,3 +8,6 @@ exports.removeFromArray = (array, toRemove) ->
     if toRemove == e
       return array.splice i, 1
   return false
+
+exports.capitalise = (sentence) ->
+  sentence[0].toUpperCase() + sentence[1..]

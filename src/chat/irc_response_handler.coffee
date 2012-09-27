@@ -2,53 +2,60 @@ exports = window.chat ?= {}
 
 class IRCResponseHandler extends MessageHandler
   constructor: (@chat) ->
+    @formatter = new MessageFormatter
     super
 
   setWindow: (@win) ->
+    @formatter.setNick @win.conn?.irc.nick
 
-  setStyle: (@style) ->
+  setStyle: (additionalStyle) ->
+    @formatter.setAdditionalStyle additionalStyle
+
+  handle: (type, params) ->
+    @source = '*'
+    @formatter.clear()
+    @formatter.setStyle 'update'
+    @formatter.setFromToWhat params...
+    super type, params
+    @_sendFormattedMessage()
 
   _handlers:
-    topic: (topic, from) ->
+    topic: (from, topic) ->
       @chat.updateStatus()
+      @formatter.setFromToWhat 'from', undefined, topic
+      @formater.setStyle = 'notice'
       if not topic
-        @_message '*', 'No topic is set', 'notice topic'
+        @formatter.setMessage 'no topic is set'
       else if not from
-        @_message '*', "The topic is: #{topic}", 'notice topic'
-      else if @_isOwnNick from
-        @_message '*', "(You changed the topic to: #{topic})", 'self update topic'
+        @formatter.setMessage 'the topic is: #what'
       else
-        @_message '*', "#{from} changed the topic to: #{topic}", 'update topic'
+        @formatter.setMessage = '#from changed the topic to: #what'
 
     join: (nick) ->
-      if @_isOwnNick nick
-        @_message '*', "(You joined the channel)", 'self update join'
-      else
-        @_message '*', "#{nick} joined the channel.", 'update join'
+      @formatter.setMessage '#from joined the channel'
+      @_message '*', @formatter.format 'join', from
       @win.nicks.add nick
 
     part: (nick) ->
-      if @_isOwnNick nick
-        @_message '*', "(You left the channel)", 'self update part'
-      else
-        @_message '*', "#{nick} left the channel.", 'update part'
+      @_fromToWhatMessage '#from left the channel', 'part', from
       @win.nicks.remove nick
 
     kick: (from, to, reason) ->
-      if @_isOwnNick from
-        @_message '*', "(You kicked #{to} from the channel: #{reason})", 'self update kick'
-      else
-        to = "you" if @_isOwnNick to
-        @_message '*', "#{from} kicked #{to} from the channel: #{reason}.", 'update kick'
+      msg = '#from kicked #to from the channel: #what'
+      @_fromToWhatMessage msg, 'kick', from, to, reason
       @win.nicks.remove to
 
     nick: (from, to) ->
-      if @_isOwnNick to
-        @chat.updateStatus()
-        @_message '*', "(You are now known as #{to})", 'self update nick'
-      else
-        @_message '*', "#{from} is now known as #{to}.", 'update nick'
+      ownNick = @_isOwnNick to
+      msg = '#from is now known as #to'
+      @_fromToWhatMessage msg, 'nick', from, to, undefined, ownNick, false
       @win.nicks.replace from, to
+      @chat.updateStatus() if ownNick
+
+    mode: (from, to, mode) ->
+      # TODO handle other modes besides just +o
+      msg = '#from gave channel operator status to #to'
+      @_fromToWhatMessage msg, 'topic', from, to, mode
 
     quit: (nick, reason) ->
       if not @_isOwnNick nick
@@ -87,8 +94,9 @@ class IRCResponseHandler extends MessageHandler
     if nickMentioned
       @chat.channelDisplay.mention @win.conn.name, @win.target
 
-  _message: (from, msg, style...) ->
-    @win.message from, msg, style..., @style...
+  _sendFormattedMessage: ->
+    @formatter.addStyle @type
+    @win.message @source, @formatter.format(), @formatter.getStyle()
 
   _notifyNickMentioned: (from, msg) ->
     #TODO cancel notification when focus is gained on the channel
@@ -97,6 +105,6 @@ class IRCResponseHandler extends MessageHandler
     notification.show()
 
   _isOwnNick: (nick) ->
-    return irc.util.nicksEqual @win.conn?.irc.nick, nick
+    irc.util.nicksEqual @win.conn?.irc.nick, nick
 
 exports.IRCResponseHandler = IRCResponseHandler

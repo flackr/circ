@@ -17,8 +17,8 @@ class SystemMessageHandler extends MessageHandler
     error: (err) ->
       @_message err
 
-    nickinuse: (oldnick, newnick, msg) ->
-      @_message "Nickname #{msg} already in use. Trying to get nickname #{newnick}."
+    nickinuse: (newnick, inUse) ->
+      @_message "Nickname #{inUse} already in use. Trying to get nickname #{newnick}."
 
     nick_changed: (newnick) ->
       @_message "You are now known as #{newnick}"
