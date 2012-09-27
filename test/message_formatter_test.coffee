@@ -37,29 +37,34 @@ describe "A message formatter", ->
     formatter.setMessage '#to got kicked'
     expect(formatter.format()).toBe 'bob got kicked.'
 
-  it "replaces '#what' with the user who sent the message", ->
+  it "replaces '#content' with the user who sent the message", ->
     formatter.setContext undefined, undefined, 'this is the toipc'
-    formatter.setMessage 'topic changed to: #what'
+    formatter.setMessage 'topic changed to: #content'
     expect(formatter.format()).toBe 'Topic changed to: this is the toipc.'
 
-  it "replaces '#what' with the user who sent the message, even when the what field is '#to'", ->
+  it "can have the content field set directly", ->
+    formatter.setContent 'this is the toipc'
+    formatter.setMessage 'topic changed to: #content'
+    expect(formatter.format()).toBe 'Topic changed to: this is the toipc.'
+
+  it "replaces '#content' with the user who sent the message, even when the content field is '#to'", ->
     formatter.setContext 'othernick', 'bob', '#to'
-    formatter.setMessage 'topic changed to: #what'
+    formatter.setMessage 'topic changed to: #content'
     expect(formatter.format()).toBe 'Topic changed to: #to.'
 
-  it "replaces '#from', '#to' and '#what' when all are set", ->
+  it "replaces '#from', '#to' and '#content' when all are set", ->
     formatter.setContext 'othernick', 'bob', 'spamming /dance'
-    formatter.setMessage '#from kicked #to for #what'
+    formatter.setMessage '#from kicked #to for #content'
     expect(formatter.format()).toBe 'othernick kicked bob for spamming /dance.'
 
   it "replaces '#from' with you, when the user sent the message", ->
     formatter.setContext 'ournick', 'bob', 'spamming /dance'
-    formatter.setMessage '#from kicked #to for #what'
+    formatter.setMessage '#from kicked #to for #content'
     expect(formatter.format()).toBe '(You kicked bob for spamming /dance)'
 
   it "replaces '#to' with you, when the message pertains to the user", ->
     formatter.setContext 'othernick', 'ournick', 'spamming /dance'
-    formatter.setMessage '#from kicked #to for #what'
+    formatter.setMessage '#from kicked #to for #content'
     expect(formatter.format()).toBe 'othernick kicked you for spamming /dance.'
 
   it "initially only has styles from setCustomStyle()", ->
@@ -105,13 +110,24 @@ describe "A message formatter", ->
     formatter.setMessage '#from is cool; #to is the best'
     expect(formatter.format()).toBe '(You are cool; you are the best)'
 
+  it "can optionally not use pretty formatting", ->
+    formatter.setContext 'ournick'
+    formatter.setMessage '#from set the topic'
+    formatter.setPrettyFormat false
+    expect(formatter.format()).toBe 'you set the topic'
+
+  it "only adds punctuation if the message ends in a character or number", ->
+    formatter.setContent 'This is the topic!!!!'
+    formatter.setMessage '#content'
+    expect(formatter.format()).toBe 'This is the topic!!!!'
+
   it "uses clear() to reset state and format another message", ->
     formatter.setContext 'othernick', 'ournick', 'spamming /dance'
-    formatter.setMessage '#from kicked #to for #what'
+    formatter.setMessage '#from kicked #to for #content'
     formatter.addStyle 'black'
+    formatter.setPrettyFormat false
     formatter.clear()
     formatter.setContext 'ournick'
     formatter.setMessage '#from set the topic'
     expect(formatter.format()).toBe '(You set the topic)'
     expect(formatter.getStyle()).toBe 'purple self'
-

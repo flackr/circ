@@ -29,8 +29,14 @@ class Chat extends EventEmitter
     @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
 
-    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app. Visit https://github.com/noahsug/ircv to file a bug or feature request.", "system"
-    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>. Type /help to see a full list of commands.", "system"
+    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app!", "system"
+    @currentWindow.emptyLine()
+    @currentWindow.message '*', "Visit https://github.com/noahsug/ircv to file a bug or feature request.", "system"
+    @currentWindow.emptyLine()
+    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
+    @currentWindow.emptyLine()
+    @currentWindow.message '*', "Type /help to see a full list of commands.", "system"
+    @currentWindow.emptyLine()
     @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
     @connections = {}

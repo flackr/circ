@@ -91,6 +91,8 @@ class ServerResponseHandler extends MessageHandler
     433: (from, nick, inUse) ->
       @irc.preferredNick = inUse
       @irc.preferredNick += '_'
+      # don't try to set your nick name to itself
+      @irc.preferredNick += '_' if @irc.preferredNick is nick
       @irc.emitMessage 'nickinuse', undefined, @irc.preferredNick, inUse
       @irc.send 'NICK', @irc.preferredNick
 

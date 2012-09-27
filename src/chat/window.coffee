@@ -43,12 +43,17 @@ class Window
     scrollPosition = @$chatDisplay.scrollTop() + @$chatDisplay.height()
     scrollPosition >= @$chatDisplay[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
 
+  emptyLine: () ->
+    @_addMessage '&nbsp;', '&nbsp;'
+
   message: (from, msg, style...) ->
-    msg = display msg
+    @_addMessage escapeHTML(from), display(msg), style...
+
+  _addMessage: (from, msg, classes...) ->
     wasScrolledDown = @isScrolledDown()
     @$messages.append $("""
-    <div class='message #{style.join(' ')}'>
-      <div class='source'>#{escapeHTML from}</div>
+    <div class='message #{classes.join(' ')}'>
+      <div class='source'>#{from}</div>
       <div class='text'>#{msg}</div>
     </div>
     """)

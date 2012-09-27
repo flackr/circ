@@ -2,34 +2,38 @@ exports = window.chat ?= {}
 
 class IRCResponseHandler extends MessageHandler
   constructor: (@chat) ->
-    @formatter = new MessageFormatter
+    @formatter = new window.chat.MessageFormatter
     super
 
   setWindow: (@win) ->
     @formatter.setNick @win.conn?.irc.nick
 
-  setStyle: (additionalStyle) ->
-    @formatter.setAdditionalStyle additionalStyle
+  setStyle: (customStyle) ->
+    @formatter.setCustomStyle customStyle
 
-  handle: (type, params) ->
+  handle: (type, params...) ->
+    @_setDefaultValues params
+    super type, params...
+    @_sendFormattedMessage()
+
+  _setDefaultValues: (params) ->
     @source = '*'
     @formatter.clear()
     @formatter.setStyle 'update'
-    @formatter.setFromToWhat params...
-    super type, params
-    @_sendFormattedMessage()
+    @formatter.setContext params...
 
   _handlers:
     topic: (from, topic) ->
       @chat.updateStatus()
-      @formatter.setFromToWhat from, undefined, topic
-      @formater.setStyle = 'notice'
+      @formatter.setContent topic
       if not topic
+        @formatter.setStyle 'notice'
         @formatter.setMessage 'no topic is set'
       else if not from
-        @formatter.setMessage 'the topic is: #what'
+        @formatter.setStyle 'notice'
+        @formatter.setMessage 'the topic is: #content'
       else
-        @formatter.setMessage '#from changed the topic to: #what'
+        @formatter.setMessage '#from changed the topic to: #content'
 
     join: (nick) ->
       @formatter.setMessage '#from joined the channel'
@@ -40,31 +44,32 @@ class IRCResponseHandler extends MessageHandler
       @win.nicks.remove nick
 
     kick: (from, to, reason) ->
-      @formatter.setMessage '#from kicked #to from the channel: #what'
+      @formatter.setMessage '#from kicked #to from the channel: #content'
       @win.nicks.remove to
 
     nick: (from, to) ->
-      ownNick = @_isOwnNick to
       @formatter.setMessage '#from is now known as #to'
-      @formatter.force
-      @chat.updateStatus() if ownNick
+      @formatter.setFromUs true
+      @formatter.setToUs false
+      @chat.updateStatus() if @_isOwnNick to
       @win.nicks.replace from, to
 
     mode: (from, to, mode) ->
-      # TODO handle other modes besides just +o
-      @formatter.setMessage '#from gave channel operator status to #to'
-      @_fromToWhatMessage msg, 'topic', from, to, mode
+      @formatter.setContent @_getMode mode
+      @formatter.setMessage '#from gave #content status to #to'
 
     quit: (nick, reason) ->
-      if not @_isOwnNick nick
-        @_message '*', "#{nick} has quit: #{reason}.", 'self update quit'
-        @win.nicks.remove nick
+      @formatter.setMessage '#from has quit: #content'
+      @formatter.setContent reason
+      @win.nicks.remove nick
 
     disconnect: ->
-      @_message '*', '(Disconnected)', 'self update disconnect'
+      @formatter.setMessage 'Disconnected'
+      @formatter.setFromUs true
 
     connect: ->
-      @_message '*', '(Connected)', 'self update connect'
+      @formatter.setMessage 'Connected'
+      @formatter.setFromUs true
 
     privmsg: (from, msg) ->
       nick = @win.conn.irc.nick
@@ -72,16 +77,29 @@ class IRCResponseHandler extends MessageHandler
         chat.NickMentionedNotification.shouldNotify(nick, msg)
       @_handleNotifications from, msg, nickMentioned
 
-      style = ['update privmsg']
-      style.push 'mention' if nickMentioned
-      style.push 'self' if @_isOwnNick(from)
-      if m = /^\u0001ACTION (.*)\u0001/.exec msg
-        @_message '*', "#{from} #{m[1]}", 'action', style...
+      @formatter.setMessage '#content'
+      @formatter.addStyle 'mention' if nickMentioned
+      @formatter.setPrettyFormat false
+      if m = @_getUserAction msg
+        @formatter.setContent "#{from} #{m[1]}"
+        @formatter.addStyle 'action'
       else
-        @_message from, msg, style...
+        @source = from
+        @formatter.setContent msg
 
     error: (msg) ->
-      @_message '*', msg, 'notice error'
+      @formatter.setStyle 'notice'
+      @formatter.setContent msg
+      @formatter.setMessage '#content'
+
+  _getMode: (mode) ->
+    # TODO handle other modes besides just +o
+    switch mode
+      when '+o' then 'channel operator'
+      else mode
+
+  _getUserAction: (msg) ->
+    /^\u0001ACTION (.*)\u0001/.exec msg
 
   _handleNotifications: (from, msg, nickMentioned) ->
     if nickMentioned

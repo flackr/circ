@@ -208,3 +208,19 @@ describe 'An IRC client', ->
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'mode', 'nice_guy',
               'sugarman', '+o'
+
+      it "emits a notice when user's nick is changed", ->
+        socket.respondWithData ":sugarman!user@company.com NICK :newnick"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith undefined, 'nick_changed', 'newnick'
+
+      it "doesn't try to set nick name to own nick name on 'nick in use' message", ->
+        irc.doCommand 'NICK', 'sugarman_'
+        socket.respondWithData "sugarman!user@company.com NICK :sugarman_"
+        irc.doCommand 'NICK', 'sugarman'
+        data = ":irc.freenode.net 433 * sugarman_ sugarman :Nickname is already in use."
+        socket.respondWithData data
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(socket.received.mostRecentCall.args).toMatch /NICK sugarman__\s*/

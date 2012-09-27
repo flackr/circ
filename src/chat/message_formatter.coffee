@@ -40,6 +40,7 @@ class MessageFormatter
   clear: ->
     @_style = []
     @_fromUs = @_toUs = false
+    @_usePrettyFormat = true
     @_message = ''
 
   ##
@@ -47,7 +48,7 @@ class MessageFormatter
   # The following can be used as special literals in the message:
   # - '#from' gets replaced by the the nick the message is from.
   # - '#to' gets replaced by the nick the message pertains to.
-  # - '#what' gets replaced by what the message is about.
+  # - '#content' gets replaced by content the message is about.
   # @param {string} message
   ##
   setMessage: (message) ->
@@ -57,17 +58,24 @@ class MessageFormatter
   # Set the context of the message.
   # @param {string=} opt_from The nick the message is from.
   # @param {string=} opt_to The nick the message pertains to.
-  # @param {string=} opt_what What the message is about.
+  # @param {string=} opt_content The context of the message.
   ##
-  setContext: (opt_from, opt_to, opt_what) ->
+  setContext: (opt_from, opt_to, opt_content) ->
     @_from = opt_from
     @_to = opt_to
-    @_what = opt_what
+    @_content = opt_content
     @_fromUs = @_isOwnNick @_from
     @_toUs = @_isOwnNick @_to
 
   ##
-  # Set wheather the message is from the user or not.
+  # Set the content of the message.
+  # @param {string} content
+  ##
+  setContent: (content) ->
+    @_content = content
+
+  ##
+  # Set whether the message is from the user or not.
   # By default the message is assumed from the user if their nick matches the
   # from field.
   # This is useful for the /nick message, when the user's nick has just changed.
@@ -77,7 +85,7 @@ class MessageFormatter
     @_fromUs = fromUs
 
   ##
-  # Set wheather the message pertains to the user or not.
+  # Set whether the message pertains to the user or not.
   # By default the message is assumed to pertain to the user if their nick
   # matches the to field.
   # This is useful for the /nick message, when the user's nick has just changed.
@@ -87,21 +95,45 @@ class MessageFormatter
     @_toUs = toUs
 
   ##
+  # Sets whether or not pretty formatting should be used.
+  # Pretty formatting includes capitalization and adding a period or adding
+  # perentheses.
+  ##
+  setPrettyFormat: (usePrettyFormat) ->
+    @_usePrettyFormat = usePrettyFormat
+
+  ##
   # Returns a message formatted based on the given context.
   # @return {string} Returns the formatted message.
   ##
   format: ->
     return '' unless @_message
+    msg = @_incorporateContext()
+    msg = @_prettyFormat msg if @_usePrettyFormat
+    return msg
+
+  ##
+  # Replaces context placeholders, such as '#to', with their corresponding
+  # value.
+  # @return {string} Returns the formatted message.
+  ##
+  _incorporateContext: ->
     msg = @_message
     msg = @_youIsToYouAre '#from', msg if @_fromUs
     msg = @_youIsToYouAre '#to', msg if @_toUs
     msg = msg.replace '#from', if @_fromUs then 'you' else @_from
     msg = msg.replace '#to', if @_toUs then 'you' else @_to
-    msg = msg.replace '#what', @_what
+    msg.replace '#content', @_content
+
+  ##
+  # Handles adding periods, perentheses and capitalization.
+  # @return {string} Returns the formatted message.
+  ##
+  _prettyFormat: (msg) ->
     msg = capitalise msg unless @_startsWithNick msg
     if @_fromUs
       msg = "(#{msg})"
-    else if msg
+    else if /[a-zA-Z0-9]$/.test msg
       msg = "#{msg}."
     return msg
 
