@@ -9,7 +9,7 @@ describe "A message formatter", ->
   it "returns an empty string when no message has been set", ->
     expect(formatter.format()).toBe ''
 
-  it "adds a period to the end of the message", ->
+  it "adds a period to the end of the message's not from the user", ->
     formatter.setMessage 'No topic set'
     expect(formatter.format()).toBe 'No topic set.'
 
@@ -85,6 +85,25 @@ describe "A message formatter", ->
   it "doesn't uses the 'self' style when the message is from or pertains to another user", ->
     formatter.setContext 'othernick', 'bob'
     expect(formatter.getStyle()).toBe 'purple'
+
+  it "can force the message to be from the user even when the from field doesn't match", ->
+    formatter.setContext 'othernick', 'bob'
+    formatter.setMessage '#from can be called #to'
+    formatter.setFromUs(true)
+    expect(formatter.format()).toBe '(You can be called bob)'
+    expect(formatter.getStyle()).toBe 'purple self'
+
+  it "can force the message not to pertain to the user even when the to field matches", ->
+    formatter.setContext 'ournick', 'ournick'
+    formatter.setMessage '#from can be called #to'
+    formatter.setToUs(false)
+    expect(formatter.format()).toBe '(You can be called ournick)'
+    expect(formatter.getStyle()).toBe 'purple self'
+
+  it "changes 'you is' phrases into 'you are'", ->
+    formatter.setContext 'ournick', 'ournick'
+    formatter.setMessage '#from is cool; #to is the best'
+    expect(formatter.format()).toBe '(You are cool; you are the best)'
 
   it "uses clear() to reset state and format another message", ->
     formatter.setContext 'othernick', 'ournick', 'spamming /dance'

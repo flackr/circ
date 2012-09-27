@@ -22,39 +22,37 @@ class IRCResponseHandler extends MessageHandler
   _handlers:
     topic: (from, topic) ->
       @chat.updateStatus()
-      @formatter.setFromToWhat 'from', undefined, topic
+      @formatter.setFromToWhat from, undefined, topic
       @formater.setStyle = 'notice'
       if not topic
         @formatter.setMessage 'no topic is set'
       else if not from
         @formatter.setMessage 'the topic is: #what'
       else
-        @formatter.setMessage = '#from changed the topic to: #what'
+        @formatter.setMessage '#from changed the topic to: #what'
 
     join: (nick) ->
       @formatter.setMessage '#from joined the channel'
-      @_message '*', @formatter.format 'join', from
       @win.nicks.add nick
 
     part: (nick) ->
-      @_fromToWhatMessage '#from left the channel', 'part', from
+      @formatter.setMessage '#from left the channel'
       @win.nicks.remove nick
 
     kick: (from, to, reason) ->
-      msg = '#from kicked #to from the channel: #what'
-      @_fromToWhatMessage msg, 'kick', from, to, reason
+      @formatter.setMessage '#from kicked #to from the channel: #what'
       @win.nicks.remove to
 
     nick: (from, to) ->
       ownNick = @_isOwnNick to
-      msg = '#from is now known as #to'
-      @_fromToWhatMessage msg, 'nick', from, to, undefined, ownNick, false
-      @win.nicks.replace from, to
+      @formatter.setMessage '#from is now known as #to'
+      @formatter.force
       @chat.updateStatus() if ownNick
+      @win.nicks.replace from, to
 
     mode: (from, to, mode) ->
       # TODO handle other modes besides just +o
-      msg = '#from gave channel operator status to #to'
+      @formatter.setMessage '#from gave channel operator status to #to'
       @_fromToWhatMessage msg, 'topic', from, to, mode
 
     quit: (nick, reason) ->

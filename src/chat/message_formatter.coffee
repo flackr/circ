@@ -7,7 +7,9 @@ exports = window.chat ?= {}
 # - all messages start with a capital letter
 # - messages from the user or to the user have the 'self' style
 # - messages from the user are surrounded by parentheses
-# - all other messages are presented as is and end in a period
+# - the user's nick is replaced by 'you'
+# - 'you is' is replaced by 'you are'
+# - messages now from the user end in a period
 ##
 class MessageFormatter
   constructor: ->
@@ -65,20 +67,24 @@ class MessageFormatter
     @_toUs = @_isOwnNick @_to
 
   ##
-  # Force the message to be from the user, even if the from field isn't the same
-  # as the user's nick.
+  # Set wheather the message is from the user or not.
+  # By default the message is assumed from the user if their nick matches the
+  # from field.
   # This is useful for the /nick message, when the user's nick has just changed.
+  # @param {boolean} formUs True if the message is from the user
   ##
-  forceFromUs: ->
-    @_fromUs = true
+  setFromUs: (fromUs) ->
+    @_fromUs = fromUs
 
   ##
-  # Force the message to be to the user, even if the from field isn't the same
-  # as the user's nick.
+  # Set wheather the message pertains to the user or not.
+  # By default the message is assumed to pertain to the user if their nick
+  # matches the to field.
   # This is useful for the /nick message, when the user's nick has just changed.
+  # @param {boolean} toUs True if the message is to the user
   ##
-  forceToUs: ->
-    @_toUs = true
+  setToUs: (toUs) ->
+    @_toUs = toUs
 
   ##
   # Returns a message formatted based on the given context.
@@ -87,6 +93,8 @@ class MessageFormatter
   format: ->
     return '' unless @_message
     msg = @_message
+    msg = @_youIsToYouAre '#from', msg if @_fromUs
+    msg = @_youIsToYouAre '#to', msg if @_toUs
     msg = msg.replace '#from', if @_fromUs then 'you' else @_from
     msg = msg.replace '#to', if @_toUs then 'you' else @_to
     msg = msg.replace '#what', @_what
@@ -95,6 +103,11 @@ class MessageFormatter
       msg = "(#{msg})"
     else if msg
       msg = "#{msg}."
+    return msg
+
+  _youIsToYouAre: (you, msg) ->
+    if msg.indexOf "#{you} is" isnt -1
+      return msg.replace "#{you} is", "#{you} are"
     return msg
 
   ##
