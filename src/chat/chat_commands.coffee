@@ -65,8 +65,9 @@ class ChatCommands extends MessageHandler
       win = @chat.currentWindow
       return unless (conn = win.conn) and (target = win.target) and
           (names = conn.irc.channels[target]?.names)
-        names = (v for k,v of names).sort()
-        @chat.currentWindow.message '*', "Users in #{target}: JSON.stringify names", 'circ'
+      names = (v for k,v of names).sort()
+      msg = "Users in #{target}: #{JSON.stringify names}"
+      @chat.currentWindow.message '*', msg, 'notice names'
 
     help: ->
       commands = @chat.chatCommands.getCommands()
