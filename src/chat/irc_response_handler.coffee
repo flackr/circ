@@ -12,69 +12,79 @@ class IRCResponseHandler extends MessageHandler
     topic: (topic, from) ->
       @chat.updateStatus()
       if not topic
-        @_message '*', 'No topic is set', 'circ'
+        @_message '*', 'No topic is set', 'notice topic'
       else if not from
-        @_message '*', "The topic is: #{topic}", 'circ'
+        @_message '*', "The topic is: #{topic}", 'notice topic'
       else if @_isOwnNick from
-        @_message '*', "(You changed the topic to: #{topic})", 'system'
+        @_message '*', "(You changed the topic to: #{topic})", 'self update topic'
       else
-        @_message '*', "#{from} changed the topic to: #{topic}", 'system_other'
+        @_message '*', "#{from} changed the topic to: #{topic}", 'update topic'
 
     join: (nick) ->
       if @_isOwnNick nick
-        @_message '*', "(You joined the channel)", 'system'
+        @_message '*', "(You joined the channel)", 'self update join'
       else
-        @_message '*', "#{nick} joined the channel.", 'join'
+        @_message '*', "#{nick} joined the channel.", 'update join'
       @win.nicks.add nick
 
     part: (nick) ->
       if @_isOwnNick nick
-        @_message '*', "(You left the channel)", 'system'
+        @_message '*', "(You left the channel)", 'self update part'
       else
-        @_message '*', "#{nick} left the channel.", 'part'
+        @_message '*', "#{nick} left the channel.", 'update part'
       @win.nicks.remove nick
+
+    kick: (from, to, reason) ->
+      if @_isOwnNick from
+        @_message '*', "(You kicked #{to} from the channel: #{reason})", 'self update kick'
+      else
+        to = "you" if @_isOwnNick to
+        @_message '*', "#{from} kicked #{to} from the channel: #{reason}.", 'update kick'
+      @win.nicks.remove to
 
     nick: (from, to) ->
       if @_isOwnNick to
         @chat.updateStatus()
-        @_message '*', "(You are now known as #{to})", 'system'
+        @_message '*', "(You are now known as #{to})", 'self update nick'
       else
-        @_message '*', "#{from} is now known as #{to}.", 'nick'
+        @_message '*', "#{from} is now known as #{to}.", 'update nick'
       @win.nicks.replace from, to
 
     quit: (nick, reason) ->
       if not @_isOwnNick nick
-        @_message '*', "#{nick} has quit: #{reason}.", 'quit'
+        @_message '*', "#{nick} has quit: #{reason}.", 'self update quit'
         @win.nicks.remove nick
 
     disconnect: ->
-      @_message '*', '(Disconnected)', 'system'
+      @_message '*', '(Disconnected)', 'self update disconnect'
 
     connect: ->
-      @_message '*', '(Connected)', 'system'
+      @_message '*', '(Connected)', 'self update connect'
 
     privmsg: (from, msg) ->
       nick = @win.conn.irc.nick
-      style = []
       nickMentioned = not @_isOwnNick(from) and
         chat.NickMentionedNotification.shouldNotify(nick, msg)
       @_handleNotifications from, msg, nickMentioned
 
+      style = ['update privmsg']
       style.push 'mention' if nickMentioned
       style.push 'self' if @_isOwnNick(from)
       if m = /^\u0001ACTION (.*)\u0001/.exec msg
-        @_message '*', "#{from} #{m[1]}", 'privmsg action', style...
+        @_message '*', "#{from} #{m[1]}", 'action', style...
       else
-        @_message from, msg, 'privmsg', style...
+        @_message from, msg, style...
 
-    system: (text) ->
-      @_message '*', text, 'server'
+    error: (msg) ->
+      @_message '*', msg, 'notice error'
 
   _handleNotifications: (from, msg, nickMentioned) ->
+    if nickMentioned
+      @_notifyNickMentioned from, msg if not window.document.hasFocus()
+
     return if @win.target is @chat.currentWindow.target
     @chat.channelDisplay.activity @win.conn.name, @win.target
     if nickMentioned
-      @_notifyNickMentioned from, msg if not window.document.hasFocus()
       @chat.channelDisplay.mention @win.conn.name, @win.target
 
   _message: (from, msg, style...) ->

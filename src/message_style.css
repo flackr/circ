@@ -1,30 +1,30 @@
-.message.circ {
+.message.system {
   color: black;
 }
 
-.message.system {
+.message.notice {
+  color: #97008B;
+}
+
+.message.update {
+  color: #00068F;
+}
+
+.message.update.self {
   color: #005816;
 }
 
-message.system_other,
-message.part,
-message.nick,
-message.quit,
-message.join {
-  color: #040064;
-}
-
-.message.privmsg {
+.message.update.privmsg {
   color: black;
 }
 
-.message.privmsg.self {
+.message.update.privmsg.self {
   color: gray;
 }
 
-.message.privmsg.mention {
+.message.update.privmsg.mention {
   color: darkred;
 }
-.message.privmsg.mention .source {
+.message.update.privmsg.mention .source {
   font-weight: bold;
 }

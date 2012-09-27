@@ -173,3 +173,25 @@ describe 'An IRC client', ->
         waitsForArrayBufferConversion()
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'topic', undefined, undefined
+
+      it "emits a 'kick' message when receives KICK for someone else", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":jerk!user@65.93.146.49 KICK #awesome someguy :just cause"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick', 'jerk', 'someguy', 'just cause'
+
+      it "emits 'part' and a 'kick' message when receives KICK for self", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":jerk!user@65.93.146.49 KICK #awesome sugarman :just cause"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'kick', 'jerk', 'sugarman', 'just cause'
+          expect(chat.onParted).toHaveBeenCalledWith '#awesome'
+
+      it "emits 'error' with the given message when doing a command without privilege", ->
+        joinChannel '#awesome'
+        socket.respondWithData ":freenode.net 482 sugarman #awesome :You're not a channel operator"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'error', "You're not a channel operator"

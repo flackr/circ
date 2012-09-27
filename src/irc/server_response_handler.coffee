@@ -113,4 +113,19 @@ class ServerResponseHandler extends MessageHandler
     333: (from, to, channel, who, time) ->
       # TODO show who set the topic and when
 
+    KICK: (from, channel, to, reason) ->
+      if not @irc.channels[channel]
+        console.warn "Got KICK message from #{from} to #{to} in channel we are not in (#{channel})"
+        return
+
+      delete @irc.channels[channel].names[to]
+      @irc.emitMessage 'kick', channel, from.nick, to, reason
+      if irc.util.nicksEqual @irc.nick, to
+        @irc.emit 'parted', channel
+
+    #err_chanoprivsneeded
+    482: (from, to, chan, msg) ->
+      @irc.emitMessage 'error', chan, msg
+
+
 exports.ServerResponseHandler = ServerResponseHandler

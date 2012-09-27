@@ -15,9 +15,9 @@ class ChatCommands extends MessageHandler
   _handlers:
     join: (opt_chan) ->
       if conn = @chat.currentWindow.conn
-        return if not (conn.irc.state is 'connected')
+        return unless (conn.irc.state is 'connected')
         chan = opt_chan ? @chat.currentWindow.target
-        return if not chan
+        return unless chan
         win = @chat._createWindowForChannel conn, chan
         @chat.switchToWindow win
         @chat.currentWindow.conn.irc.doCommand 'JOIN', chan
@@ -62,11 +62,11 @@ class ChatCommands extends MessageHandler
       @chat.removeWindow @chat.winList.get conn.name
 
     names: ->
-      if (conn = @chat.currentWindow.conn) and
-         (target = @chat.currentWindow.target) and
-         (names = conn.irc.channels[target]?.names)
+      win = @chat.currentWindow
+      return unless (conn = win.conn) and (target = win.target) and
+          (names = conn.irc.channels[target]?.names)
         names = (v for k,v of names).sort()
-        @chat.currentWindow.message '*', JSON.stringify names
+        @chat.currentWindow.message '*', "Users in #{target}: JSON.stringify names", 'circ'
 
     help: ->
       commands = @chat.chatCommands.getCommands()
@@ -93,5 +93,10 @@ class ChatCommands extends MessageHandler
       win = @chat.currentWindow
       return unless (conn = win.conn) and (target = win.target)
       conn.irc.doCommand 'TOPIC', target, topic.join ' '
+
+    kick: (nick, reason...) ->
+      win = @chat.currentWindow
+      return unless (conn = win.conn) and (chan = win.target)
+      @chat.currentWindow.conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
 
 exports.ChatCommands = ChatCommands
