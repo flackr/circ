@@ -9,7 +9,7 @@ exports = window.chat ?= {}
 # - messages from the user are surrounded by parentheses
 # - the user's nick is replaced by 'you'
 # - 'you is' is replaced by 'you are'
-# - messages now from the user end in a period
+# - messages not from the user end in a period
 ##
 class MessageFormatter
   constructor: ->
@@ -28,10 +28,10 @@ class MessageFormatter
   ##
   # Sets custom style to be used for all formatted messages. This field is not
   # reset when clear() is called.
-  # @param {string} customStyle The style to be set
+  # @param {Array.<string>} customStyle The style to be set
   ##
   setCustomStyle: (customStyle) ->
-    @_customStyle = [customStyle]
+    @_customStyle = customStyle
 
   ##
   # Clears the state of the message formatter. Used between formatting different
@@ -164,6 +164,12 @@ class MessageFormatter
   ##
   addStyle: (style) ->
     @_style.push style
+
+  ##
+  #
+  ##
+  hasStyle: (style) ->
+    return style in @_customStyle or style in @_style
 
   ##
   # Returns the style of the message.

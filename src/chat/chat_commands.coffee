@@ -30,10 +30,8 @@ class ChatCommands extends MessageHandler
     say: (text...) ->
       if (target = @chat.currentWindow.target) and (conn = @chat.currentWindow.conn)
         text = text.join ' '
-        event = new Event 'message', 'privmsg', conn.irc.nick, text
-        event.setContext conn.name, target
-        @chat.onMessageEvent conn, event
         conn.irc.doCommand 'PRIVMSG', target, text
+        @chat.displayMessage 'privmsg', conn.name, target, conn.irc.nick, text
 
     me: (text...) ->
       text = text.join ' '
@@ -100,9 +98,22 @@ class ChatCommands extends MessageHandler
       return unless (conn = win.conn) and (chan = win.target)
       conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
 
+    ##
+    # /msg sends a direct message to another user. If their exists a private
+    # chat room between the two users, the message will go there. Otherwise
+    # it is displayed in the current window.
+    ##
     msg: (to, message...) ->
       return unless (conn = @chat.currentWindow.conn)
-      conn.irc.doCommand 'PRIVMSG', to, message.join ' '
-      # TODO display message in current window
+      message = message.join ' '
+      conn.irc.doCommand 'PRIVMSG', to, message
+      @_displayDirectMessage to, message
+
+  _displayDirectMessage: (to, message) ->
+    conn = @chat.currentWindow.conn
+    e = new Event 'message', 'privmsg', to, message
+    e.setContext conn.name, @chat.currentWindow.target
+    e.setStyle 'direct'
+    @chat.emit e.type, e
 
 exports.ChatCommands = ChatCommands

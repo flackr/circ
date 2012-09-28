@@ -72,20 +72,8 @@ class IRCResponseHandler extends MessageHandler
       @formatter.setFromUs true
 
     privmsg: (from, msg) ->
-      nick = @win.conn.irc.nick
-      nickMentioned = not @_isOwnNick(from) and
-        chat.NickMentionedNotification.shouldNotify(nick, msg)
-      @_handleNotifications from, msg, nickMentioned
-
-      @formatter.setMessage '#content'
-      @formatter.addStyle 'mention' if nickMentioned
-      @formatter.setPrettyFormat false
-      if m = @_getUserAction msg
-        @formatter.setContent "#{from} #{m[1]}"
-        @formatter.addStyle 'action'
-      else
-        @source = from
-        @formatter.setContent msg
+      @_handleMention from, msg
+      @_formatPrivateMessage from, msg
 
     error: (msg) ->
       @formatter.setStyle 'notice'
@@ -101,14 +89,33 @@ class IRCResponseHandler extends MessageHandler
   _getUserAction: (msg) ->
     /^\u0001ACTION (.*)\u0001/.exec msg
 
+  _handleMention: (from, msg) ->
+    nick = @win.conn.irc.nick
+    nickMentioned = not @_isOwnNick(from) and
+      chat.NickMentionedNotification.shouldNotify(nick, msg)
+    @_handleNotifications from, msg, nickMentioned
+    @formatter.addStyle 'mention' if nickMentioned
+
   _handleNotifications: (from, msg, nickMentioned) ->
     if nickMentioned
       @_notifyNickMentioned from, msg if not window.document.hasFocus()
-
     return if @win.target is @chat.currentWindow.target
     @chat.channelDisplay.activity @win.conn.name, @win.target
     if nickMentioned
       @chat.channelDisplay.mention @win.conn.name, @win.target
+
+  _formatPrivateMessage: (from, msg) ->
+    @formatter.setMessage '#content'
+    @formatter.setPrettyFormat false
+    if m = @_getUserAction msg
+      @formatter.setContent "#{from} #{m[1]}"
+      @formatter.addStyle 'action'
+    else
+      if @formatter.hasStyle 'direct'
+        @source = ">#{from}<"
+      else
+        @source = from
+      @formatter.setContent msg
 
   _sendFormattedMessage: ->
     @formatter.addStyle @type

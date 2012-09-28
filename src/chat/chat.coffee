@@ -112,7 +112,7 @@ class Chat extends EventEmitter
       return
 
     @ircResponseHandler.setWindow(win)
-    @ircResponseHandler.setStyle(e.style) if e.style
+    @ircResponseHandler.setStyle(e.style)
     @ircResponseHandler.handle type, e.args...
 
   onConnected: (conn) ->

@@ -30,6 +30,10 @@ class SystemMessageHandler extends MessageHandler
     disconnect: ->
       @_message "Disconnected"
 
+    privmsg: (to, msg) ->
+      source = ">#{to}<"
+      @_conn.serverWindow.message source, msg, 'update privmsg direct'
+
   _message: (msg) ->
     @_conn.serverWindow.message '*', msg
 

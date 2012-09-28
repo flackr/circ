@@ -4,7 +4,7 @@ describe "A message formatter", ->
   beforeEach ->
     formatter = new chat.MessageFormatter
     formatter.setNick 'ournick'
-    formatter.setCustomStyle 'purple'
+    formatter.setCustomStyle ['purple']
 
   it "returns an empty string when no message has been set", ->
     expect(formatter.format()).toBe ''
@@ -90,6 +90,12 @@ describe "A message formatter", ->
   it "doesn't uses the 'self' style when the message is from or pertains to another user", ->
     formatter.setContext 'othernick', 'bob'
     expect(formatter.getStyle()).toBe 'purple'
+
+  it "can check if it has a certain style", ->
+    formatter.addStyle 'black'
+    expect(formatter.hasStyle 'purple').toBe true
+    expect(formatter.hasStyle 'black').toBe true
+    expect(formatter.hasStyle 'blue').toBe false
 
   it "can force the message to be from the user even when the from field doesn't match", ->
     formatter.setContext 'othernick', 'bob'

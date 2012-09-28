@@ -28,3 +28,7 @@
 .message.update.privmsg.mention .source {
   font-weight: bold;
 }
+
+.message.update.privmsg.direct {
+  color: #488AA8;
+}
