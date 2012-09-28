@@ -55,8 +55,8 @@ class IRCResponseHandler extends MessageHandler
       @win.nicks.replace from, to
 
     mode: (from, to, mode) ->
-      @formatter.setContent @_getMode mode
-      @formatter.setMessage '#from gave #content status to #to'
+      @formatter.setContent @_getModeMessage mode
+      @formatter.setMessage '#from #content #to'
 
     quit: (nick, reason) ->
       @formatter.setMessage '#from has quit: #content'
@@ -80,10 +80,20 @@ class IRCResponseHandler extends MessageHandler
       @formatter.setContent msg
       @formatter.setMessage '#content'
 
+  _getModeMessage: (mode) ->
+    pre = if mode[0] is '+' then 'gave' else 'took'
+    post = if mode[0] is '+' then 'to' else 'from'
+    mode = @_getMode mode
+    "#{pre} #{mode} #{post}"
+
   _getMode: (mode) ->
-    # TODO handle other modes besides just +o
-    switch mode
-      when '+o' then 'channel operator'
+    switch mode[1]
+      when 'o' then 'channel operator status'
+      when 'O' then 'local operator status'
+      when 'v' then 'voice'
+      when 'i' then 'invisible status'
+      when 'w' then 'wall operator status'
+      when 'a' then 'away status'
       else mode
 
   _getUserAction: (msg) ->

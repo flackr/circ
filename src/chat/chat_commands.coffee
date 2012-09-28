@@ -98,6 +98,32 @@ class ChatCommands extends MessageHandler
       return unless (conn = win.conn) and (chan = win.target)
       conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
 
+    mode: (opt_nick, mode) ->
+      win = @chat.currentWindow
+      return unless (conn = win.conn)
+      nick = opt_nick
+      if arguments.length is 1
+        mode = opt_nick
+        nick = conn.irc.nick
+      if not @_isValidModeRequest nick, mode
+        @_displayErrorMessage "You can't give yourself #{mode} status"
+      else if win.target
+        conn.irc.doCommand 'MODE', win.target, mode, nick
+      else
+        conn.irc.doCommand 'MODE', mode, nick
+
+    op: (nick) ->
+      @handle 'mode', nick, '+o'
+
+    deop: (nick) ->
+      @handle 'mode', nick, '-o'
+
+    voice: (nick) ->
+      @handle 'mode', nick, '+v'
+
+    devoice: (nick) ->
+      @handle 'mode', nick, '-v'
+
     ##
     # /msg sends a direct message to another user. If their exists a private
     # chat room between the two users, the message will go there. Otherwise
@@ -115,5 +141,16 @@ class ChatCommands extends MessageHandler
     e.setContext conn.name, @chat.currentWindow.target
     e.setStyle 'direct'
     @chat.emit e.type, e
+
+  _displayErrorMessage: (msg) ->
+    win = @chat.currentWindow
+    return unless (conn = win.conn)
+    @chat.displayMessage 'error', conn.name, win.target, msg
+
+  _isValidModeRequest: (nick, mode) ->
+    not @_isOwnNick(nick) or not mode in ['+o', '+O', '-r']
+
+  _isOwnNick: (nick) ->
+    irc.util.nicksEqual @chat.currentWindow.conn?.irc.nick, nick
 
 exports.ChatCommands = ChatCommands
