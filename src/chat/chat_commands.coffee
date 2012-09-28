@@ -98,6 +98,11 @@ class ChatCommands extends MessageHandler
     kick: (nick, reason...) ->
       win = @chat.currentWindow
       return unless (conn = win.conn) and (chan = win.target)
-      @chat.currentWindow.conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
+      conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
+
+    msg: (to, message...) ->
+      return unless (conn = @chat.currentWindow.conn)
+      conn.irc.doCommand 'PRIVMSG', to, message.join ' '
+      # TODO display message in current window
 
 exports.ChatCommands = ChatCommands

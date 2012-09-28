@@ -224,3 +224,9 @@ describe 'An IRC client', ->
         waitsForArrayBufferConversion()
         runs ->
           expect(socket.received.mostRecentCall.args).toMatch /NICK sugarman__\s*/
+
+      it "emits a notice when a private message is received", ->
+        socket.respondWithData ":someguy!user@company.com PRIVMSG #awesome :hi!"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'privmsg', 'someguy', 'hi!'

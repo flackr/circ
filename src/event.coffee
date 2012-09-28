@@ -3,7 +3,7 @@ exports = window
 class Event
   constructor: (@type, @name, @args...) ->
     @context = {}
-    @style = {}
+    @style = []
     @hook = @type + ' ' + @name
 
   setContext: (server, channel) ->

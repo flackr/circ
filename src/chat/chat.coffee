@@ -29,7 +29,7 @@ class Chat extends EventEmitter
     @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
 
-    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app!", "system"
+    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app", "system"
     @currentWindow.emptyLine()
     @currentWindow.message '*', "Visit https://github.com/noahsug/ircv to file a bug or feature request.", "system"
     @currentWindow.emptyLine()
@@ -100,6 +100,9 @@ class Chat extends EventEmitter
         console.warn "received unknown system message", conn.name, type, e.args
       return
 
+    if chan is conn.irc.nick
+      # TODO create private channel between user and sender
+      return
     win = conn.windows[chan]
     if not win
       return
