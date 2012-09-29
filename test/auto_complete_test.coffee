@@ -41,6 +41,13 @@ describe 'Auto complete', ->
     expect(ac.getCompletion 'hi').toBe 'bee'
     expect(ac.getCompletion 'h').toBe 'bye'
 
+  it "can say if it's in the middle of giving completions", ->
+    expect(ac.hasStarted).toBe false
+    ac.getCompletion 'h'
+    expect(ac.hasStarted).toBe true
+    ac.reset()
+    expect(ac.hasStarted).toBe false
+
   it 'ignores case if the stub has no caps', ->
     ac.setCompletions ['Hi', 'heLLo', 'help']
     expect(ac.getCompletion 'h').toBe 'Hi'

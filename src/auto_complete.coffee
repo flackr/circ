@@ -4,10 +4,7 @@ class AutoComplete
   constructor: (opt_getCompletionsCallback) ->
     @_completions = []
     @_getCompletions = opt_getCompletionsCallback
-
-    @_currentCompletions = []
-    @_currentStub = undefined
-    @_completionIndex = 0
+    @reset()
 
   clearCompletions: () ->
     @_completions = []
@@ -20,10 +17,11 @@ class AutoComplete
     @addCompletions completions
 
   getCompletion: (opt_stub) ->
-    unless @_currentStub
+    unless @hasStarted
       @_buildCompletions()
       @_currentStub = opt_stub
       @_findCompletions()
+      @hasStarted = true
     @_getNextCompletion()
 
   _buildCompletions: ->
@@ -31,8 +29,6 @@ class AutoComplete
       @setCompletions @_getCompletions()
 
   _findCompletions: ->
-    @_currentCompletions = []
-    @_completionIndex = 0
     ignoreCase = not /[A-Z]/.test @_currentStub
     for completion in @_completions
       candidate = if ignoreCase then completion.toLowerCase() else completion
@@ -48,6 +44,9 @@ class AutoComplete
     result
 
   reset: ->
-    @_currentStub = undefined
+    @_currentCompletions = []
+    @_completionIndex = 0
+    @currentStub = ''
+    @hasStarted = false
 
 exports.AutoComplete = AutoComplete

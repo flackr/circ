@@ -148,7 +148,7 @@ class ChatCommands extends MessageHandler
     @chat.displayMessage 'error', conn.name, win.target, msg
 
   _isValidModeRequest: (nick, mode) ->
-    not @_isOwnNick(nick) or not mode in ['+o', '+O', '-r']
+    not @_isOwnNick(nick) or not (mode in ['+o', '+O', '-r'])
 
   _isOwnNick: (nick) ->
     irc.util.nicksEqual @chat.currentWindow.conn?.irc.nick, nick

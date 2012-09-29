@@ -15,6 +15,12 @@ describe 'A user input handler', ->
     val = text
     keyDown 13
 
+  tab = ->
+    keyDown 9
+
+  cursor = (pos) ->
+    handler._getCursorPosition = -> pos
+
   input =
     keydown: (cb) => inputKeyDown = cb
     focus: ->
@@ -27,10 +33,18 @@ describe 'A user input handler', ->
   window =
     keydown: (cb) => windowKeyDown = cb
 
-  context = { currentWindow: { target: '#bash', conn: { name: 'freenode.net' } } }
+  names = {bill: 'bill', sally: 'sally', bob: 'bob', joe: 'Joe'}
+
+  context = currentWindow:
+    target: '#bash'
+    conn:
+      name: 'freenode.net'
+      irc:
+        channels: {}
 
   beforeEach ->
     handler = new UserInputHandler input, window
+    context.currentWindow.conn.irc.channels['#bash'] = {names}
     handler.setContext context
     spyOn handler, 'emit'
     altHeld = false
@@ -68,6 +82,50 @@ describe 'A user input handler', ->
     expect(e.name).toBe 'kick'
     expect(e.context).toEqual { server: 'freenode.net', channel: '#bash' }
     expect(e.args).toEqual 'sugarman for spamming /dance'.split ' '
+
+  describe 'has auto-completion which', ->
+
+    it "completes the current word", ->
+      val = 'b'
+      cursor 1
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill'
+
+    it "completes the current word when the cursor is at the begining of the input", ->
+      val = 'b'
+      cursor 0
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill'
+
+    it "completes the current word when the phrase starts with a space", ->
+      val = ' b'
+      cursor 2
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe ' bill'
+
+    it "completes the current word when the phrase ends with a space", ->
+      val = 'b '
+      cursor 1
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill '
+
+    it "completes the current word when the cursor is in the middle of a word", ->
+      val = 'sis cool'
+      cursor 1
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'sallyis cool'
+
+    it "completes the current word, even when the cursor moves", ->
+      val = 'well, s is great'
+      cursor 7
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally is great'
+
+    it "completes the current word, even when there is space between the cursor and the word", ->
+      val = 'well, sal         is great'
+      cursor 15
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally         is great'
 
   describe 'has an input stack which', ->
 
