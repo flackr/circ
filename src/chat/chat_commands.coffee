@@ -124,6 +124,17 @@ class ChatCommands extends MessageHandler
     devoice: (nick) ->
       @handle 'mode', nick, '-v'
 
+    away: (reason...) ->
+      return unless (conn = @chat.currentWindow.conn)
+      reason = reason.join ' '
+      if not stringHasContent reason
+        reason = "I'm currently away from my computer"
+      conn.irc.doCommand 'AWAY', reason
+
+    back: ->
+      return unless (conn = @chat.currentWindow.conn)
+      conn.irc.doCommand 'AWAY'
+
     ##
     # /msg sends a direct message to another user. If their exists a private
     # chat room between the two users, the message will go there. Otherwise

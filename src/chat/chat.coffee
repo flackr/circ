@@ -183,14 +183,17 @@ class Chat extends EventEmitter
 
   updateStatus: (status) ->
     unless status
-      status = ''
+      statusList = []
       nick = @currentWindow.conn?.irc.nick ? @previousNick
+      away = @currentWindow.conn?.irc.status.away
       channel = @currentWindow.target
       topic = @currentWindow.conn?.irc.channels[channel]?.topic
-      status += "[#{nick}] " if nick?
-      status += "#{channel} " if channel?
-      status += "- #{topic}" if topic?
-      status = 'Welcome!' if status == ''
+      statusList.push "[#{nick}]" if nick
+      statusList.push "(away)" if away
+      statusList.push "#{channel}" if channel
+      statusList.push "- #{topic}" if topic
+      statusList.push 'Welcome!' if statusList.length is 0
+      status = statusList.join ' '
     $('#status').text(status)
 
   switchToWindow: (win) ->

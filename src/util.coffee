@@ -9,5 +9,19 @@ exports.removeFromArray = (array, toRemove) ->
       return array.splice i, 1
   return false
 
-exports.capitalise = (sentence) ->
+##
+# Capitalises the given string.
+# @param {string} sentence
+# @return {string}
+##
+exports.capitaliseString = (sentence) ->
   sentence[0].toUpperCase() + sentence[1..]
+
+##
+# Returns whether or not the given string has non-whitespace characters.
+# @param {string} phrase
+# @return {boolean}
+##
+exports.stringHasContent = (phrase) ->
+  return false unless phrase
+  /\S/.test phrase

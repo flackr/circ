@@ -125,11 +125,25 @@ class ServerResponseHandler extends MessageHandler
       if irc.util.nicksEqual @irc.nick, to
         @irc.emit 'parted', channel
 
-    #err_chanoprivsneeded
-    482: (from, to, chan, msg) ->
-      @irc.emitMessage 'error', chan, msg
-
     MODE: (from, chan, mode, to) ->
       @irc.emitMessage 'mode', chan, from.nick, to, mode
+
+    #rpl_away
+    301: (from, target, who, msg) ->
+      @irc.emitMessage 'privmsg', target, who, msg
+
+    #rpl_unaway
+    305: (from, to, msg) ->
+      @irc.status.away = false
+      @irc.emitMessage 'away', undefined, msg
+
+    #rpl_nowaway
+    306: (from, to, msg) ->
+      @irc.status.away = true
+      @irc.emitMessage 'away', undefined, msg
+
+    #err_chanoprivsneeded
+    482: (from, to, chan, msg) ->
+      @irc.emitMessage 'notice', chan, msg
 
 exports.ServerResponseHandler = ServerResponseHandler

@@ -34,6 +34,11 @@ class SystemMessageHandler extends MessageHandler
       source = ">#{to}<"
       @_conn.serverWindow.message source, msg, 'update privmsg direct'
 
+    away: (msg) ->
+      @chat.updateStatus()
+      chan = @chat.currentWindow.target
+      @chat.displayMessage 'notice', @_conn.name, chan, msg
+
   _message: (msg) ->
     @_conn.serverWindow.message '*', msg
 

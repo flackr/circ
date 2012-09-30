@@ -55,6 +55,7 @@ class IRCResponseHandler extends MessageHandler
       @win.nicks.replace from, to
 
     mode: (from, to, mode) ->
+      return unless to
       @formatter.setContent @_getModeMessage mode
       @formatter.setMessage '#from #content #to'
 
@@ -75,7 +76,7 @@ class IRCResponseHandler extends MessageHandler
       @_handleMention from, msg
       @_formatPrivateMessage from, msg
 
-    error: (msg) ->
+    notice: (msg) ->
       @formatter.setStyle 'notice'
       @formatter.setContent msg
       @formatter.setMessage '#content'
