@@ -155,9 +155,11 @@ describe 'A user input handler', ->
       ctrl()
       numlock()
       tab()
+      cursor 6
       expect(onVal.mostRecentCall.args[0]).toBe 'bob: '
       space()
       tab()
+      cursor 5
       expect(onVal.mostRecentCall.args[0]).toBe 'bob:  '
 
     it "doesn't do anything when no completion candidates match", ->

@@ -1,14 +1,28 @@
 exports = window
 
+
 class AutoComplete
+  ##
+  # Inserted after a nick which is at the start of the input is auto-completed.
+  # @const
+  ##
   @COMPLETION_SUFFIX = ':'
 
   constructor: ->
     @_completionFinder = new CompletionFinder
 
-  setContext: (@_context) ->
+  ##
+  # Set the context from which the list of nicks can be generated.
+  # @param {Object} context
+  ##
+  setContext: (context) ->
+    @_context = context
     @_completionFinder.setCompletionGenerator @_getPossibleCompletions
 
+  ##
+  # Returns a list of nicks in the current channel.
+  # @return {Array<string>}
+  ##
   _getPossibleCompletions: =>
     chan = @_context.currentWindow.target
     nicks = @_context.currentWindow.conn?.irc.channels[chan]?.names
@@ -17,7 +31,15 @@ class AutoComplete
       return (nick for norm, nick of nicks when nick isnt ownNick)
     return []
 
-  getTextWithCompletion: (@_text, @_cursor) ->
+  ##
+  # Returns the passed in text, with the current stub replaced with its
+  # completion.
+  # @param {string} text The text the user has input.
+  # @param {number} cursor The current position of the cursor.
+  ##
+  getTextWithCompletion: (text, cursor) ->
+    @_text = text
+    @_cursor = cursor
     if @_previousText isnt @_text
       @_completionFinder.reset()
     @_previousCursor = @_cursor
@@ -27,6 +49,10 @@ class AutoComplete
     @_previousText = textWithCompletion
     textWithCompletion
 
+  ##
+  # Returns the completion for the current stub with the completion suffix and/
+  # or space after.
+  ##
   _getCompletion: ->
     completion = @_completionFinder.getCompletion @_stub
     return @_stub if completion is @_stub
