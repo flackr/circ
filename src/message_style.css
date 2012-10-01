@@ -6,6 +6,10 @@
   color: #97008B;
 }
 
+.message.error {
+  color: #58231D;
+}
+
 .message.update {
   color: #00068F;
 }

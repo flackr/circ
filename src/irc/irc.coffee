@@ -65,7 +65,7 @@ class IRC extends EventEmitter
     @socket.setTimeout 60000, @onTimeout
 
   onError: (err) ->
-    @emitMessage 'error', undefined, "Socket Error: #{err}"
+    @emitMessage 'error', chat.SERVER_WINDOW, "Socket Error: #{err}"
     @setReconnect()
     @socket.close()
 
@@ -109,7 +109,7 @@ class IRC extends EventEmitter
         dataView = new Uint8Array @data
         @util.fromSocketData line, (lineStr) =>
           console.log '<=', "(#{@server})", lineStr
-          @onCommand(@util.parseCommand lineStr)
+          @onServerMessage(@util.parseCommand lineStr)
       else
         break
 
@@ -125,13 +125,13 @@ class IRC extends EventEmitter
   sendIfConnected: (args...) ->
     @send args... if @state is 'connected'
 
-  onCommand: (cmd) ->
+  onServerMessage: (cmd) ->
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
     if @serverResponseHandler.canHandle cmd.command
       @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
         cmd.params...
     else
-      @emitMessage 'unknown', undefined, cmd
+      @emitMessage 'other', chat.SERVER_WINDOW, cmd
 
   emit: (name, channel, args...) ->
     event = new Event 'server', name, args...
@@ -142,5 +142,8 @@ class IRC extends EventEmitter
     event = new Event 'message', name, args...
     event.setContext @server, channel
     IRC.__super__.emit.call(this, event.type, event)
+
+  isOwnNick: (nick) ->
+    irc.util.nicksEqual @nick, nick
 
 exports.IRC = IRC

@@ -1,4 +1,6 @@
 describe 'An IRC client', ->
+  SERVER_WINDOW = window.chat.SERVER_WINDOW
+  CURRENT_WINDOW = window.chat.CURRENT_WINDOW
   irc = socket = chat = undefined
 
   waitsForArrayBufferConversion = () ->
@@ -88,11 +90,7 @@ describe 'An IRC client', ->
 
       it 'emits a welcome message', ->
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalled()
-          args = chat.onIRCMessage.mostRecentCall.args
-          expect(args[0]).toBeUndefined() # channel
-          expect(args[1]).toBe 'welcome' # type
-          expect(args[2]).toEqual jasmine.any String # message
+          expect(chat.onIRCMessage).toHaveBeenCalledWith SERVER_WINDOW, 'welcome', 'Welcome'
 
       it "properly creates commands on doCommand()", ->
         irc.doCommand 'JOIN', '#awesome'
@@ -198,7 +196,7 @@ describe 'An IRC client', ->
         socket.respondWithData ":freenode.net 482 ournick #awesome :You're not a channel operator"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'notice',
+          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'error',
               "You're not a channel operator"
 
       it "emits a mode notice when someone is given channel operator status", ->
@@ -209,11 +207,12 @@ describe 'An IRC client', ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'mode', 'nice_guy',
               'ournick', '+o'
 
-      it "emits a nick_changed notice when user's nick is changed", ->
+      it "emits a nick notice to the server window when user's nick is changed", ->
         socket.respondWithData ":ournick!user@company.com NICK :newnick"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith undefined, 'nick_changed', 'newnick'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith SERVER_WINDOW, 'nick',
+              'ournick', 'newnick'
 
       it "doesn't try to set nick name to own nick name on 'nick in use' message", ->
         irc.doCommand 'NICK', 'ournick_'
@@ -241,16 +240,17 @@ describe 'An IRC client', ->
         socket.respondWithData ":server@freenode.net 301 ournick someguy :I'm busy"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith 'ournick', 'privmsg', 'someguy', "I'm busy"
+          expect(chat.onIRCMessage).toHaveBeenCalledWith 'ournick', 'privmsg',
+              'someguy', "I'm busy"
 
       it "emits a away notice when the user is no longer away", ->
         socket.respondWithData ":server@freenode.net 305 ournick :Not away"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith undefined, 'away', 'Not away'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW, 'away', 'Not away'
 
       it "emits a away notice when the user is now away", ->
         socket.respondWithData ":server@freenode.net 306 ournick :Now away"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith undefined, 'away', 'Now away'
+          expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW, 'away', 'Now away'

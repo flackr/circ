@@ -6,7 +6,7 @@ class ServerResponseHandler extends MessageHandler
     super
 
   _handlers:
-    # RPL_WELCOME
+    # rpl_welcome
     1: (from, target, msg) ->
       if @irc.state is 'disconnecting'
         @irc.quit()
@@ -14,11 +14,11 @@ class ServerResponseHandler extends MessageHandler
       @irc.nick = target
       @irc.emit 'connect'
       @irc.state = 'connected'
-      @irc.emitMessage 'welcome', undefined, msg
+      @irc.emitMessage 'welcome', chat.SERVER_WINDOW, msg
       for name,c of @irc.channels
         @irc.sendIfConnected 'JOIN', name
 
-    # RPL_NAMREPLY
+    # rpl_namreply
     353: (from, target, privacy, channel, names) ->
       l = (@irc.partialNameLists[channel] ||= {})
       newNames = []
@@ -28,16 +28,17 @@ class ServerResponseHandler extends MessageHandler
         l[irc.util.normaliseNick n] = n
         newNames.push n
       @irc.emit 'names', channel, newNames
-    # RPL_ENDOFNAMES
+
+    # rpl_endofnames
     366: (from, target, channel, _) ->
       if @irc.channels[channel]
         @irc.channels[channel].names = @irc.partialNameLists[channel]
       delete @irc.partialNameLists[channel]
 
     NICK: (from, newNick, msg) ->
-      if irc.util.nicksEqual from.nick, @irc.nick
+      if @irc.isOwnNick from.nick
         @irc.nick = newNick
-        @irc.emitMessage 'nick_changed', undefined, newNick
+        @irc.emitMessage 'nick', chat.SERVER_WINDOW, from.nick, newNick
       normNick = @irc.util.normaliseNick from.nick
       newNormNick = @irc.util.normaliseNick newNick
       for chanName, chan of @irc.channels when normNick of chan.names
@@ -79,7 +80,6 @@ class ServerResponseHandler extends MessageHandler
 
     PRIVMSG: (from, target, msg) ->
       # TODO: normalise channel target names
-      # TODO: should we pass more info about from?
       @irc.emitMessage 'privmsg', target, from.nick, msg
 
     PING: (from, payload) ->
@@ -88,12 +88,12 @@ class ServerResponseHandler extends MessageHandler
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
     # ERR_NICKNAMEINUSE
-    433: (from, nick, inUse) ->
-      @irc.preferredNick = inUse
+    433: (from, nick, taken) ->
+      @irc.preferredNick = taken
       @irc.preferredNick += '_'
       # don't try to set your nick name to itself
       @irc.preferredNick += '_' if @irc.preferredNick is nick
-      @irc.emitMessage 'nickinuse', undefined, @irc.preferredNick, inUse
+      @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, @irc.preferredNick
       @irc.send 'NICK', @irc.preferredNick
 
     TOPIC: (from, channel, topic) ->
@@ -101,7 +101,7 @@ class ServerResponseHandler extends MessageHandler
         @irc.channels[channel].topic = topic
         @irc.emitMessage 'topic', channel, from.nick, topic
       else
-        console.warn "Got TOPIC for a channel we're not in: #{channel}"
+        console.warn "Got TOPIC for a channel we're not in (#{channel})"
 
     # rpl_notopic
     331: (from, to, channel, msg) ->
@@ -130,20 +130,21 @@ class ServerResponseHandler extends MessageHandler
 
     #rpl_away
     301: (from, target, who, msg) ->
+      # send a direct message from the user, saying the other user is away
       @irc.emitMessage 'privmsg', target, who, msg
 
     #rpl_unaway
     305: (from, to, msg) ->
       @irc.status.away = false
-      @irc.emitMessage 'away', undefined, msg
+      @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
     #rpl_nowaway
     306: (from, to, msg) ->
       @irc.status.away = true
-      @irc.emitMessage 'away', undefined, msg
+      @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
     #err_chanoprivsneeded
     482: (from, to, chan, msg) ->
-      @irc.emitMessage 'notice', chan, msg
+      @irc.emitMessage 'error', chan, msg
 
 exports.ServerResponseHandler = ServerResponseHandler

@@ -6,8 +6,7 @@ class Chat extends EventEmitter
     super
     @$windowContainer = $('#chat')
 
-    @ircResponseHandler = new chat.IRCResponseHandler this
-    @systemMessageHandler = new chat.SystemMessageHandler this
+    @messageHandler = new chat.IRCMessageHandler this
     @chatCommands = new chat.ChatCommands this
     devCommands = new chat.DeveloperCommands @chatCommands
     @chatCommands.merge devCommands
@@ -91,29 +90,25 @@ class Chat extends EventEmitter
       when 'parted' then @onParted conn, e.context.channel, e.args...
 
   onMessageEvent: (conn, e) =>
-    chan = e.context.channel
-    type = e.name
-    if not chan?
-      if @systemMessageHandler.canHandle type
-        @systemMessageHandler.handle type, conn, e.args...
-      else
-        console.warn "received unknown system message", conn.name, type, e.args
-      return
+    win = @_determineWindow conn, e
+    return unless win
+    @messageHandler.setWindow(win)
+    @messageHandler.setCustomMessageStyle(e.style)
+    @messageHandler.handle e.name, e.args...
 
+  _determineWindow: (conn, e) ->
+    chan = e.context.channel
     if chan is conn.irc.nick
       # TODO create private channel between user and sender
-      return
-    win = conn.windows[chan]
-    if not win
-      return
-
-    if not @ircResponseHandler.canHandle type
-      console.warn "received unknown message", conn.name, chan, type, e.args
-      return
-
-    @ircResponseHandler.setWindow(win)
-    @ircResponseHandler.setStyle(e.style)
-    @ircResponseHandler.handle type, e.args...
+      # for now, just sending to server window
+      return conn.serverWindow
+    if not chan or chan is chat.SERVER_WINDOW
+      return conn.serverWindow
+    if chan is chat.CURRENT_WINDOW
+      return @currentWindow
+    if conn.windows[chan]
+      return conn.windows[chan]
+    return chat.NO_WINDOW
 
   onConnected: (conn) ->
     @displayMessage 'connect', conn.name
@@ -212,5 +207,9 @@ class Chat extends EventEmitter
     event = new Event 'message', name, args...
     event.setContext server, channel
     @emit event.type, event
+
+exports.SERVER_WINDOW = '@server_window'
+exports.CURRENT_WINDOW = '@current_window'
+exports.NO_WINDOW = 'NO_WINDOW'
 
 exports.Chat = Chat

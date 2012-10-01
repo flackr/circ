@@ -51,6 +51,7 @@ exports.normaliseNick = normaliseNick = (nick) ->
   nick.toLowerCase().replace(/[\[\]\\]/g, (x) -> ('[':'{', ']':'}', '|':'\\')[x])
 
 exports.nicksEqual = (a, b) ->
+  return false if not (typeof(a) is typeof(b) is 'string')
   a? and b? and normaliseNick(a) == normaliseNick(b)
 
 exports.toSocketData = (str, cb) ->

@@ -55,6 +55,13 @@ class MessageFormatter
     @_message = message
 
   ##
+  # Returns true if the formatter has a message to format.
+  # @return {boolean}
+  ##
+  hasMessage: ->
+    return !!@_message
+
+  ##
   # Set the context of the message.
   # @param {string=} opt_from The nick the message is from.
   # @param {string=} opt_to The nick the message pertains to.
@@ -73,6 +80,14 @@ class MessageFormatter
   ##
   setContent: (content) ->
     @_content = content
+
+  ##
+  # Sets the content to the given string and the message to be that content.
+  # @param {string} content
+  ##
+  setContentMessage: (content) ->
+    @setContent content
+    @setMessage '#content'
 
   ##
   # Set whether the message is from the user or not.

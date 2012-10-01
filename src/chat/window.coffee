@@ -16,6 +16,9 @@ class Window
   setTarget: (@target) ->
     @_addNickList()
 
+  isServerWindow: ->
+    return not @target?
+
   _addNickList: ->
     nicks = $ "<ol id='nicks'>"
     nickDisplay = $ "<div id='nick-display'>"

@@ -98,6 +98,12 @@ class ChatCommands extends MessageHandler
       return unless (conn = win.conn) and (chan = win.target)
       conn.irc.doCommand 'KICK', chan, nick, reason.join ' '
 
+    ##
+    # Sets the mode for the given nick. If no nick is provided, the user's nick
+    # is used.
+    # @param {string} opt_nick
+    # @param {string} mode
+    ##
     mode: (opt_nick, mode) ->
       win = @chat.currentWindow
       return unless (conn = win.conn)
