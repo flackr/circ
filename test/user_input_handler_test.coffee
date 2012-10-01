@@ -18,6 +18,16 @@ describe 'A user input handler', ->
   tab = ->
     keyDown 9
 
+  ctrl = ->
+    keyDown 17
+
+  numlock = ->
+    keyDown 144
+
+  space = ->
+    keyDown 32
+    val += ' '
+
   cursor = (pos) ->
     handler._getCursorPosition = -> pos
 
@@ -85,47 +95,76 @@ describe 'A user input handler', ->
 
   describe 'has auto-completion which', ->
 
-    it "completes the current word", ->
+    it "completes the current word and adds a colon + space after if it starts the phrase", ->
       val = 'b'
       cursor 1
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'bill'
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
 
     it "completes the current word when the cursor is at the begining of the input", ->
       val = 'b'
       cursor 0
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'bill'
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
 
-    it "completes the current word when the phrase starts with a space", ->
+    it "completes the current word and adds a space after if it doesn't start the phrase", ->
       val = ' b'
       cursor 2
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe ' bill'
+      expect(onVal.mostRecentCall.args[0]).toBe ' bill '
 
     it "completes the current word when the phrase ends with a space", ->
       val = 'b '
       cursor 1
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'bill '
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill:  '
 
     it "completes the current word when the cursor is in the middle of a word", ->
       val = 'sis cool'
       cursor 1
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'sallyis cool'
+      expect(onVal.mostRecentCall.args[0]).toBe 'sally: is cool'
 
     it "completes the current word, even when the cursor moves", ->
       val = 'well, s is great'
       cursor 7
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally is great'
+      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally  is great'
 
     it "completes the current word, even when there is space between the cursor and the word", ->
       val = 'well, sal         is great'
       cursor 15
       tab()
-      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally         is great'
+      expect(onVal.mostRecentCall.args[0]).toBe 'well, sally          is great'
+
+    it "goes to next completion on tab", ->
+      val = 'b'
+      cursor 0
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bob: '
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
+
+    it "stops cycling possible completions only when input is entered", ->
+      val = 'b'
+      cursor 0
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
+      ctrl()
+      numlock()
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bob: '
+      space()
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bob:  '
+
+    it "doesn't do anything when no completion candidates match", ->
+      val = 'zack'
+      cursor 0
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'zack'
 
   describe 'has an input stack which', ->
 

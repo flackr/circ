@@ -1,52 +1,58 @@
 exports = window
 
 class AutoComplete
-  constructor: (opt_getCompletionsCallback) ->
-    @_completions = []
-    @_getCompletions = opt_getCompletionsCallback
-    @reset()
+  @COMPLETION_SUFFIX = ':'
 
-  clearCompletions: () ->
-    @_completions = []
+  constructor: ->
+    @_completionFinder = new CompletionFinder
 
-  addCompletions: (completions) ->
-    @_completions = @_completions.concat completions
+  setContext: (@_context) ->
+    @_completionFinder.setCompletionGenerator @_getPossibleCompletions
 
-  setCompletions: (completions) ->
-    @clearCompletions()
-    @addCompletions completions
+  _getPossibleCompletions: =>
+    chan = @_context.currentWindow.target
+    nicks = @_context.currentWindow.conn?.irc.channels[chan]?.names
+    if nicks?
+      ownNick = @_context.currentWindow.conn.irc.nick
+      return (nick for norm, nick of nicks when nick isnt ownNick)
+    return []
 
-  getCompletion: (opt_stub) ->
-    unless @hasStarted
-      @_buildCompletions()
-      @_currentStub = opt_stub
-      @_findCompletions()
-      @hasStarted = true
-    @_getNextCompletion()
+  getTextWithCompletion: (@_text, @_cursor) ->
+    if @_previousText isnt @_text
+      @_completionFinder.reset()
+    @_previousCursor = @_cursor
+    unless @_completionFinder.hasStarted
+      @_extractStub()
+    textWithCompletion = @_preCompletion + @_getCompletion() + @_postCompletion
+    @_previousText = textWithCompletion
+    textWithCompletion
 
-  _buildCompletions: ->
-    if @_getCompletions?
-      @setCompletions @_getCompletions()
+  _getCompletion: ->
+    completion = @_completionFinder.getCompletion @_stub
+    return @_stub if completion is @_stub
+    if @_preCompletion.length is 0
+      completion += AutoComplete.COMPLETION_SUFFIX
+    completion += ' '
 
-  _findCompletions: ->
-    ignoreCase = not /[A-Z]/.test @_currentStub
-    for completion in @_completions
-      candidate = if ignoreCase then completion.toLowerCase() else completion
-      if candidate.indexOf(@_currentStub) is 0
-        @_currentCompletions.push completion
+  ##
+  # Finds the stub by looking at the cursor position, then finds the text before
+  # and after the stub.
+  ##
+  _extractStub: ->
+    stubEnd = @_findNearest @_cursor - 1, /\S/
+    if stubEnd < 0 then stubEnd = 0
+    preStubEnd = @_findNearest stubEnd, /\s/
+    @_preCompletion = @_text.slice 0, preStubEnd+1
+    @_stub = @_text[preStubEnd+1..stubEnd]
+    @_postCompletion = @_text[stubEnd+1..]
 
-  _getNextCompletion: ->
-    return @_currentStub if @_currentCompletions.length is 0
-    result = @_currentCompletions[@_completionIndex]
-    @_completionIndex++
-    if @_completionIndex >= @_currentCompletions.length
-      @_completionIndex = 0
-    result
-
-  reset: ->
-    @_currentCompletions = []
-    @_completionIndex = 0
-    @currentStub = ''
-    @hasStarted = false
+  ##
+  # Searches backwards until the regex matches the current character.
+  # @return {number} The position of the matched character or -1 if not found.
+  ##
+  _findNearest: (start, regex) ->
+    for i in [start..0]
+      return i if regex.test @_text[i]
+    -1
 
 exports.AutoComplete = AutoComplete

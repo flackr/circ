@@ -1,8 +1,8 @@
-describe 'Auto complete', ->
+describe 'A completion finder', ->
   ac = undefined
 
   beforeEach ->
-    ac = new AutoComplete
+    ac = new CompletionFinder
 
   it 'auto-completes the given stub into a matching full length word', ->
     ac.setCompletions ['hi', 'bye']
