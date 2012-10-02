@@ -7,9 +7,9 @@ class Chat extends EventEmitter
     @$windowContainer = $('#chat')
 
     @messageHandler = new chat.IRCMessageHandler this
-    @chatCommands = new chat.ChatCommands this
-    devCommands = new chat.DeveloperCommands @chatCommands
-    @chatCommands.merge devCommands
+    @userCommands = new chat.UserCommandHandler this
+    devCommands = new chat.DeveloperCommands @userCommands
+    @userCommands.merge devCommands
 
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (server, chan) =>
@@ -28,20 +28,20 @@ class Chat extends EventEmitter
     @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
 
-    @currentWindow.message '*', "Welcome to CIRC, a packaged Chrome app", "system"
+    @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
     @currentWindow.emptyLine()
-    @currentWindow.message '*', "Visit https://github.com/noahsug/ircv to file a bug or feature request.", "system"
+    @currentWindow.message '', "Visit https://github.com/noahsug/ircv to file a bug or feature request.", "system"
     @currentWindow.emptyLine()
-    @currentWindow.message '*', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
+    @currentWindow.message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
     @currentWindow.emptyLine()
-    @currentWindow.message '*', "Type /help to see a full list of commands.", "system"
+    @currentWindow.message '', "Type /help to see a full list of commands.", "system"
     @currentWindow.emptyLine()
-    @currentWindow.message '*', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
+    @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
     @connections = {}
 
   listenToUserInput: (userInput) ->
-    @chatCommands.listenTo userInput
+    @userCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
       win = @winList.getChannelWindow winNum - 1
       @switchToWindow win if win?
@@ -55,7 +55,7 @@ class Chat extends EventEmitter
     @ircEvents.on 'server', @onIRCEvent
     @ircEvents.on 'message', @onIRCEvent
 
-  connect: (server, port = 6667) ->
+  connect: (server, port) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
     if irc = @connections[name]?.irc
       return if irc.state in ['connected', 'connecting']
@@ -75,9 +75,10 @@ class Chat extends EventEmitter
     irc.connect(server, port)
 
   onIRCEvent: (e) =>
+    if e.context.channel is chat.CURRENT_WINDOW
+      e.context.server = @currentWindow.conn?.name
     conn = @connections[e.context.server]
-    if not conn?
-      return
+    return if not conn
     if e.type is 'server' then @onServerEvent conn, e
     else @onMessageEvent conn, e
 
@@ -91,14 +92,14 @@ class Chat extends EventEmitter
 
   onMessageEvent: (conn, e) =>
     win = @_determineWindow conn, e
-    return unless win
+    return if win is chat.NO_WINDOW
     @messageHandler.setWindow(win)
     @messageHandler.setCustomMessageStyle(e.style)
     @messageHandler.handle e.name, e.args...
 
   _determineWindow: (conn, e) ->
     chan = e.context.channel
-    if chan is conn.irc.nick
+    if irc.util.nicksEqual chan, conn.irc.nick
       # TODO create private channel between user and sender
       # for now, just sending to server window
       return conn.serverWindow
@@ -111,18 +112,18 @@ class Chat extends EventEmitter
     return chat.NO_WINDOW
 
   onConnected: (conn) ->
-    @displayMessage 'connect', conn.name
+    @displayMessage 'connect', {server: conn.name}
     @updateStatus()
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
-      @displayMessage 'connect', conn.name, win.target
+      @displayMessage 'connect', {server: conn.name, channel: win.target}
 
   onDisconnected: (conn) ->
-    @displayMessage 'disconnect', conn.name
+    @displayMessage 'disconnect', {server: conn.name}
     @channelDisplay.disconnect conn.name
     for chan, win of conn.windows
       @channelDisplay.disconnect conn.name, chan
-      @displayMessage 'disconnect', conn.name, win.target
+      @displayMessage 'disconnect', {server: conn.name, channel: win.target}
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
@@ -149,10 +150,10 @@ class Chat extends EventEmitter
     index = @winList.indexOf win
     removedWindows = @winList.remove win
     for win in removedWindows
-      @_eraseWindow win
+      @_removeWindowFromState win
     @_selectNextWindow(index)
 
-  _eraseWindow: (win) ->
+  _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
@@ -203,9 +204,9 @@ class Chat extends EventEmitter
     @updateStatus()
 
   # emits message to script handler, which decides if it should send it back
-  displayMessage: (name, server, channel, args...) ->
+  displayMessage: (name, context, args...) ->
     event = new Event 'message', name, args...
-    event.setContext server, channel
+    event.setContext context.server, context.channel
     @emit event.type, event
 
 exports.SERVER_WINDOW = '@server_window'

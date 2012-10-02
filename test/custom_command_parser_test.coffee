@@ -11,8 +11,8 @@ describe 'A custom command parser', ->
     parse 'nick sugarman'
     expect(result).toEqual ['NICK', 'sugarman']
 
-  it "includes the channel if the 2nd arg is '$chan'", ->
-    parse 'kick $chan sugarman "for spamming /dance"'
+  it "includes the channel if the 2nd arg is '-c'", ->
+    parse 'kick -c sugarman "for spamming /dance"'
     expect(result).toEqual ['KICK', '#bash', 'sugarman', 'for spamming /dance']
 
   describe 'that is merging quoted words', ->

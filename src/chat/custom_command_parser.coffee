@@ -3,7 +3,7 @@ exports = window.chat ?= {}
 class CustomCommandParser
 
   parse: (channel, args...) ->
-    if args[1] == '$chan'
+    if args[1] == '-c'
       params = @_mergeQuotedWords args[2..]
       [args[0].toUpperCase(), channel, params...]
     else
