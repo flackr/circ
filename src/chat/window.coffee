@@ -69,7 +69,7 @@ class Window
   displayHelp: (commands) ->
     # TODO format nicely
     commandList = ('/'+c for c in commands).join(' ')
-    @message '', "Commands Available: #{commandList}"
+    @message '*', "Commands Available: #{commandList}", 'notice help'
 
 escapeHTML = (html) ->
   escaped = {

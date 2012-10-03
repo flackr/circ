@@ -80,8 +80,11 @@ class ServerResponseHandler extends MessageHandler
         @irc.emitMessage 'quit', chanName, from.nick, reason
 
     PRIVMSG: (from, target, msg) ->
-      # TODO: normalise channel target names
-      @irc.emitMessage 'privmsg', target, from.nick, msg
+      if (msg is '\u0001VERSION\u0001') and (@irc.isOwnNick target)
+        # TODO let scripts intercept VERSION requests
+        @irc.doCommand 'privmsg', from.nick, irc.VERSION
+      else
+        @irc.emitMessage 'privmsg', target, from.nick, msg
 
     PING: (from, payload) ->
       @irc.send 'PONG', payload

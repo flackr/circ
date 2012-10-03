@@ -76,8 +76,9 @@ class Chat extends EventEmitter
     irc.connect(server, port)
 
   onIRCEvent: (e) =>
-    if e.context.channel is chat.CURRENT_WINDOW
-      e.context.server = @currentWindow.conn?.name
+    if e.context.channel is chat.CURRENT_WINDOW and
+        e.context.server isnt @currentWindow.conn?.name
+      e.context.channel = chat.SERVER_WINDOW
     conn = @connections[e.context.server]
     return if not conn
     if e.type is 'server' then @onServerEvent conn, e

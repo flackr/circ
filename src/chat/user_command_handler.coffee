@@ -20,14 +20,19 @@ class UserCommandHandler extends MessageHandler
   handle: (type, args...) ->
     command = @_handlers[type]
     if not command then return super type, args...
-    return unless command.canRun()
-    # TODO show helpful message explaining why the command can't be run
+
+    if not command.canRun()
+      @_displayHelp command unless command.name is 'say'
+      return
 
     command.setArgs args...
     if command.hasValidArgs()
       command.run()
     else
-      @chat.currentWindow.message '*', command.getHelp(), 'notice help'
+      @_displayHelp command
+
+  _displayHelp: (command) ->
+    @chat.currentWindow.message '*', command.getHelp(), 'notice help'
 
   _init: ->
     @_addCommand 'join',

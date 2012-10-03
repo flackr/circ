@@ -62,7 +62,6 @@ class IRCMessageHandler extends MessageHandler
 
     mode: (from, to, mode) ->
       return unless to
-      console.error 'MODE', from, to, mode
       @_formatter.addStyle 'update'
       @_formatter.setContent @_getModeMessage mode
       @_formatter.setMessage '#from #content #to'

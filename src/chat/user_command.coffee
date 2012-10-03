@@ -2,7 +2,7 @@ exports = window.chat ?= {}
 
 class UserCommand
   constructor: (name, @description) ->
-    @_name = name
+    @name = name
     @describe @description
     @_validArgs = false
 
@@ -89,7 +89,7 @@ class UserCommand
     descriptionText = if @_description then ", #{@_description}" else ''
     usageText = ' ' + @_usage if @_usage
     usageText ?= if @_params?.length > 0 then " #{@_getUsage()}" else ''
-    return @_name.toUpperCase() + usageText + descriptionText + '.'
+    return @name.toUpperCase() + usageText + descriptionText + '.'
 
   _getUsage: ->
     paramDescription = []
