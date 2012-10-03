@@ -19,6 +19,15 @@ test: build
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
+package: build
+	-rm -rf package
+	-rm circ.zip
+	mkdir package
+	cp -r bin package
+	cp -r icon package
+	cp manifest.json package
+	zip -r circ package/*
+
 clean:
 	-rm -rf bin
 
