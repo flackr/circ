@@ -98,6 +98,7 @@ li {
   padding: 0 4px;
   text-align: right;
   border-right: 1px solid lightgray;
+  white-space: nowrap;
 }
 .message .text {
   display: table-cell;
