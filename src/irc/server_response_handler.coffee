@@ -20,13 +20,14 @@ class ServerResponseHandler extends MessageHandler
 
     # rpl_namreply
     353: (from, target, privacy, channel, names) ->
-      l = (@irc.partialNameLists[channel] ||= {})
+      nameList = @irc.partialNameLists[channel] ?= {}
       newNames = []
       for n in names.split(/\x20/)
         # TODO: read the prefixes and modes that they imply out of the 005 message
         n = n.replace /^[@+]/, ''
-        l[irc.util.normaliseNick n] = n
-        newNames.push n
+        if n
+          nameList[irc.util.normaliseNick n] = n
+          newNames.push n
       @irc.emit 'names', channel, newNames
 
     # rpl_endofnames

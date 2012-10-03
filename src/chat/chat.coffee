@@ -43,7 +43,8 @@ class Chat extends EventEmitter
   listenToUserInput: (userInput) ->
     @userCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
-      win = @winList.getChannelWindow winNum - 1
+      winNum = 10 if winNum is 0
+      win = @winList.get winNum - 1
       @switchToWindow win if win?
 
   listenToScriptEvents: (@scriptHandler) ->
