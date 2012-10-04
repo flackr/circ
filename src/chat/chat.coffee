@@ -30,7 +30,7 @@ class Chat extends EventEmitter
 
     @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
     @currentWindow.emptyLine()
-    @currentWindow.message '', "Visit https://github.com/noahsug/ircv/wiki to read documentation or report an issue.", "system"
+    @currentWindow.message '', "Visit https://github.com/noahsug/circ/wiki to read documentation or report an issue.", "system"
     @currentWindow.emptyLine()
     @currentWindow.message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
     @currentWindow.emptyLine()
