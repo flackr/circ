@@ -8,6 +8,7 @@ build: clean
 	cp src/net/* bin/
 	cp src/script/* bin/
 	cp third_party/*.js bin/
+	cp static/*.* bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 
@@ -24,7 +25,7 @@ package: build
 	-rm circ.zip
 	mkdir package
 	cp -r bin package
-	cp -r icon package
+	cp -r static package
 	cp manifest.json package
 	zip -r circ package/*
 

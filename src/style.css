@@ -39,12 +39,22 @@ li {
 }
 
 #channels li {
-  padding: 2px 5px;
-  border-radius: 2px 0 0 2px;
+  padding: 2px 8px;
 }
 
 #channels li.indent {
-  padding-left: 10px;
+  padding: 0;
+  line-height: 20px;
+}
+
+#channels li.indent div {
+  background: url(node.png) no-repeat;
+  margin-left: 14px;
+  padding: 0 12px;
+}
+
+#channels li.indent.last div {
+  background: url(lastnode.png) no-repeat;
 }
 
 #channels li.selected {

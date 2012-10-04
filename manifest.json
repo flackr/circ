@@ -3,7 +3,11 @@
   "description": "An IRC client for Chrome",
   "version": "0.1.4",
   "manifest_version": 2,
-  "icons": { "16": "icon/icon16.png", "48": "icon/icon48.png", "128": "icon/icon128.png" },
+  "icons": {
+    "16": "static/icon/icon16.png",
+    "48": "static/icon/icon48.png",
+    "128": "static/icon/icon128.png"
+  },
 
   "permissions": [
     "experimental",

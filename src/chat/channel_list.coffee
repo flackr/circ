@@ -5,11 +5,12 @@ class ChannelList extends chat.HTMLList
   constructor: ->
     super $ '#channels'
     @lastSelected = undefined
+    @_lastChannelForServer = {}
 
   select: (server, channel) ->
-    @removeClass @lastSelected, 'selected' if @lastSelected?
+    @removeClass @_lastSelected, 'selected' if @_lastSelected?
     currentWindow = @_getID server, channel
-    @lastSelected = currentWindow
+    @_lastSelected = currentWindow
     @removeClass currentWindow, 'activity'
     @removeClass currentWindow, 'mention'
     @addClass currentWindow, 'selected'
@@ -25,32 +26,36 @@ class ChannelList extends chat.HTMLList
 
   insert: (i, server, chan) ->
     super i, @_getID server, chan
-    @_formatNode server,chan
+    @_formatNode server, chan
 
   add: (server, chan) ->
     super @_getID server, chan
-    @_formatNode server,chan
+    @_formatNode server, chan
 
   _formatNode: (server, chan) ->
     @disconnect(server, chan)
     if chan?
-      @addClass @_getID(server, chan), 'indent'
+      id = @_getID server, chan
+      @addClass id, 'indent'
+      if @_isLastChannel id
+        @addClass id, 'last'
+        prev = @_lastChannelForServer[server]
+        @removeClass prev, 'last' if prev
+        @_lastChannelForServer[server] = id
+
+  _isLastChannel: (id) ->
+    nextNode = @getNext id
+    not nextNode or not @hasClass nextNode, 'indent'
 
   disconnect: (server, channel) ->
     @rename @_getID(server, channel), @_getDisconnectedName server, channel
 
   connect: (server, channel) ->
-    @rename @_getID(server, channel), @_getName server, channel
-
-  _getName: (server, channel) ->
-    if channel?
-      return '- ' + channel
-    return server
+    @rename @_getID(server, channel), channel ? server
 
   _getDisconnectedName: (server, channel) ->
-    if channel?
-      return '- (' + channel + ')'
-    return '(' + server + ')'
+    name = channel ? server
+    return '(' + name + ')'
 
   _getID: (server, channel) ->
     if not channel?

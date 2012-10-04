@@ -15,13 +15,25 @@ class HTMLList extends EventEmitter
         @$list.append node.html
 
   insert: (index, name) ->
-    return if name in @nodes
+    return if name of @nodes
     node = @_createNode name
     for nameLi, i in $ 'li', @$list
       if i >= index
         node.html.insertBefore $(nameLi)
         return
     @$list.append node.html
+
+  getNext: (nodeName) ->
+    returnNext = false
+    for li, i in $ 'li', @$list
+      if returnNext
+        return @getNodeByText $(li).children().text(), $(li)
+      returnNext = @nodes[nodeName]?.content.text() is $(li).children().text()
+    return undefined
+
+  getNodeByText: (text, html) ->
+    for name, node of @nodes
+      return name if node.content.text() is text
 
   remove: (name) ->
     if node = @nodes[name]
@@ -42,18 +54,21 @@ class HTMLList extends EventEmitter
     for name of @nodes
       @removeClass node
 
+  hasClass: (nodeName, c) ->
+    return @nodes[nodeName]?.html.hasClass c
+
   replace: (oldName, newName) ->
     if @nodes[oldName]?
       @remove oldName
       @add newName
 
   rename: (name, text) ->
-    @nodes[name]?.html.text(text)
+    @nodes[name]?.content.text(text)
 
   _addOrdered: (name) ->
     # TODO binary search
     for nameLi in $ 'li', @$list
-      if $(nameLi).text() > name
+      if $(nameLi).children().text() > name
         node = @_createNode name
         node.html.insertBefore $(nameLi)
         return
@@ -61,15 +76,15 @@ class HTMLList extends EventEmitter
     @$list.append node.html
 
   _createNode: (name) ->
-    @nodes[name] = {html: htmlify(name), name: name}
-    node = @nodes[name]
+    node = {html: htmlify(name), name: name}
+    node.content = node.html.children()
     node.html.mousedown( => @_handleClick(node))
-    node
+    @nodes[name] = node
 
   _handleClick: (node) ->
     @emit 'clicked', node.name
 
 htmlify = (name) ->
-    $ "<li>#{name}</li>"
+    $ "<li><div>#{name}</div></li>"
 
 exports.HTMLList = HTMLList
