@@ -27,7 +27,6 @@ package: build
 	cp -r bin package
 	cp -r static package
 	cp manifest.json package
-	zip -r circ package/*
 
 clean:
 	-rm -rf bin
