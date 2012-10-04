@@ -83,8 +83,8 @@ class UserCommandHandler extends MessageHandler
           "reconnects to the current server if server is specified"
       params: ['opt_server', 'opt_port']
       parseArgs: ->
-        @port ?= parseInt @server
-        @port = parseInt(@port) ? 6667
+        @port ?= parseInt(@server) || 6667
+        @port = parseInt(@port)
         @server ?= @conn?.name
         return @port and @server
       run: ->
