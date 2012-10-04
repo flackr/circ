@@ -47,7 +47,7 @@ class UserCommandHandler extends MessageHandler
         @conn.irc.doCommand 'JOIN', @channel
 
     @_addCommand 'win',
-      description: 'switch windows'
+      description: 'switches windows'
       params: ['windowNum']
       parseArgs: ->
         num = parseInt @windowNum
@@ -56,7 +56,7 @@ class UserCommandHandler extends MessageHandler
         @chat.switchToWindow @window
 
     @_addCommand 'say',
-      description: 'displays text in the current channel'
+      description: 'sends text to the current channel'
       params: ['text...']
       requires: ['connection', 'channel', 'connected']
       run: ->
@@ -64,7 +64,7 @@ class UserCommandHandler extends MessageHandler
         @displayMessage 'privmsg', @conn.irc.nick, @text
 
     @_addCommand 'me',
-      description: 'displays text in the current channel, spoken in the 3rd person'
+      description: 'sends text to the current channel, spoken in the 3rd person'
       extends: 'say'
       parseArgs: ->
         @text = "\u0001ACTION #{@text}\u0001"
@@ -79,11 +79,12 @@ class UserCommandHandler extends MessageHandler
         @conn?.irc.doCommand 'NICK', @nick
 
     @_addCommand 'server',
-      description: 'connects to a sevrer, the default port is 6667, ' +
-          "if no arguments are given it tries to reconnect to the current server"
+      description: 'connects to the sevrer, port 6667 is used by default, ' +
+          "reconnects to the current server if server is specified"
       params: ['opt_server', 'opt_port']
       parseArgs: ->
-        @port = parseInt(@port ? 6667)
+        @port ?= parseInt @server
+        @port = parseInt(@port) ? 6667
         @server ?= @conn?.name
         return @port and @server
       run: ->
@@ -104,7 +105,7 @@ class UserCommandHandler extends MessageHandler
         @chat.removeWindow @chat.winList.get @conn.name
 
     @_addCommand 'names',
-      description: 'lists the nicks on the current channel'
+      description: 'lists nicks in the current channel'
       requires: ['connection', 'channel', 'connected']
       run: ->
         names = (v for k,v of @conn.irc.channels[@chan].names).sort()
@@ -112,8 +113,8 @@ class UserCommandHandler extends MessageHandler
         @chat.currentWindow.message '*', msg, 'notice names'
 
     @_addCommand 'help',
-      description: "displays information about a command, if no command is " +
-          "given then lists all possible commands."
+      description: "displays information about a command, lists all commands " +
+          "when no command is specified"
       params: ["opt_command"]
       run: ->
         @command = @chat.userCommands.getCommand @command
@@ -124,7 +125,7 @@ class UserCommandHandler extends MessageHandler
           @chat.currentWindow.displayHelp commands
 
     @_addCommand 'part',
-      description: "closes the current window and leaves the channel if connected"
+      description: "closes the current window and disconnects from the channel"
       params: ['opt_reason...']
       requires: ['connection', 'channel']
       run: ->
@@ -143,20 +144,21 @@ class UserCommandHandler extends MessageHandler
         @conn.irc.doCommand command...
 
     @_addCommand 'load',
-      description: "loads a script from the file system"
+      description: "loads a script by opening a file browser dialog"
       run: ->
         script.loader.createScriptFromFileSystem (script) =>
           @chat.emit 'script_loaded', script
 
     @_addCommand 'topic',
-      description: "sets the topic of the current channel, if there are no arguments then it displays the current topic"
+      description: "sets the topic of the current channel, displays the " +
+          "current topic if no topic is specified"
       params: ['opt_topic...']
       requires: ['connection', 'channel']
       run: ->
         @conn.irc.doCommand 'TOPIC', @chan, @topic
 
     @_addCommand 'kick',
-      description: "removes a user from the current channel"
+      description: "removes the nick from the current channel"
       params: ['nick', 'opt_reason...']
       requires: ['connection', 'channel']
       run: ->
@@ -164,8 +166,8 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'mode',
       # TODO when used with no args, display current modes
-      description: "sets the mode for the given user, if no nick is provides " +
-          "then your nick is used"
+      description: "sets the mode for the given user, your nick is used if " +
+          "no nick is specified"
       params: ['opt_nick', 'mode']
       requires: ['connection']
       parseArgs: ->
@@ -179,32 +181,32 @@ class UserCommandHandler extends MessageHandler
           @conn.irc.doCommand 'MODE', @mode, @nick
 
     @_addCommand 'op',
-      description: "gives a user operator status"
+      description: "gives operator status"
       params: ['nick']
       extends: 'mode'
       parseArgs: -> @mode = '+o'
 
     @_addCommand 'deop',
-      description: "removes operator status from a user"
+      description: "removes operator status"
       params: ['nick']
       extends: 'mode'
       parseArgs: -> @mode = '-o'
 
     @_addCommand 'voice',
-      description: "gives a user voice"
+      description: "gives voice"
       params: ['nick']
       extends: 'mode'
       parseArgs: -> @mode = '+v'
 
     @_addCommand 'devoice',
-      description: "removes voice from a user"
+      description: "removes voice"
       params: ['nick']
       extends: 'mode'
       parseArgs: -> @mode = '-v'
 
     @_addCommand 'away',
-      description: "sets your current status to away, when people /msg you " +
-          "or do a WHOIS on you, they will get an automatic response"
+      description: "sets your status to away, a response is " +
+          "automatically sent when people /msg or WHOIS you"
       params: ['response...']
       requires: ['connection']
       parseArgs: ->
@@ -220,7 +222,7 @@ class UserCommandHandler extends MessageHandler
       run: -> @conn.irc.doCommand 'AWAY', @response
 
     @_addCommand 'msg',
-      description: "closes the current window and leaves the channel if connected"
+      description: "sends a private message"
       params: ['nick', 'message...']
       requires: ['connection']
       run: ->
