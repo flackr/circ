@@ -1,4 +1,4 @@
-describe 'A nick mentioned notification', ->
+describe 'A nick mentioned notifier', ->
   notification = chat.NickMentionedNotification
 
   it 'should notify when nick is mentioned', ->

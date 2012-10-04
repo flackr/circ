@@ -79,8 +79,8 @@ class UserCommandHandler extends MessageHandler
         @conn?.irc.doCommand 'NICK', @nick
 
     @_addCommand 'server',
-      description: 'connects to the sevrer, port 6667 is used by default, ' +
-          "reconnects to the current server if server is specified"
+      description: 'connects to the server, port 6667 is used by default, ' +
+          "reconnects to the current server if no server is specified"
       params: ['opt_server', 'opt_port']
       parseArgs: ->
         @port ?= parseInt(@server) || 6667
@@ -114,7 +114,7 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'help',
       description: "displays information about a command, lists all commands " +
-          "when no command is specified"
+          "if no command is specified"
       params: ["opt_command"]
       run: ->
         @command = @chat.userCommands.getCommand @command
@@ -133,7 +133,8 @@ class UserCommandHandler extends MessageHandler
         @chat.removeWindow()
 
     @_addCommand 'raw',
-      description: "sends a raw event to the IRC server, use the -c flag to make the command apply to the current channel"
+      description: "sends a raw event to the IRC server, use the -c flag to " +
+          "make the command apply to the current channel"
       params: ['command', 'opt_args...']
       usage: '<command> [-c] [arguments...]'
       requires: ['connection']

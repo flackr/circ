@@ -6,10 +6,7 @@ describe "A message formatter", ->
     formatter.setNick 'ournick'
     formatter.setCustomStyle ['purple']
 
-  it "returns an empty string when no message has been set", ->
-    expect(formatter.format()).toBe ''
-
-  it "adds a period to the end of the message's not from the user", ->
+  it "adds a period to the end of the message", ->
     formatter.setMessage 'No topic set'
     expect(formatter.format()).toBe 'No topic set.'
 
@@ -17,10 +14,13 @@ describe "A message formatter", ->
     formatter.setMessage 'no topic set'
     expect(formatter.format()).toBe 'No topic set.'
 
-  it "surrounds the message with perentheses if from the user", ->
+  it "surrounds the message with perentheses if it's from the user", ->
     formatter.setContext 'ournick'
     formatter.setMessage 'no topic set'
     expect(formatter.format()).toBe '(No topic set)'
+
+  it "returns an empty string when no message has been set", ->
+    expect(formatter.format()).toBe ''
 
   it "replaces '#from' with the user who sent the message", ->
     formatter.setContext 'othernick'
