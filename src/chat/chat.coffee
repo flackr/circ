@@ -124,6 +124,7 @@ class Chat extends EventEmitter
     @channelDisplay.connect conn.name
     for chan, win of conn.windows
       @displayMessage 'connect', {server: conn.name, channel: win.target}
+      @channelDisplay.connect conn.name, chan if win.isPrivate()
 
   onDisconnected: (conn) ->
     @displayMessage 'disconnect', {server: conn.name}

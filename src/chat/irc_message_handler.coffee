@@ -135,13 +135,14 @@ class IRCMessageHandler extends MessageHandler
 
   _handleMention: (from, msg) ->
     nickMentioned = @_nickWasMentioned from, msg
-    @_formatter.addStyle 'mention' if nickMentioned
+    @_formatter.addStyle 'mention' if nickMentioned and not @_win.isPrivate()
     if nickMentioned and @_shouldNotifyMention()
       notification = new chat.NickMentionedNotification(@_win.target, from, msg)
       notification.show()
     unless @_isFromWindowInFocus()
-      @_chat.channelDisplay.mention @_win.conn.name, @_win.target if nickMentioned
       @_chat.channelDisplay.activity @_win.conn.name, @_win.target
+      if nickMentioned
+        @_chat.channelDisplay.mention @_win.conn.name, @_win.target
 
   _nickWasMentioned: (from, msg) ->
     nick = @_win.conn.irc.nick
