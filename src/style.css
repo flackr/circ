@@ -85,7 +85,6 @@ li div {
 #chat-display-container {
   -webkit-box-flex: 1;
   display: -webkit-box;
-  -webkit-user-select: initial;
 }
 
 #chat-display {
@@ -113,6 +112,7 @@ li div {
 .message .text {
   display: table-cell;
   padding: 0 4px;
+  -webkit-user-select: initial;
 }
 
 #cmd {

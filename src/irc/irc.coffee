@@ -147,6 +147,6 @@ class IRC extends EventEmitter
     irc.util.nicksEqual @nick, nick
 
 # Our IRC version, used to respond to VERSION request by users
-exports.VERSION = "CIRC 0.2.0"
+exports.VERSION = "CIRC 0.2.1"
 
 exports.IRC = IRC
