@@ -104,9 +104,12 @@ class Chat extends EventEmitter
   _determineWindow: (conn, e) ->
     chan = e.context.channel
     if irc.util.nicksEqual chan, conn.irc.nick
-      # TODO create private channel between user and sender
-      # for now, just sending to server window
-      return conn.serverWindow
+      return chat.NO_WINDOW unless e.name is 'privmsg'
+      from = e.args[0]
+      conn.windows[from] ?= @_createWindowForChannel conn, from
+      conn.windows[from].makePrivate()
+      @channelDisplay.connect conn.name, from
+      return conn.windows[from]
     if not chan or chan is chat.SERVER_WINDOW
       return conn.serverWindow
     if chan is chat.CURRENT_WINDOW

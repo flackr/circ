@@ -22,7 +22,11 @@ class ChannelList extends chat.HTMLList
     @addClass @_getID(server, channel), 'mention'
 
   remove: (server, chan) ->
-    super @_getID server, chan
+    id = @_getID server, chan
+    @_lastChannelForServer[server] is id
+    prev = @getPrevious id
+    super id
+    @_styleLastChannel server, prev
 
   insert: (i, server, chan) ->
     super i, @_getID server, chan
@@ -37,13 +41,17 @@ class ChannelList extends chat.HTMLList
     if chan?
       id = @_getID server, chan
       @addClass id, 'indent'
-      if @_isLastChannel id
-        @addClass id, 'last'
-        prev = @_lastChannelForServer[server]
-        @removeClass prev, 'last' if prev
-        @_lastChannelForServer[server] = id
+      @_styleLastChannel server, id
+
+  _styleLastChannel: (server, id) ->
+    return unless @_isLastChannel id
+    @addClass id, 'last'
+    prev = @_lastChannelForServer[server]
+    @removeClass prev, 'last' if prev
+    @_lastChannelForServer[server] = id
 
   _isLastChannel: (id) ->
+    return false unless id
     nextNode = @getNext id
     not nextNode or not @hasClass nextNode, 'indent'
 

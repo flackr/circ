@@ -11,7 +11,7 @@ body {
   background-color: white;
 }
 
-li {
+li div {
   white-space: nowrap;
   overflow-x: hidden;
   text-overflow: ellipsis;
@@ -38,7 +38,7 @@ li {
 }
 
 #channels li {
-  padding: 2px 8px;
+  padding: 2px 5px;
 }
 
 #channels li.indent {
@@ -48,7 +48,7 @@ li {
 
 #channels li.indent div {
   background: url(node.png) no-repeat;
-  margin-left: 14px;
+  margin-left: 10px;
   padding: 0 12px;
 }
 
@@ -85,6 +85,7 @@ li {
 #chat-display-container {
   -webkit-box-flex: 1;
   display: -webkit-box;
+  -webkit-user-select: initial;
 }
 
 #chat-display {

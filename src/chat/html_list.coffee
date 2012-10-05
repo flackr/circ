@@ -23,15 +23,23 @@ class HTMLList extends EventEmitter
         return
     @$list.append node.html
 
+  getPrevious: (nodeName) ->
+    prevText = undefined
+    for li, i in $ 'li', @$list
+      if @nodes[nodeName]?.content.text() is $(li).children().text()
+        return @getNodeByText prevText
+      prevText = $(li).children().text()
+    return undefined
+
   getNext: (nodeName) ->
     returnNext = false
     for li, i in $ 'li', @$list
       if returnNext
-        return @getNodeByText $(li).children().text(), $(li)
+        return @getNodeByText $(li).children().text()
       returnNext = @nodes[nodeName]?.content.text() is $(li).children().text()
     return undefined
 
-  getNodeByText: (text, html) ->
+  getNodeByText: (text) ->
     for name, node of @nodes
       return name if node.content.text() is text
 

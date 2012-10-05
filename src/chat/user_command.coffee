@@ -119,6 +119,16 @@ class UserCommand
     irc.util.nicksEqual @conn?.irc.nick, nick
 
   displayDirectMessage: (nick=@nick, message=@message) ->
+    if @conn?.windows[nick]?
+      @_displayDirectMessageInPrivateChannel nick, message
+    else
+      @_displayDirectMessageInline nick, message
+
+  _displayDirectMessageInPrivateChannel: (nick, message) ->
+    context = { server: @conn.name, channel: nick }
+    @chat.displayMessage 'privmsg', context, @conn.irc.nick, message
+
+  _displayDirectMessageInline: (nick, message) ->
     e = new Event 'message', 'privmsg', nick, message
     e.setContext @conn.name, @chan
     e.setStyle 'direct'

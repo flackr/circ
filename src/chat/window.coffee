@@ -14,18 +14,29 @@ class Window
     @$container.append chatDisplayContainer
 
   setTarget: (@target) ->
-    @_addNickList()
+    @_addNickList() unless @isPrivate()
 
   isServerWindow: ->
     return not @target?
 
+  ##
+  # Marks the window as private.
+  # Private windows are used for direct messages from /msg.
+  ##
+  makePrivate: ->
+    @$nickWrapper?.remove()
+    @_private = true
+
+  isPrivate: ->
+    return @_private?
+
   _addNickList: ->
     nicks = $ "<ol id='nicks'>"
     nickDisplay = $ "<div id='nick-display'>"
-    nickWrapper = $ "<div id='nick-display-container'>"
+    @$nickWrapper = $ "<div id='nick-display-container'>"
     nickDisplay.append nicks
-    nickWrapper.append nickDisplay
-    @$container.append nickWrapper
+    @$nickWrapper.append nickDisplay
+    @$container.append @$nickWrapper
     @nicks = new chat.NickList(nicks)
 
   detach: ->

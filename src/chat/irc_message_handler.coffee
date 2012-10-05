@@ -134,19 +134,26 @@ class IRCMessageHandler extends MessageHandler
     /^\u0001ACTION (.*)\u0001/.exec msg
 
   _handleMention: (from, msg) ->
-    nick = @_win.conn.irc.nick
-    nickMentioned = not @_isOwnNick(from) and
-      chat.NickMentionedNotification.shouldNotify(nick, msg)
-    @_handleNotifications from, msg, nickMentioned
+    nickMentioned = @_nickWasMentioned from, msg
     @_formatter.addStyle 'mention' if nickMentioned
+    if nickMentioned and @_shouldNotifyMention()
+      notification = new chat.NickMentionedNotification(@_win.target, from, msg)
+      notification.show()
+    unless @_isFromWindowInFocus()
+      @_chat.channelDisplay.mention @_win.conn.name, @_win.target if nickMentioned
+      @_chat.channelDisplay.activity @_win.conn.name, @_win.target
 
-  _handleNotifications: (from, msg, nickMentioned) ->
-    if nickMentioned
-      @_notifyNickMentioned from, msg if not window.document.hasFocus()
-    return if @_win.target is @_chat.currentWindow.target
-    @_chat.channelDisplay.activity @_win.conn.name, @_win.target
-    if nickMentioned
-      @_chat.channelDisplay.mention @_win.conn.name, @_win.target
+  _nickWasMentioned: (from, msg) ->
+    nick = @_win.conn.irc.nick
+    return false if @_isOwnNick from
+    return true if @_win.isPrivate()
+    return chat.NickMentionedNotification.shouldNotify nick, msg
+
+  _shouldNotifyMention: () ->
+    not @_isFromWindowInFocus() or not window.document.hasFocus()
+
+  _isFromWindowInFocus: ->
+    @_win.target is @_chat.currentWindow.target
 
   _formatPrivateMessage: (from, msg) ->
     @_formatter.setMessage '#content'
@@ -165,12 +172,6 @@ class IRCMessageHandler extends MessageHandler
     return unless @_formatter.hasMessage()
     @_formatter.addStyle @type
     @_win.message @source, @_formatter.format(), @_formatter.getStyle()
-
-  _notifyNickMentioned: (from, msg) ->
-    #TODO cancel notification when focus is gained on the channel
-    #TODO add callback to focus conversation when user clicks on notification
-    notification = new chat.NickMentionedNotification(@_win.target, from, msg)
-    notification.show()
 
   _isOwnNick: (nick) ->
     @_win.conn?.irc.isOwnNick nick

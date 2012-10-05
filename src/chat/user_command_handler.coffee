@@ -108,8 +108,11 @@ class UserCommandHandler extends MessageHandler
       description: 'lists nicks in the current channel'
       requires: ['connection', 'channel', 'connected']
       run: ->
-        names = (v for k,v of @conn.irc.channels[@chan].names).sort()
-        msg = "Users in #{@chan}: #{JSON.stringify names}"
+        if @chat.currentWindow.isPrivate()
+          msg = "You're in a private conversation with #{@chan}."
+        else
+          names = (v for k,v of @conn.irc.channels[@chan].names).sort()
+          msg = "Users in #{@chan}: #{JSON.stringify names}"
         @chat.currentWindow.message '*', msg, 'notice names'
 
     @_addCommand 'help',
@@ -129,7 +132,8 @@ class UserCommandHandler extends MessageHandler
       params: ['opt_reason...']
       requires: ['connection', 'channel']
       run: ->
-        @conn.irc.doCommand 'PART', @chan, @reason
+        unless @chat.currentWindow.isPrivate()
+          @conn.irc.doCommand 'PART', @chan, @reason
         @chat.removeWindow()
 
     @_addCommand 'raw',
