@@ -4,8 +4,6 @@ class Chat extends EventEmitter
 
   constructor: ->
     super
-    @$windowContainer = $('#chat')
-
     @messageHandler = new chat.IRCMessageHandler this
     @userCommands = new chat.UserCommandHandler this
     devCommands = new chat.DeveloperCommands @userCommands
@@ -16,17 +14,12 @@ class Chat extends EventEmitter
       win = @winList.get server, chan
       @switchToWindow win if win?
 
-    @previousNick = undefined
-    # TODO: don't let the user do anything until we load settings
-    chrome.storage.sync.get 'nick', (settings) =>
-      if settings?.nick
-        @previousNick = settings.nick
-        @updateStatus()
-
+    @$windowContainer = $('#chat')
     @emptyWindow = new chat.Window 'none'
     @channelDisplay.add @emptyWindow.name
     @switchToWindow @emptyWindow
     @winList = new chat.WindowList()
+    @connections = {}
 
     @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
     @currentWindow.emptyLine()
@@ -38,19 +31,26 @@ class Chat extends EventEmitter
     @currentWindow.emptyLine()
     @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
-    @connections = {}
-
     document.title = irc.VERSION
+    @_loadStateFromStorage()
 
-  listenToUserInput: (userInput) ->
-    @userCommands.listenTo userInput
-    userInput.on 'switch_window', (winNum) =>
+  _loadStateFromStorage: ->
+    @previousNick = undefined
+    # TODO: don't let the user do anything until we load settings
+    chrome.storage.sync.get 'nick', (settings) =>
+      if settings?.nick
+        @previousNick = settings.nick
+        @updateStatus()
+
+  listenToCommands: (commandInput) ->
+    @userCommands.listenTo commandInput
+    commandInput.on 'switch_window', (winNum) =>
       winNum = 10 if winNum is 0
       win = @winList.get winNum - 1
       @switchToWindow win if win?
 
   listenToScriptEvents: (@scriptHandler) ->
-    # TODO
+    # TODO - allow scripts to create notifications and plain text
     #scriptHandler.on 'notify', @createNotification
     #scriptHandler.on 'print', @printText
 
@@ -189,7 +189,7 @@ class Chat extends EventEmitter
     unless status
       statusList = []
       nick = @currentWindow.conn?.irc.nick ? @previousNick
-      away = @currentWindow.conn?.irc.status.away
+      away = @currentWindow.conn?.irc.away
       channel = @currentWindow.target
       topic = @currentWindow.conn?.irc.channels[channel]?.topic
       statusList.push "[#{nick}]" if nick

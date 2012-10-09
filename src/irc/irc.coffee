@@ -1,11 +1,12 @@
 exports = window.irc ?= {}
 
 class IRC extends EventEmitter
-  constructor: (@socket=new net.ChromeSocket) ->
+  constructor: ->
     super
     @util = irc.util
     @preferredNick = "circ-user-#{@util.randomName(5)}"
 
+    @socket = new net.ChromeSocket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
     @socket.on 'drain', => @onDrain()
@@ -18,7 +19,6 @@ class IRC extends EventEmitter
     @exponentialBackoff = 0
     @partialNameLists = {}
     @channels = {}
-    @status = {}
     @serverResponseHandler = new irc.ServerResponseHandler(this)
     @state = 'disconnected'
 
@@ -128,10 +128,12 @@ class IRC extends EventEmitter
   onServerMessage: (cmd) ->
     cmd.command = parseInt(cmd.command, 10) if /^\d{3}$/.test cmd.command
     if @serverResponseHandler.canHandle cmd.command
-      @serverResponseHandler.handle cmd.command, @util.parsePrefix(cmd.prefix),
-        cmd.params...
+      @handle cmd.command, @util.parsePrefix(cmd.prefix), cmd.params...
     else
       @emitMessage 'other', chat.SERVER_WINDOW, cmd
+
+  handle: (cmd, args...) ->
+    @serverResponseHandler.handle cmd, args...
 
   emit: (name, channel, args...) ->
     event = new Event 'server', name, args...

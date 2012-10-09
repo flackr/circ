@@ -1,6 +1,9 @@
-exports = window.net ?= {}
+exports = window.mocks ?= {}
 
-class MockSocket extends net.AbstractTCPSocket
+class ChromeSocket extends net.AbstractTCPSocket
+  @use: ->
+    net.ChromeSocket = ChromeSocket
+
   constructor: ->
     super
 
@@ -24,4 +27,4 @@ class MockSocket extends net.AbstractTCPSocket
     msg += '\r\n'
     irc.util.toSocketData msg, ((data) => @respond 'data', data)
 
-exports.MockSocket = MockSocket
+exports.ChromeSocket = ChromeSocket

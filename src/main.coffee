@@ -8,6 +8,6 @@ scriptHandler.addEventsFrom chat
 scriptHandler.addEventsFrom userInput
 scriptHandler.listenToScriptEvents chat
 
-chat.listenToUserInput scriptHandler
+chat.listenToCommands scriptHandler
 chat.listenToScriptEvents scriptHandler
 chat.listenToIRCEvents scriptHandler

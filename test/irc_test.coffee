@@ -1,4 +1,4 @@
-describe 'An IRC client', ->
+describe 'An IRC client backend', ->
   SERVER_WINDOW = window.chat.SERVER_WINDOW
   CURRENT_WINDOW = window.chat.CURRENT_WINDOW
   irc = socket = chat = undefined
@@ -19,8 +19,9 @@ describe 'An IRC client', ->
 
   beforeEach ->
     jasmine.Clock.useMock()
-    socket = new net.MockSocket
-    irc = new window.irc.IRC socket
+    mocks.ChromeSocket.use()
+    irc = new window.irc.IRC
+    socket = irc.socket
     chat = new window.chat.MockChat irc
 
     spyOn(socket, 'connect')

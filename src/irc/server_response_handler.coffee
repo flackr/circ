@@ -7,13 +7,13 @@ class ServerResponseHandler extends MessageHandler
 
   _handlers:
     # rpl_welcome
-    1: (from, target, msg) ->
+    1: (from, nick, msg) ->
       if @irc.state is 'disconnecting'
         @irc.quit()
         return
-      @irc.nick = target
-      @irc.emit 'connect'
+      @irc.nick = nick
       @irc.state = 'connected'
+      @irc.emit 'connect'
       @irc.emitMessage 'welcome', chat.SERVER_WINDOW, msg
       for name,c of @irc.channels
         @irc.sendIfConnected 'JOIN', name
@@ -139,12 +139,12 @@ class ServerResponseHandler extends MessageHandler
 
     #rpl_unaway
     305: (from, to, msg) ->
-      @irc.status.away = false
+      @irc.away = false
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
     #rpl_nowaway
     306: (from, to, msg) ->
-      @irc.status.away = true
+      @irc.away = true
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
     #err_chanoprivsneeded

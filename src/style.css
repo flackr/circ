@@ -148,6 +148,7 @@ li div {
 }
 
 #status {
+  padding-bottom: 2px;
   white-space: nowrap;
   overflow-x: hidden;
   text-overflow: ellipsis;
