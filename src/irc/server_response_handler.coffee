@@ -4,6 +4,7 @@ class ServerResponseHandler extends MessageHandler
 
   constructor: (@irc) ->
     super
+    @ctcpHandler = new window.irc.CTCPHandler
 
   _handlers:
     # rpl_welcome
@@ -80,9 +81,10 @@ class ServerResponseHandler extends MessageHandler
         @irc.emitMessage 'quit', chanName, from.nick, reason
 
     PRIVMSG: (from, target, msg) ->
-      if (msg is '\u0001VERSION\u0001') and (@irc.isOwnNick target)
-        # TODO let scripts intercept VERSION requests
-        @irc.doCommand 'privmsg', from.nick, irc.VERSION
+      if @ctcpHandler.isCTCPRequest msg
+        # TODO let scripts intercept CTCP requests
+        for response in @ctcpHandler.getResponses msg
+          @irc.doCommand 'NOTICE', from.nick, response, true
       else
         @irc.emitMessage 'privmsg', target, from.nick, msg
 

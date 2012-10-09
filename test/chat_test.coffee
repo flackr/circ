@@ -47,6 +47,9 @@ describe 'An IRC client front end', ->
   it "loads the previously used nick", ->
     expect($ '#status').toHaveText '[ournick]'
 
+  it "sets the document title to the version", ->
+    expect(document.title).toMatch /^CIRC [0-9].[0-9].[0-9]$/
+
   it "initially has one window", ->
     expect($('li', '#channels').length).toBe 1
 

@@ -98,13 +98,14 @@ describe 'An IRC client backend', ->
         irc.doCommand 'PRIVMSG', '#awesome', 'hello world'
         irc.doCommand 'NICK', 'ournick'
         irc.doCommand 'PART', '#awesome', 'this channel is not awesome'
+        irc.doCommand 'NOTICE', 'frigg', 'SOURCE', true
         waitsForArrayBufferConversion()
         runs ->
-          expect(socket.received.callCount).toBe 4
           expect(socket.received.argsForCall[0]).toMatch /JOIN #awesome\s*/
           expect(socket.received.argsForCall[1]).toMatch /PRIVMSG #awesome :hello world\s*/
           expect(socket.received.argsForCall[2]).toMatch /NICK ournick\s*/
           expect(socket.received.argsForCall[3]).toMatch /PART #awesome :this channel is not awesome\s*/
+          expect(socket.received.argsForCall[4]).toMatch /NOTICE frigg :SOURCE\s*/
 
       it "emits 'join' after joining a room", ->
         joinChannel('#awesome')
@@ -255,3 +256,42 @@ describe 'An IRC client backend', ->
         waitsForArrayBufferConversion()
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW, 'away', 'Now away'
+
+      it "responds to CTCP VERSION with the appropriate notice message", ->
+        socket.respondWithData ":frigg PRIVMSG ournick :\u0001VERSION\u0001"
+        waitsForArrayBufferConversion()
+        runs ->
+          versionResponse = ///
+            NOTICE\sfrigg\s:
+            \u0001
+            VERSION\s
+            CIRC:
+            \d\.\d\.\d\:
+            Unknown
+            \u0001\s*
+          ///
+          expect(socket.received.mostRecentCall.args).toMatch versionResponse
+
+      it "responds to CTCP PING with the appropriate notice message", ->
+        socket.respondWithData ":frigg PRIVMSG ournick :\u0001PING 1234\u0001"
+        waitsForArrayBufferConversion()
+        runs ->
+          versionResponse = ///
+            NOTICE\sfrigg\s:\u0001
+            PING\s
+            1234
+            \u0001\s*
+          ///
+          expect(socket.received.mostRecentCall.args).toMatch versionResponse
+
+      it "responds to CTCP SOURCE with the appropriate notice message", ->
+        socket.respondWithData ":frigg PRIVMSG ournick :\u0001SOURCE\u0001"
+        waitsForArrayBufferConversion()
+        runs ->
+          versionResponse = ///
+            NOTICE\sfrigg\s:
+            \u0001
+            SOURCE
+            \u0001\s*
+          ///
+          expect(socket.received.mostRecentCall.args).toMatch versionResponse

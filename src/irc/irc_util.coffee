@@ -32,11 +32,13 @@ exports.parsePrefix = (prefix) ->
   p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix)
   { nick: p[1], user: p[2], host: p[3] }
 
-exports.makeCommand = (cmd, params...) ->
+exports.makeCommand = (cmd, params..., opt_lastArgIsMsg) ->
+  if opt_lastArgIsMsg isnt true
+    params.push opt_lastArgIsMsg
   _params = if params and params.length > 0
     if !params[0...params.length-1].every((a) -> !/^:|\x20/.test(a))
       throw new Error("some non-final arguments had spaces or initial colons in them")
-    if /^:|\x20/.test(params[params.length-1])
+    if /^:|\x20/.test(params[params.length-1]) or opt_lastArgIsMsg is true
       params[params.length-1] = ':'+params[params.length-1]
     ' ' + params.join(' ')
   else

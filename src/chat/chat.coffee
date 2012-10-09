@@ -31,7 +31,7 @@ class Chat extends EventEmitter
     @currentWindow.emptyLine()
     @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
-    document.title = irc.VERSION
+    document.title = "CIRC #{irc.VERSION}"
     @_loadStateFromStorage()
 
   _loadStateFromStorage: ->

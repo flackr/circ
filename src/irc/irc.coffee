@@ -57,7 +57,7 @@ class IRC extends EventEmitter
   onConnect: ->
     @send 'PASS', @password if @password
     @send 'NICK', @preferredNick
-    @send 'USER', @preferredNick, '0', '*', 'An irc5 user'
+    @send 'USER', @preferredNick, '0', '*', 'A CIRC user'
     @socket.setTimeout 60000, @onTimeout
 
   onTimeout: =>
@@ -149,6 +149,6 @@ class IRC extends EventEmitter
     irc.util.nicksEqual @nick, nick
 
 # Our IRC version, used to respond to VERSION request by users
-exports.VERSION = "CIRC 0.2.1"
+exports.VERSION = "0.2.1"
 
 exports.IRC = IRC
