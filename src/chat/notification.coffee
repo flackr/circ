@@ -5,9 +5,14 @@ class Notification extends EventEmitter
 
   constructor: (@_title, @_message, @_image=Notification.defaultImage) ->
     super
+    @_createNotification()
+    @_addOnClickListener()
+
+  _createNotification: ->
     @notification = webkitNotifications.createNotification(
       @_image, @_title, @_message)
 
+  _addOnClickListener: ->
     @notification.onclick = =>
       @cancel()
       @emit 'clicked'

@@ -45,6 +45,9 @@ class Chat extends EventEmitter
   listenToCommands: (commandInput) ->
     @userCommands.listenTo commandInput
     commandInput.on 'switch_window', (winNum) =>
+      @switchToWindowByIndex winNum
+
+  switchToWindowByIndex: (winNum) ->
       winNum = 10 if winNum is 0
       win = @winList.get winNum - 1
       @switchToWindow win if win?

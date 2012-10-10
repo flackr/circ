@@ -50,10 +50,9 @@ class UserCommandHandler extends MessageHandler
       description: 'switches windows'
       params: ['windowNum']
       parseArgs: ->
-        num = parseInt @windowNum
-        @window = @chat.winList.get num
+        @windowNum = parseInt @windowNum
       run: ->
-        @chat.switchToWindow @window
+        @chat.switchToWindowByIndex @windowNum
 
     @_addCommand 'say',
       description: 'sends text to the current channel'

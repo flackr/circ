@@ -38,6 +38,7 @@ describe 'An IRC client front end', ->
   beforeEach ->
     addHTMLFixtures()
     mocks.ChromeSocket.use()
+    mocks.NickMentionedNotification.use()
     chrome.storage.sync.set {nick: 'ournick'}
     init()
 
@@ -71,7 +72,7 @@ describe 'An IRC client front end', ->
     beforeEach ->
       type '/server freenode'
       irc = client.currentWindow.conn.irc
-      irc.handle '1', 'ournick' # rpl_welcome
+      irc.handle '1', {}, 'ournick' # rpl_welcome
       spyOn irc, 'doCommand'
 
     it "marks the server item in the window list as connected", ->
@@ -82,16 +83,74 @@ describe 'An IRC client front end', ->
       irc.handle '306' # rpl_nowaway
       expect($ '#status').toHaveText '[ournick] (away)'
 
+    it "creates a new window when a direct private message is received", ->
+      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      expect($('li', '#channels').length).toBe 2
+      expect($('li', '#channels').last().children()).toHaveText 'someguy'
+      expect($('li', '#channels').last()).toHaveClass 'mention'
+      expect($('li', '#channels').last()).toHaveClass 'activity'
+      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+
+    it "displays /msg text in the current window if there is no existing conversation window", ->
+      spyOn(client.currentWindow, 'message').andCallThrough()
+      type '/msg someguy hey dude'
+      expect($('li', '#channels').length).toBe 1
+      expect(client.currentWindow.message).toHaveBeenCalled()
+
+    it "displays /msg text in the conversation window when it exists", ->
+      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      spyOn(client.currentWindow, 'message').andCallThrough()
+      type '/msg someguy hey dude'
+      expect(client.currentWindow.message).not.toHaveBeenCalled()
+
+    it "/msg causes the conversation window to be marked with activity", ->
+      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      type '/win 2'
+      type '/win 1'
+      expect($('li', '#channels').last()).not.toHaveClass 'mention'
+      expect($('li', '#channels').last()).not.toHaveClass 'activity'
+      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+      type '/msg someguy hey dude'
+      expect($('li', '#channels').last()).not.toHaveClass 'mention'
+      expect($('li', '#channels').last()).toHaveClass 'activity'
+      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+
+    it "creates a notification when a direct private message is received", ->
+      chat.NickMentionedNotification.notificationCount = 0
+      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
+      expect(chat.NickMentionedNotification.notificationCount).toBe 1
+
     it "can join a channel with /join", ->
       type '/join #bash'
       expect(irc.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
+      expect(client.currentWindow.target).toBe '#bash'
 
     describe "then joins a channel", ->
 
       beforeEach ->
         type '/join #bash'
-        irc.emit 'joined', '#bash'
-        irc.channels['#bash'] = {names:[]}
+        irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
 
       it "adds another item to the window display", ->
         expect($('li', '#channels').length).toBe 2
+
+      it "can switch windows with /win", ->
+        type "/win 1"
+        expect(client.currentWindow.target).toBe undefined
+
+      it "creates a notification when the users nick is mentioned", ->
+        type "/win 1"
+        chat.NickMentionedNotification.notificationCount = 0
+        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
+        expect(chat.NickMentionedNotification.notificationCount).toBe 1
+        expect($('li', '#channels').last()).toHaveClass 'mention'
+        expect($('li', '#channels').last()).toHaveClass 'activity'
+        expect($('li', '#channels').last()).not.toHaveClass 'selected'
+
+      it "clears activity and mention style when switching to a window", ->
+        type "/win 1"
+        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
+        type "/win 2"
+        expect($('li', '#channels').last()).not.toHaveClass 'mention'
+        expect($('li', '#channels').last()).not.toHaveClass 'activity'
+        expect($('li', '#channels').last()).toHaveClass 'selected'
