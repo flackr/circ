@@ -47,11 +47,6 @@ class Chat extends EventEmitter
     commandInput.on 'switch_window', (winNum) =>
       @switchToWindowByIndex winNum
 
-  switchToWindowByIndex: (winNum) ->
-      winNum = 10 if winNum is 0
-      win = @winList.get winNum - 1
-      @switchToWindow win if win?
-
   listenToScriptEvents: (@scriptHandler) ->
     # TODO - allow scripts to create notifications and plain text
     #scriptHandler.on 'notify', @createNotification
@@ -106,7 +101,7 @@ class Chat extends EventEmitter
 
   _determineWindow: (conn, e) ->
     chan = e.context.channel
-    if irc.util.nicksEqual chan, conn.irc.nick
+    if irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
       from = e.args[0]
       conn.windows[from] ?= @_createWindowForChannel conn, from
@@ -200,6 +195,11 @@ class Chat extends EventEmitter
     statusList.push "- #{topic}" if topic
     statusList.push 'Welcome!' if statusList.length is 0
     $('#status').text(statusList.join ' ')
+
+  switchToWindowByIndex: (winNum) ->
+      winNum = 10 if winNum is 0
+      win = @winList.get winNum - 1
+      @switchToWindow win if win?
 
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
