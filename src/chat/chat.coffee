@@ -188,20 +188,18 @@ class Chat extends EventEmitter
     @winList.add win
     win
 
-  updateStatus: (status) ->
-    unless status
-      statusList = []
-      nick = @currentWindow.conn?.irc.nick ? @previousNick
-      away = @currentWindow.conn?.irc.away
-      channel = @currentWindow.target
-      topic = @currentWindow.conn?.irc.channels[channel]?.topic
-      statusList.push "[#{nick}]" if nick
-      statusList.push "(away)" if away
-      statusList.push "#{channel}" if channel
-      statusList.push "- #{topic}" if topic
-      statusList.push 'Welcome!' if statusList.length is 0
-      status = statusList.join ' '
-    $('#status').text(status)
+  updateStatus: ->
+    statusList = []
+    nick = @currentWindow.conn?.irc.nick ? @previousNick
+    away = @currentWindow.conn?.irc.away
+    channel = @currentWindow.target
+    topic = @currentWindow.conn?.irc.channels[channel]?.topic
+    statusList.push "[#{nick}]" if nick
+    statusList.push "(away)" if away
+    statusList.push "#{channel}" if channel
+    statusList.push "- #{topic}" if topic
+    statusList.push 'Welcome!' if statusList.length is 0
+    $('#status').text(statusList.join ' ')
 
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
