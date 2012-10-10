@@ -37,8 +37,8 @@ describe 'A user command handler', ->
 
   it "doesn't run commands that can't be run", ->
     context.currentWindow.conn.irc.state = 'disconnected'
-    handler.handle 'join'
-    expect(onJoin).not.toHaveBeenCalled()
+    handler.handle 'me', 'hi!'
+    expect(onMe).not.toHaveBeenCalled()
 
   it "displays a help message when a command is run with invalid args", ->
     handler.handle 'join', 'channel', 'extra_arg'

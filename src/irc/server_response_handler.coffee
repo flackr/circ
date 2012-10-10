@@ -17,7 +17,7 @@ class ServerResponseHandler extends MessageHandler
       @irc.emit 'connect'
       @irc.emitMessage 'welcome', chat.SERVER_WINDOW, msg
       for name,c of @irc.channels
-        @irc.sendIfConnected 'JOIN', name
+        @irc.send 'JOIN', name
 
     # rpl_namreply
     353: (from, target, privacy, channel, names) ->

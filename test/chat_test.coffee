@@ -61,7 +61,7 @@ describe 'An IRC client front end', ->
 
   it "ignores commands that require a connection not connected", ->
     type '/names'
-    type '/join #bash'
+    type '/me is 1337'
     type '/op bob'
     type '/msg someguy'
     type '/mode sally +o'
@@ -78,6 +78,25 @@ describe 'An IRC client front end', ->
       type '/quit'
       irc.handle '1', {}, 'ournick' # rpl_welcome
       expect(irc.state).toBe 'disconnected'
+
+    it 'allows channels to be joined while connecting', ->
+      type '/join #bash'
+      expect($('li', '#channels').length).toBe 2
+      expect($('li', '#channels').last().children()).toHaveText '(#bash)'
+      expect($('li', '#channels').last()).toHaveClass 'selected'
+
+    it 'automatically joins queued channels when connected', ->
+      type '/join #bash'
+      type '/part'
+      spyOn irc, 'send'
+      irc.handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc.send).not.toHaveBeenCalled()
+
+    it 'removes queued channels on /part', ->
+      type '/join #bash'
+      spyOn irc, 'send'
+      irc.handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc.send).toHaveBeenCalledWith 'JOIN', '#bash'
 
   describe "that connects", ->
     irc = undefined

@@ -48,6 +48,18 @@ class IRC extends EventEmitter
     @reconnect_timer = null
     @state = 'disconnected'
 
+  join: (channel) ->
+    if @state is 'connected'
+      @doCommand 'JOIN', channel
+    else if not @channels[channel]
+      @channels[channel] = {names:[]}
+
+  part: (channel, reason) ->
+    if @state is 'connected'
+      @doCommand 'PART', channel, reason
+    else if @channels[channel]
+      delete @channels[channel]
+
   # user-facing
   doCommand: (cmd, args...) ->
     @sendIfConnected(cmd, args...)

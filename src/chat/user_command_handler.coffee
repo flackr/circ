@@ -38,13 +38,13 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'join',
       description: 'joins the channel, the current channel is used by default'
       params: ['opt_channel']
-      requires: ['connection', 'connected']
+      requires: ['connection']
       parseArgs: ->
         @channel ?= @chan
       run: ->
         win = @chat._createWindowForChannel @conn, @channel
         @chat.switchToWindow win
-        @conn.irc.doCommand 'JOIN', @channel
+        @conn.irc.join @channel
 
     @_addCommand 'part',
       description: "closes the current window and disconnects from the channel"
@@ -52,7 +52,7 @@ class UserCommandHandler extends MessageHandler
       requires: ['connection', 'channel']
       run: ->
         unless @chat.currentWindow.isPrivate()
-          @conn.irc.doCommand 'PART', @chan, @reason
+          @conn.irc.part @chan, @reason
         @chat.removeWindow()
 
     @_addCommand 'win',
