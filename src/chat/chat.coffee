@@ -184,20 +184,18 @@ class Chat extends EventEmitter
     @context.winList.add win
     win
 
-  updateStatus: (status) ->
-    unless status
-      statusList = []
-      nick = @context.currentWindow.conn?.irc.nick ? @previousNick
-      away = @context.currentWindow.conn?.irc.away
-      channel = @context.currentWindow.target
-      topic = @context.currentWindow.conn?.irc.channels[channel]?.topic
-      statusList.push "[#{nick}]" if nick
-      statusList.push "(away)" if away
-      statusList.push "#{channel}" if channel
-      statusList.push "- #{topic}" if topic
-      statusList.push 'Welcome!' if statusList.length is 0
-      status = statusList.join ' '
-    $('#status').text(status)
+  updateStatus: ->
+    statusList = []
+    nick = @context.currentWindow.conn?.irc.nick ? @previousNick
+    away = @context.currentWindow.conn?.irc.away
+    channel = @context.currentWindow.target
+    topic = @context.currentWindow.conn?.irc.channels[channel]?.topic
+    statusList.push "[#{nick}]" if nick
+    statusList.push "(away)" if away
+    statusList.push "#{channel}" if channel
+    statusList.push "- #{topic}" if topic
+    statusList.push 'Welcome!' if statusList.length is 0
+    $('#status').text(statusList.join ' ')
 
   switchToWindowByIndex: (winNum) ->
       winNum = 10 if winNum is 0
