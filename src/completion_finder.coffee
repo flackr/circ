@@ -8,6 +8,11 @@ exports = window
 class CompletionFinder
 
   ##
+  # Returned when no completion was found.
+  ##
+  @NONE: undefined
+
+  ##
   # Create a new completion finder and optionally set a callback that can be
   # used to retrieve completion candidates.
   # @param {function():Array<string>} opt_getCompletionsCallback
@@ -73,12 +78,13 @@ class CompletionFinder
         @_currentCompletions.push completion
 
   ##
-  # Get the next completion.
+  # Get the next completion, or NONE if no completions are found.
   # Completions are returned by iterating through the list of possible
   # completions.
+  # @returns {string|NONE}
   ##
   _getNextCompletion: ->
-    return @_currentStub if @_currentCompletions.length is 0
+    return CompletionFinder.NONE if @_currentCompletions.length is 0
     result = @_currentCompletions[@_completionIndex]
     @_completionIndex++
     if @_completionIndex >= @_currentCompletions.length

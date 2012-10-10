@@ -55,7 +55,7 @@ class AutoComplete
   ##
   _getCompletion: ->
     completion = @_completionFinder.getCompletion @_stub
-    return @_stub if completion is @_stub
+    return @_stub if completion is CompletionFinder.NONE
     if @_preCompletion.length is 0
       completion += AutoComplete.COMPLETION_SUFFIX
     completion += ' '

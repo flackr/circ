@@ -162,11 +162,17 @@ describe 'A user input handler', ->
       cursor 5
       expect(onVal.mostRecentCall.args[0]).toBe 'bob:  '
 
-    it "doesn't do anything when no completion candidates match", ->
+    it "does nothing when no completion candidates match", ->
       val = 'zack'
       cursor 0
       tab()
       expect(onVal.mostRecentCall.args[0]).toBe 'zack'
+
+    it "adds ': ' even when the the full nick is typed out when tab is pressed", ->
+      val = 'bill'
+      cursor 4
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
 
   describe 'has an input stack which', ->
 
