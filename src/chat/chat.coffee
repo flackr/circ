@@ -101,7 +101,7 @@ class Chat extends EventEmitter
 
   _determineWindow: (conn, e) ->
     chan = e.context.channel
-    if irc.isOwnNick chan
+    if conn.irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
       from = e.args[0]
       conn.windows[from] ?= @_createWindowForChannel conn, from
