@@ -5,7 +5,6 @@ class ChannelList extends chat.HTMLList
   constructor: ->
     super $ '#channels'
     @lastSelected = undefined
-    @_lastChannelForServer = {}
 
   select: (server, channel) ->
     @removeClass @_lastSelected, 'selected' if @_lastSelected?
@@ -23,7 +22,6 @@ class ChannelList extends chat.HTMLList
 
   remove: (server, chan) ->
     id = @_getID server, chan
-    @_lastChannelForServer[server] is id
     prev = @getPrevious id
     super id
     @_styleLastChannel server, prev
@@ -46,14 +44,16 @@ class ChannelList extends chat.HTMLList
   _styleLastChannel: (server, id) ->
     return unless @_isLastChannel id
     @addClass id, 'last'
-    prev = @_lastChannelForServer[server]
+    prev = @getPrevious id
     @removeClass prev, 'last' if prev
-    @_lastChannelForServer[server] = id
 
   _isLastChannel: (id) ->
-    return false unless id
+    return false unless id and @_isChannel id
     nextNode = @getNext id
-    not nextNode or not @hasClass nextNode, 'indent'
+    return not nextNode or not @_isChannel nextNode
+
+  _isChannel: (id) ->
+    return id.indexOf ' ' >= 0
 
   disconnect: (server, channel) ->
     @rename @_getID(server, channel), @_getDisconnectedName server, channel

@@ -4,10 +4,9 @@ exports.assert = (cond) ->
   throw new Error("assertion failed") unless cond
 
 exports.removeFromArray = (array, toRemove) ->
-  for e, i in array
-    if toRemove == e
-      return array.splice i, 1
-  return false
+  i = array.indexOf toRemove
+  return false if i < 0
+  return array.splice i, 1
 
 ##
 # Capitalises the given string.

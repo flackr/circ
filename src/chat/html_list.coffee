@@ -1,55 +1,50 @@
 exports = window.chat ?= {}
 
 class HTMLList extends EventEmitter
-  constructor: (@$list, @ordered=false) ->
+  constructor: (@$list) ->
     @nodes = {}
+    @nodeNames = []
     super
 
-  add: (names...) ->
-    for name in names
-      continue if name of @nodes
-      if @ordered
-        @_addOrdered name
-      else
-        node = @_createNode name
-        @$list.append node.html
+  add: (name) ->
+    @insert @nodeNames.length, name
 
   insert: (index, name) ->
-    return if name of @nodes
-    node = @_createNode name
-    for nameLi, i in $ 'li', @$list
-      if i >= index
-        node.html.insertBefore $(nameLi)
-        return
-    @$list.append node.html
+    if index < 0 or index > @nodeNames.length
+      throw "invalid index: #{index}/#{@nodeNames.length}"
+
+    newNode = @_createNode name
+    @_insertHTML index, newNode
+    @nodes[name] = newNode
+    @nodeNames.splice index, 0, name
+
+  _insertHTML: (index, newNode) ->
+    nextNode = @get index
+    if nextNode
+      newNode.html.insertBefore nextNode.html
+    else
+      @$list.append newNode.html
+
+  get: (index) ->
+    @nodes[@nodeNames[index]]
 
   getPrevious: (nodeName) ->
-    prevText = undefined
-    for li, i in $ 'li', @$list
-      if @nodes[nodeName]?.content.text() is $(li).children().text()
-        return @getNodeByText prevText
-      prevText = $(li).children().text()
-    return undefined
+    i = @nodeNames.indexOf nodeName
+    @nodeNames[i - 1]
 
   getNext: (nodeName) ->
-    returnNext = false
-    for li, i in $ 'li', @$list
-      if returnNext
-        return @getNodeByText $(li).children().text()
-      returnNext = @nodes[nodeName]?.content.text() is $(li).children().text()
-    return undefined
-
-  getNodeByText: (text) ->
-    for name, node of @nodes
-      return name if node.content.text() is text
+    i = @nodeNames.indexOf nodeName
+    @nodeNames[i + 1]
 
   remove: (name) ->
     if node = @nodes[name]
       node.html.remove()
       delete @nodes[name]
+      removeFromArray @nodeNames, name
 
   clear: ->
     @nodes = {}
+    @nodeNames = []
     @$list.empty()
 
   addClass: (name, c) ->
@@ -58,41 +53,22 @@ class HTMLList extends EventEmitter
   removeClass: (name, c) ->
     @nodes[name]?.html.removeClass(c)
 
-  clearClasses: ->
-    for name of @nodes
-      @removeClass node
-
   hasClass: (nodeName, c) ->
     return @nodes[nodeName]?.html.hasClass c
 
-  replace: (oldName, newName) ->
-    if @nodes[oldName]?
-      @remove oldName
-      @add newName
-
   rename: (name, text) ->
     @nodes[name]?.content.text(text)
-
-  _addOrdered: (name) ->
-    # TODO binary search
-    for nameLi in $ 'li', @$list
-      if $(nameLi).children().text() > name
-        node = @_createNode name
-        node.html.insertBefore $(nameLi)
-        return
-    node = @_createNode name
-    @$list.append node.html
 
   _createNode: (name) ->
     node = {html: htmlify(name), name: name}
     node.content = node.html.children()
     node.html.mousedown( => @_handleClick(node))
-    @nodes[name] = node
+    node
 
   _handleClick: (node) ->
     @emit 'clicked', node.name
 
 htmlify = (name) ->
-    $ "<li><div>#{name}</div></li>"
+  $ "<li><div>#{name}</div></li>"
 
 exports.HTMLList = HTMLList

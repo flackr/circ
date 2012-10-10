@@ -12,7 +12,7 @@ describe 'A channel list', ->
     item(index).children().text()
 
   beforeEach ->
-    dom = $ "<div id='channels' style='display: hidden'>"
+    dom = $ "<ul id='channels' style='display: hidden'>"
     $('body').append dom
     cl = new chat.ChannelList()
 
@@ -65,6 +65,16 @@ describe 'A channel list', ->
 
     cl.remove 'freenode', '#awesome'
     expect(item 1).toHaveClass 'last'
+
+  it "marks the last channel item, even with multiple servers and matching channel names", ->
+    cl.add 'irc.freenode'
+    cl.add 'irc.freenode', '#bash'
+    cl.add 'irc.dalnet'
+    cl.add 'irc.dalnet', '#bash'
+    cl.add 'irc.dalnet', '#bash2'
+
+    cl.remove 'irc.dalnet', '#bash2'
+    expect(item -1).toHaveClass 'last'
 
   it "supports multiple servers and channels", ->
     cl.add 'freenode'
