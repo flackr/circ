@@ -8,7 +8,7 @@ class Chat extends EventEmitter
     @context = new chat.ClientState this
     @context.channelDisplay = new chat.ChannelList()
     @context.channelDisplay.on 'clicked', (server, chan) =>
-      win = @winList.get server, chan
+      win = @context.winList.get server, chan
       @switchToWindow win if win?
 
     @context.emptyWindow = new chat.Window 'none'
