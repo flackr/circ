@@ -57,7 +57,7 @@ describe 'An IRC client front end', ->
   it "replaces the initial window with a server window on /connect", ->
     type '/connect freenode'
     expect($('li', '#channels').length).toBe 1
-    expect(client.currentWindow.conn.name).toBe 'freenode'
+    expect(client.context.currentWindow.conn.name).toBe 'freenode'
 
   it "ignores commands that require a connection not connected", ->
     type '/names'
@@ -71,7 +71,7 @@ describe 'An IRC client front end', ->
 
     beforeEach ->
       type '/server freenode'
-      irc = client.currentWindow.conn.irc
+      irc = client.context.currentWindow.conn.irc
       irc.handle '1', {}, 'ournick' # rpl_welcome
       spyOn irc, 'doCommand'
 
@@ -92,16 +92,16 @@ describe 'An IRC client front end', ->
       expect($('li', '#channels').last()).not.toHaveClass 'selected'
 
     it "displays /msg text in the current window if there is no existing conversation window", ->
-      spyOn(client.currentWindow, 'message').andCallThrough()
+      spyOn(client.context.currentWindow, 'message').andCallThrough()
       type '/msg someguy hey dude'
       expect($('li', '#channels').length).toBe 1
-      expect(client.currentWindow.message).toHaveBeenCalled()
+      expect(client.context.currentWindow.message).toHaveBeenCalled()
 
     it "displays /msg text in the conversation window when it exists", ->
       irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
-      spyOn(client.currentWindow, 'message').andCallThrough()
+      spyOn(client.context.currentWindow, 'message').andCallThrough()
       type '/msg someguy hey dude'
-      expect(client.currentWindow.message).not.toHaveBeenCalled()
+      expect(client.context.currentWindow.message).not.toHaveBeenCalled()
 
     it "/msg causes the conversation window to be marked with activity", ->
       irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
@@ -123,7 +123,7 @@ describe 'An IRC client front end', ->
     it "can join a channel with /join", ->
       type '/join #bash'
       expect(irc.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
-      expect(client.currentWindow.target).toBe '#bash'
+      expect(client.context.currentWindow.target).toBe '#bash'
 
     describe "then joins a channel", ->
 
@@ -136,7 +136,7 @@ describe 'An IRC client front end', ->
 
       it "can switch windows with /win", ->
         type "/win 1"
-        expect(client.currentWindow.target).toBe undefined
+        expect(client.context.currentWindow.target).toBe undefined
 
       it "creates a notification when the users nick is mentioned", ->
         type "/win 1"

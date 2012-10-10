@@ -9,27 +9,29 @@ class Chat extends EventEmitter
     devCommands = new chat.DeveloperCommands @userCommands
     @userCommands.merge devCommands
 
-    @channelDisplay = new chat.ChannelList()
-    @channelDisplay.on 'clicked', (server, chan) =>
+    @$windowContainer = $('#chat')
+    @context = new ClientState this
+
+    @context.channelDisplay = new chat.ChannelList()
+    @context.channelDisplay.on 'clicked', (server, chan) =>
       win = @winList.get server, chan
       @switchToWindow win if win?
 
-    @$windowContainer = $('#chat')
-    @emptyWindow = new chat.Window 'none'
-    @channelDisplay.add @emptyWindow.name
-    @switchToWindow @emptyWindow
-    @winList = new chat.WindowList()
-    @connections = {}
+    @context.emptyWindow = new chat.Window
+    @context.channelDisplay.add 'none'
+    @switchToWindow @context.emptyWindow
+    @context.winList = new chat.WindowList()
+    @context.connections = {}
 
-    @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Visit https://github.com/noahsug/circ/wiki to read documentation or report an issue.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Type /help to see a full list of commands.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
+    @context.currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
+    @context.currentWindow.emptyLine()
+    @context.currentWindow.message '', "Visit https://github.com/noahsug/circ/wiki to read documentation or report an issue.", "system"
+    @context.currentWindow.emptyLine()
+    @context.currentWindow.message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
+    @context.currentWindow.emptyLine()
+    @context.currentWindow.message '', "Type /help to see a full list of commands.", "system"
+    @context.currentWindow.emptyLine()
+    @context.currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
     document.title = "CIRC #{irc.VERSION}"
     @_loadStateFromStorage()
@@ -47,11 +49,6 @@ class Chat extends EventEmitter
     commandInput.on 'switch_window', (winNum) =>
       @switchToWindowByIndex winNum
 
-  switchToWindowByIndex: (winNum) ->
-      winNum = 10 if winNum is 0
-      win = @winList.get winNum - 1
-      @switchToWindow win if win?
-
   listenToScriptEvents: (@scriptHandler) ->
     # TODO - allow scripts to create notifications and plain text
     #scriptHandler.on 'notify', @createNotification
@@ -63,28 +60,28 @@ class Chat extends EventEmitter
 
   connect: (server, port) ->
     name = server # TODO: 'irc.freenode.net' -> 'freenode'
-    if irc = @connections[name]?.irc
+    if irc = @context.connections[name]?.irc
       return if irc.state in ['connected', 'connecting']
     else
       win = new chat.Window(name)
       win.message '*', "Connecting to #{server}..."
       irc = new window.irc.IRC
-      conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
+      conn = @context.connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
       win.conn = conn
-      @winList.add win
+      @context.winList.add win
       @ircEvents.addEventsFrom irc
-      @channelDisplay.add conn.name
+      @context.channelDisplay.add conn.name
       irc.setPreferredNick @previousNick if @previousNick?
-      if @currentWindow == @emptyWindow
-        @channelDisplay.remove @emptyWindow.name
+      if @context.currentWindow == @context.emptyWindow
+        @context.channelDisplay.remove @context.emptyWindow.name
         @switchToWindow win
     irc.connect(server, port)
 
   onIRCEvent: (e) =>
     if e.context.channel is chat.CURRENT_WINDOW and
-        e.context.server isnt @currentWindow.conn?.name
+        e.context.server isnt @context.currentWindow.conn?.name
       e.context.channel = chat.SERVER_WINDOW
-    conn = @connections[e.context.server]
+    conn = @context.connections[e.context.server]
     return if not conn
     if e.type is 'server' then @onServerEvent conn, e
     else @onMessageEvent conn, e
@@ -111,12 +108,12 @@ class Chat extends EventEmitter
       from = e.args[0]
       conn.windows[from] ?= @_createWindowForChannel conn, from
       conn.windows[from].makePrivate()
-      @channelDisplay.connect conn.name, from
+      @context.channelDisplay.connect conn.name, from
       return conn.windows[from]
     if not chan or chan is chat.SERVER_WINDOW
       return conn.serverWindow
     if chan is chat.CURRENT_WINDOW
-      return @currentWindow
+      return @context.currentWindow
     if conn.windows[chan]
       return conn.windows[chan]
     return chat.NO_WINDOW
@@ -124,29 +121,29 @@ class Chat extends EventEmitter
   onConnected: (conn) ->
     @displayMessage 'connect', {server: conn.name}
     @updateStatus()
-    @channelDisplay.connect conn.name
+    @context.channelDisplay.connect conn.name
     for chan, win of conn.windows
       @displayMessage 'connect', {server: conn.name, channel: win.target}
-      @channelDisplay.connect conn.name, chan if win.isPrivate()
+      @context.channelDisplay.connect conn.name, chan if win.isPrivate()
 
   onDisconnected: (conn) ->
     @displayMessage 'disconnect', {server: conn.name}
-    @channelDisplay.disconnect conn.name
+    @context.channelDisplay.disconnect conn.name
     for chan, win of conn.windows
-      @channelDisplay.disconnect conn.name, chan
+      @context.channelDisplay.disconnect conn.name, chan
       @displayMessage 'disconnect', {server: conn.name, channel: win.target}
 
   onJoined: (conn, chan) ->
     win = @_createWindowForChannel conn, chan
-    @channelDisplay.connect conn.name, chan
+    @context.channelDisplay.connect conn.name, chan
     win.nicks.clear()
 
   _createWindowForChannel: (conn, chan) ->
     win = conn.windows[chan]
     if not win
       win = @makeWin conn, chan
-      i = @winList.indexOf win
-      @channelDisplay.insert i, conn.name, chan
+      i = @context.winList.indexOf win
+      @context.channelDisplay.insert i, conn.name, chan
     win
 
   onNames: (conn, chan, nicks) ->
@@ -155,29 +152,29 @@ class Chat extends EventEmitter
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]
-      @channelDisplay.disconnect conn.name, chan
+      @context.channelDisplay.disconnect conn.name, chan
 
-  removeWindow: (win=@currentWindow) ->
-    index = @winList.indexOf win
-    removedWindows = @winList.remove win
+  removeWindow: (win=@context.currentWindow) ->
+    index = @context.winList.indexOf win
+    removedWindows = @context.winList.remove win
     for win in removedWindows
       @_removeWindowFromState win
     @_selectNextWindow(index)
 
   _removeWindowFromState: (win) ->
-    @channelDisplay.remove win.conn.name, win.target
+    @context.channelDisplay.remove win.conn.name, win.target
     if win.target?
-      delete @connections[win.conn.name].windows[win.target]
+      delete @context.connections[win.conn.name].windows[win.target]
     else
-      delete @connections[win.conn.name]
+      delete @context.connections[win.conn.name]
     win.remove()
 
   _selectNextWindow: (preferredIndex) ->
-    if @winList.length is 0
-      @channelDisplay.add @emptyWindow.name
-      @switchToWindow @emptyWindow
-    else if @winList.indexOf(@currentWindow) == -1
-      nextWin = @winList.get(preferredIndex) ? @winList.get(preferredIndex - 1)
+    if @context.winList.length is 0
+      @context.channelDisplay.add @context.emptyWindow.name
+      @switchToWindow @context.emptyWindow
+    else if @context.winList.indexOf(@context.currentWindow) == -1
+      nextWin = @context.winList.get(preferredIndex) ? @context.winList.get(preferredIndex - 1)
       @switchToWindow nextWin
 
   makeWin: (conn, chan) ->
@@ -185,16 +182,16 @@ class Chat extends EventEmitter
     win = conn.windows[chan] = new chat.Window(chan)
     win.conn = conn
     win.setTarget chan
-    @winList.add win
+    @context.winList.add win
     win
 
   updateStatus: (status) ->
     unless status
       statusList = []
-      nick = @currentWindow.conn?.irc.nick ? @previousNick
-      away = @currentWindow.conn?.irc.away
-      channel = @currentWindow.target
-      topic = @currentWindow.conn?.irc.channels[channel]?.topic
+      nick = @context.currentWindow.conn?.irc.nick ? @previousNick
+      away = @context.currentWindow.conn?.irc.away
+      channel = @context.currentWindow.target
+      topic = @context.currentWindow.conn?.irc.channels[channel]?.topic
       statusList.push "[#{nick}]" if nick
       statusList.push "(away)" if away
       statusList.push "#{channel}" if channel
@@ -203,15 +200,20 @@ class Chat extends EventEmitter
       status = statusList.join ' '
     $('#status').text(status)
 
+  switchToWindowByIndex: (winNum) ->
+      winNum = 10 if winNum is 0
+      win = @context.winList.get winNum - 1
+      @switchToWindow win if win?
+
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
-    @currentWindow.detach() if @currentWindow
+    @context.currentWindow.detach() if @context.currentWindow
     win.attachTo @$windowContainer
-    @currentWindow = win
+    @context.currentWindow = win
     if win.conn?
-      @channelDisplay.select win.conn.name, win.target
+      @context.channelDisplay.select win.conn.name, win.target
     else
-      @channelDisplay.select Chat.NoConnName
+      @context.channelDisplay.select Chat.NoConnName
     @updateStatus()
 
   # emits message to script handler, which decides if it should send it back

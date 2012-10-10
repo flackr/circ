@@ -32,7 +32,7 @@ class UserCommandHandler extends MessageHandler
       @_displayHelp command
 
   _displayHelp: (command) ->
-    @chat.currentWindow.message '*', command.getHelp(), 'notice help'
+    @chat.context.currentWindow.message '*', command.getHelp(), 'notice help'
 
   _init: ->
     @_addCommand 'join',
@@ -101,18 +101,18 @@ class UserCommandHandler extends MessageHandler
           @conn.irc.giveup()
         else
           @conn.irc.quit @reason ? 'Client Quit'
-        @chat.removeWindow @chat.winList.get @conn.name
+        @chat.removeWindow @chat.context.winList.get @conn.name
 
     @_addCommand 'names',
       description: 'lists nicks in the current channel'
       requires: ['connection', 'channel', 'connected']
       run: ->
-        if @chat.currentWindow.isPrivate()
+        if @chat.context.currentWindow.isPrivate()
           msg = "You're in a private conversation with #{@chan}."
         else
           names = (v for k,v of @conn.irc.channels[@chan].names).sort()
           msg = "Users in #{@chan}: #{JSON.stringify names}"
-        @chat.currentWindow.message '*', msg, 'notice names'
+        @chat.context.currentWindow.message '*', msg, 'notice names'
 
     @_addCommand 'help',
       description: "displays information about a command, lists all commands " +
@@ -121,17 +121,17 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @command = @chat.userCommands.getCommand @command
         if @command
-          @chat.currentWindow.message '*', @command.getHelp(), 'notice help'
+          @chat.context.currentWindow.message '*', @command.getHelp(), 'notice help'
         else
           commands = @chat.userCommands.getCommands()
-          @chat.currentWindow.displayHelp commands
+          @chat.context.currentWindow.displayHelp commands
 
     @_addCommand 'part',
       description: "closes the current window and disconnects from the channel"
       params: ['opt_reason...']
       requires: ['connection', 'channel']
       run: ->
-        unless @chat.currentWindow.isPrivate()
+        unless @chat.context.currentWindow.isPrivate()
           @conn.irc.doCommand 'PART', @chan, @reason
         @chat.removeWindow()
 
