@@ -46,6 +46,15 @@ class UserCommandHandler extends MessageHandler
         @chat.switchToWindow win
         @conn.irc.doCommand 'JOIN', @channel
 
+    @_addCommand 'part',
+      description: "closes the current window and disconnects from the channel"
+      params: ['opt_reason...']
+      requires: ['connection', 'channel']
+      run: ->
+        unless @chat.currentWindow.isPrivate()
+          @conn.irc.doCommand 'PART', @chan, @reason
+        @chat.removeWindow()
+
     @_addCommand 'win',
       description: 'switches windows'
       params: ['windowNum']
@@ -125,15 +134,6 @@ class UserCommandHandler extends MessageHandler
         else
           commands = @chat.userCommands.getCommands()
           @chat.currentWindow.displayHelp commands
-
-    @_addCommand 'part',
-      description: "closes the current window and disconnects from the channel"
-      params: ['opt_reason...']
-      requires: ['connection', 'channel']
-      run: ->
-        unless @chat.currentWindow.isPrivate()
-          @conn.irc.doCommand 'PART', @chan, @reason
-        @chat.removeWindow()
 
     @_addCommand 'raw',
       description: "sends a raw event to the IRC server, use the -c flag to " +

@@ -10,7 +10,6 @@ class IRC extends EventEmitter
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
     @socket.on 'drain', => @onDrain()
-    # TODO: differentiate these events. /quit is not same as sock err
     @socket.on 'error', (err) => @onError err
     @socket.on 'end', (err) => @onEnd err
     @socket.on 'close', (err) => @onClose err
@@ -26,7 +25,6 @@ class IRC extends EventEmitter
 
   # user-facing
   connect: (@server=@server, @port=@port) ->
-    # TODO handle case where /quit was already called before fully connected
     return if @state not in ['disconnected', 'reconnecting']
     clearTimeout @reconnect_timer if @reconnect_timer
     @reconnect_timer = null
@@ -46,9 +44,9 @@ class IRC extends EventEmitter
   # user-facing
   giveup: ->
     return unless @state is 'reconnecting'
-      clearTimeout @reconnect_timer
-      @reconnect_timer = null
-      @state = 'disconnected'
+    clearTimeout @reconnect_timer
+    @reconnect_timer = null
+    @state = 'disconnected'
 
   # user-facing
   doCommand: (cmd, args...) ->

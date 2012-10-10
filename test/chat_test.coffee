@@ -37,8 +37,8 @@ describe 'An IRC client front end', ->
 
   beforeEach ->
     addHTMLFixtures()
-    mocks.ChromeSocket.use()
-    mocks.NickMentionedNotification.use()
+    mocks.ChromeSocket.useMock()
+    mocks.NickMentionedNotification.useMock()
     chrome.storage.sync.set {nick: 'ournick'}
     init()
 
@@ -124,6 +124,44 @@ describe 'An IRC client front end', ->
       type '/join #bash'
       expect(irc.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
       expect(client.currentWindow.target).toBe '#bash'
+
+    describe "then is disconnected by a socket error", ->
+
+      beforeEach ->
+        jasmine.Clock.useMock()
+        irc.onError 'socket error!'
+
+      it 'shows all servers and channels as disconnected', ->
+        expect($('li', '#channels').children()).toHaveText '(freenode)'
+
+      it 'attempts to reconnect after a short amount of time', ->
+        spyOn(irc, 'connect')
+        jasmine.Clock.tick(2000)
+        expect(irc.connect).toHaveBeenCalled()
+
+      it 'reconnection attempts use exponential backoff', ->
+        jasmine.Clock.tick(2000)
+        irc.onError 'socket error!'
+
+        spyOn(irc, 'connect')
+        jasmine.Clock.tick(2000)
+        expect(irc.connect).not.toHaveBeenCalled()
+
+        jasmine.Clock.tick(2000)
+        expect(irc.connect).toHaveBeenCalled()
+
+        irc.connect.reset()
+        irc.onError 'socket error!'
+        jasmine.Clock.tick(7999)
+        expect(irc.connect).not.toHaveBeenCalled()
+
+      it 'can use /quit to close the window and stop reconnecting', ->
+        type "/quit"
+        expect(client.currentWindow.name).toBe 'none'
+
+        spyOn(irc, 'connect')
+        jasmine.Clock.tick(9000)
+        expect(irc.connect).not.toHaveBeenCalled()
 
     describe "then joins a channel", ->
 

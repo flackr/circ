@@ -1,7 +1,7 @@
 exports = window.mocks ?= {}
 
 class ChromeSocket extends net.AbstractTCPSocket
-  @use: ->
+  @useMock: ->
     net.ChromeSocket = ChromeSocket
 
   constructor: ->
@@ -14,6 +14,7 @@ class ChromeSocket extends net.AbstractTCPSocket
     irc.util.fromSocketData data, ((msg) => @received msg)
 
   close: ->
+    @emit 'close', 'socket error'
 
   received: (msg) ->
     @emit 'drain'

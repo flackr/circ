@@ -19,7 +19,7 @@ describe 'An IRC client backend', ->
 
   beforeEach ->
     jasmine.Clock.useMock()
-    mocks.ChromeSocket.use()
+    mocks.ChromeSocket.useMock()
     irc = new window.irc.IRC
     socket = irc.socket
     chat = new window.chat.MockChat irc
@@ -37,10 +37,10 @@ describe 'An IRC client backend', ->
   it 'is initially disconnected', ->
     expect(irc.state).toBe 'disconnected'
 
-  it 'does nothing on non-connection commands when disconnected', ->
-    irc.quit()
+  it 'does nothing on commands that require a connection when disconnected', ->
     irc.giveup()
     irc.doCommand 'NICK', 'ournick'
+    irc.doCommand 'JOIN', '#bash'
     waitsForArrayBufferConversion()
     runs ->
       expect(irc.state).toBe 'disconnected'

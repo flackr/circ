@@ -2,7 +2,7 @@ exports = window.mocks ?= {}
 
 class NickMentionedNotification extends window.chat.NickMentionedNotification
 
-  @use: ->
+  @useMock: ->
     window.chat.NickMentionedNotification = NickMentionedNotification
 
   @notificationCount: 0
