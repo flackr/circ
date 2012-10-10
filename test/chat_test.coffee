@@ -156,6 +156,6 @@ describe 'An IRC client front end', ->
         expect($('li', '#channels').last()).toHaveClass 'selected'
 
       it "clicking on a channel in the channel display switches to that channel", ->
-        client.context.channelDisplay.emit 'clicked', 'freenode', '#bash'
-        expect(client.context.currentWindow.target).toBe '#bash'
+        client.channelDisplay.emit 'clicked', 'freenode', '#bash'
+        expect(client.currentWindow.target).toBe '#bash'
         expect($('li', '#channels').last()).toHaveClass 'selected'
