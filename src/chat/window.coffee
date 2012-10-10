@@ -1,6 +1,10 @@
 exports = window.chat ?= {}
 
 class Window
+  ##
+  # The screen will auto scroll as long as the user didn't scroll up more then
+  # this many pixels.
+  ##
   @SCROLLED_DOWN_BUFFER = 8
 
   constructor: (@name) ->
