@@ -66,6 +66,19 @@ describe 'An IRC client front end', ->
     type '/msg someguy'
     type '/mode sally +o'
 
+  describe "that is connecting", ->
+    irc = undefined
+
+    beforeEach ->
+      type '/server freenode'
+      irc = client.currentWindow.conn.irc
+      expect(irc.state).toBe 'connecting'
+
+    it 'can queue a disconnection request with /quit', ->
+      type '/quit'
+      irc.handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc.state).toBe 'disconnected'
+
   describe "that connects", ->
     irc = undefined
 
@@ -73,6 +86,7 @@ describe 'An IRC client front end', ->
       type '/server freenode'
       irc = client.currentWindow.conn.irc
       irc.handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc.state).toBe 'connected'
       spyOn irc, 'doCommand'
 
     it "marks the server item in the window list as connected", ->
@@ -139,7 +153,7 @@ describe 'An IRC client front end', ->
         jasmine.Clock.tick(2000)
         expect(irc.connect).toHaveBeenCalled()
 
-      it 'reconnection attempts use exponential backoff', ->
+      it 'uses exponential backoff for reconnection attempts', ->
         jasmine.Clock.tick(2000)
         irc.onError 'socket error!'
 
@@ -155,7 +169,7 @@ describe 'An IRC client front end', ->
         jasmine.Clock.tick(7999)
         expect(irc.connect).not.toHaveBeenCalled()
 
-      it 'can use /quit to close the window and stop reconnecting', ->
+      it 'closes the current window and stops reconnecting on /quit', ->
         type "/quit"
         expect(client.currentWindow.name).toBe 'none'
 
