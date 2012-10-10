@@ -4,21 +4,15 @@ class Chat extends EventEmitter
 
   constructor: ->
     super
-    @messageHandler = new chat.IRCMessageHandler this
-    @userCommands = new chat.UserCommandHandler this
-    devCommands = new chat.DeveloperCommands @userCommands
-    @userCommands.merge devCommands
-
     @$windowContainer = $('#chat')
-    @context = new ClientState this
-
+    @context = new chat.ClientState this
     @context.channelDisplay = new chat.ChannelList()
     @context.channelDisplay.on 'clicked', (server, chan) =>
       win = @winList.get server, chan
       @switchToWindow win if win?
 
-    @context.emptyWindow = new chat.Window
-    @context.channelDisplay.add 'none'
+    @context.emptyWindow = new chat.Window 'none'
+    @context.channelDisplay.add @context.emptyWindow.name
     @switchToWindow @context.emptyWindow
     @context.winList = new chat.WindowList()
     @context.connections = {}
@@ -35,6 +29,11 @@ class Chat extends EventEmitter
 
     document.title = "CIRC #{irc.VERSION}"
     @_loadStateFromStorage()
+
+    @messageHandler = new chat.IRCMessageHandler this
+    @userCommands = new chat.UserCommandHandler this
+    devCommands = new chat.DeveloperCommands @userCommands
+    @userCommands.merge devCommands
 
   _loadStateFromStorage: ->
     @previousNick = undefined

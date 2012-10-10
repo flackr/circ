@@ -25,7 +25,7 @@ describe 'An IRC client front end', ->
     scriptHandler = new window.script.ScriptHandler
     client = new window.chat.Chat
 
-    commandInput.setContext client
+    commandInput.setContext client.context
 
     scriptHandler.addEventsFrom client
     scriptHandler.addEventsFrom commandInput
