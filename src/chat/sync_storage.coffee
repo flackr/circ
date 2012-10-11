@@ -15,20 +15,28 @@ class SyncStorage
     @_channels.push { server, name }
     @_store 'channels', @_channels
 
-  channelLeft: (server, name) ->
-    for channel, i in @_channels
-      if channel.server is server and channel.name is name
-        @_channels.splice i, 1
-    @_store 'channels', @_channels
-
   serverJoined: (name, port) ->
     @_servers.push { name, port }
     @_store 'servers', @_servers
 
-  serverLeft: (name, port) ->
+  parted: (server, channel) ->
+    if channel?
+      @_channelParted server, channel
+    else
+      @_serverParted server
+
+  _channelParted: (server, name) ->
+    for channel, i in @_channels
+      if channel.server is server and channel.name is name
+        @_channels.splice i, 1
+        break
+    @_store 'channels', @_channels
+
+  _serverParted: (name) ->
     for server, i in @_servers
-      if server.name is name and server.port is port
+      if server.name is name
         @_servers.splice i, 1
+        break
     @_store 'servers', @_servers
 
   _store: (key, value) ->

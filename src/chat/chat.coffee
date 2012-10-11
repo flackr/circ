@@ -50,22 +50,35 @@ class Chat extends EventEmitter
     @ircEvents.on 'message', @onIRCEvent
 
   connect: (server, port) ->
-    if irc = @connections[server]?.irc
-      return if irc.state in ['connected', 'connecting']
+    if server of @connections
+      # TODO disconnect and reconnect if port changed
+      return if @connections[server].irc.state in ['connected', 'connecting']
     else
-      win = new chat.Window server
-      win.message '*', "Connecting to #{server}..."
-      irc = new window.irc.IRC
-      conn = @connections[server] = {irc:irc, name: server, serverWindow:win, windows:{}}
-      win.conn = conn
-      @winList.add win
-      @ircEvents?.addEventsFrom irc
-      @channelDisplay.add conn.name
-      irc.setPreferredNick @previousNick if @previousNick?
-      if @currentWindow.equals @emptyWindow
-        @channelDisplay.remove @emptyWindow.name
-        @switchToWindow win
-    irc.connect(server, port)
+      @_createConnection server
+      @_createWindowForServer server, port
+    @connections[server].irc.connect(server, port)
+
+  _createConnection: (server) ->
+    irc = new window.irc.IRC
+    irc.setPreferredNick @previousNick if @previousNick?
+    @ircEvents?.addEventsFrom irc
+    @connections[server] = {irc:irc, name: server, windows:{}}
+
+  _createWindowForServer: (server, port) ->
+    conn = @connections[server]
+    win = new chat.Window conn.name
+    win.message '*', "Connecting to #{conn.name}..."
+    win.conn = conn
+    conn.serverWindow = win
+    @winList.add win
+    @channelDisplay.add conn.name
+    @syncStorage.serverJoined conn.name, port
+    @_replaceEmptyWindowIfExists win
+
+  _replaceEmptyWindowIfExists: (newWin) ->
+    if @currentWindow.equals @emptyWindow
+      @channelDisplay.remove @emptyWindow.name
+    @switchToWindow newWin
 
   join: (conn, channel) ->
     win = @_createWindowForChannel conn, channel
@@ -139,6 +152,7 @@ class Chat extends EventEmitter
       win = @makeWin conn, chan
       i = @winList.indexOf win
       @channelDisplay.insert i, conn.name, chan
+      @syncStorage.channelJoined conn.name, chan
     win
 
   onNames: (conn, chan, nicks) ->
@@ -153,12 +167,14 @@ class Chat extends EventEmitter
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
     removedWindows = @winList.remove win
+    @syncStorage.parted win.conn.name, win.target
     for win in removedWindows
       @_removeWindowFromState win
     @_selectNextWindow(index)
 
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
+    @syncStorage.parted win.conn.name, win.target
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
     else

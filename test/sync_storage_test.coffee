@@ -47,16 +47,16 @@ describe 'IRC sync storage', ->
     ss.channelJoined 'freenode', '#bash'
     expect(sync._storageMap.channels).toEqual [{name: '#bash', server: 'freenode'}]
 
-  it 'removes the stored channel on channelLeft()', ->
+  it 'removes the stored channel on channelParted()', ->
     ss.channelJoined 'freenode', '#bash'
-    ss.channelLeft 'freenode', '#bash'
+    ss.parted 'freenode', '#bash'
     expect(sync._storageMap.channels).toEqual []
 
   it 'stores the joined server on serverJoined()', ->
     ss.serverJoined 'freenode', 6667
     expect(sync._storageMap.servers).toEqual [{name: 'freenode', port: 6667}]
 
-  it 'removes the stored server on serverLeft()', ->
-    ss.channelJoined 'freenode', 6697
-    ss.channelLeft 'freenode', 6697
+  it 'removes the stored server on serverParted()', ->
+    ss.serverJoined 'freenode', 6697
+    ss.parted 'freenode', 6697
     expect(sync._storageMap.channels).toEqual []

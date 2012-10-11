@@ -21,6 +21,11 @@ describe 'An IRC client front end', ->
     for div in divs
       $("##{div}").remove()
 
+  restart = ->
+    removeHTMLFixtures()
+    addHTMLFixtures()
+    init()
+
   init = ->
     scriptHandler = new window.script.ScriptHandler
     client = new window.chat.Chat
@@ -39,12 +44,12 @@ describe 'An IRC client front end', ->
     addHTMLFixtures()
     mocks.ChromeSocket.useMock()
     mocks.NickMentionedNotification.useMock()
-    chrome.storage.sync.clear()
     chrome.storage.sync.set {nick: 'ournick'}
     init()
 
   afterEach ->
     removeHTMLFixtures()
+    chrome.storage.sync.clear()
 
   it "displays the preferred nick in the status bar", ->
     expect($ '#status').toHaveText '[ournick]'
@@ -68,31 +73,48 @@ describe 'An IRC client front end', ->
     type '/mode sally +o'
 
   describe "sync storage", ->
-    sync = chrome.storage.sync
+
+    doActivity = ->
+      type '/nick ournick'
+      type '/server freenode 6667'
+      type '/join #bash'
+      type '/join #awesome'
+      type '/server dalnet 6697'
+      type '/win 4'
+      type '/join #hiphop'
+
     beforeEach ->
-      sync.set { servers: [
-          {name: 'freenode', port: 6667},
-          {name: 'dalnet', port: 6697}]}
-      sync.set { channels: [
-          {name: '#bash', server: 'freenode'},
-          {name: '#awesome', server: 'freenode'},
-          {name: '#hiphop', server: 'dalnet'}]}
-      removeHTMLFixtures()
-      addHTMLFixtures()
-      init()
+      chrome.storage.sync.clear()
+      doActivity()
 
     it "restores the previously used nick", ->
+      restart()
       expect(client.previousNick).toBe 'ournick'
 
     it "restores the previously joined servers", ->
+      restart()
       expect(client.connections['freenode']).toBeDefined()
       expect(client.connections['dalnet']).toBeDefined()
 
     it "restores the previously joined channels", ->
+      restart()
       expect(client.connections['freenode'].windows['#bash']).toBeDefined()
       expect(client.connections['freenode'].windows['#awesome']).toBeDefined()
       expect(client.connections['dalnet'].windows['#hiphop']).toBeDefined()
       expect($('li', '#channels').length).toBe 5
+
+    it "doesn't restore channels that were parted", ->
+      type '/part #hiphop'
+      restart()
+      expect(client.connections['dalnet'].windows['#hiphop']).not.toBeDefined()
+      expect($('li', '#channels').length).toBe 4
+
+    it "doesn't restore servers that were parted", ->
+      type '/win 1'
+      type '/quit'
+      restart()
+      expect(client.connections['freenode']).not.toBeDefined()
+      expect($('li', '#channels').length).toBe 2
 
   describe "that is connecting", ->
     irc = undefined
