@@ -50,20 +50,19 @@ class Chat extends EventEmitter
     @ircEvents.on 'message', @onIRCEvent
 
   connect: (server, port) ->
-    name = server # TODO: 'irc.freenode.net' -> 'freenode'
-    if irc = @connections[name]?.irc
+    if irc = @connections[server]?.irc
       return if irc.state in ['connected', 'connecting']
     else
-      win = new chat.Window(name)
+      win = new chat.Window server
       win.message '*', "Connecting to #{server}..."
       irc = new window.irc.IRC
-      conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
+      conn = @connections[server] = {irc:irc, name: server, serverWindow:win, windows:{}}
       win.conn = conn
       @winList.add win
       @ircEvents?.addEventsFrom irc
       @channelDisplay.add conn.name
       irc.setPreferredNick @previousNick if @previousNick?
-      if @currentWindow == @emptyWindow
+      if @currentWindow.equals @emptyWindow
         @channelDisplay.remove @emptyWindow.name
         @switchToWindow win
     irc.connect(server, port)
@@ -176,7 +175,7 @@ class Chat extends EventEmitter
 
   makeWin: (conn, chan) ->
     throw new Error("we already have a window for that") if conn.windows[chan]
-    win = conn.windows[chan] = new chat.Window(chan)
+    win = conn.windows[chan] = new chat.Window(conn.name, chan)
     win.conn = conn
     win.setTarget chan
     @winList.add win

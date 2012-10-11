@@ -7,7 +7,8 @@ class Window
   ##
   @SCROLLED_DOWN_BUFFER = 8
 
-  constructor: (@name) ->
+  constructor: (server, opt_channel) ->
+    @name = server + if opt_channel then " #{opt_channel}" else ''
     @wasScrolledDown = true
     @$container = $ "<div id='window-container'>"
     @$messages = $ "<div id='chat-messages'>"
@@ -22,6 +23,9 @@ class Window
 
   isServerWindow: ->
     return not @target?
+
+  equals: (win) ->
+    return @name is win.name
 
   ##
   # Marks the window as private.

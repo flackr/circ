@@ -155,7 +155,7 @@ class IRCMessageHandler extends MessageHandler
     not @_isFromWindowInFocus() or not window.document.hasFocus()
 
   _isFromWindowInFocus: ->
-    @_win.target is @_chat.currentWindow.target
+    @_win.equals @_chat.currentWindow
 
   _formatPrivateMessage: (from, msg) ->
     @_formatter.setMessage '#content'

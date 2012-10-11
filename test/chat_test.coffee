@@ -246,6 +246,17 @@ describe 'An IRC client front end', ->
         expect($('li', '#channels').last()).toHaveClass 'activity'
         expect($('li', '#channels').last()).not.toHaveClass 'selected'
 
+      it "marks a window as active if a message is sent and it's not selected", ->
+        type '/server dalnet'
+        irc2 = client.currentWindow.conn.irc
+        irc2.handle '1', {}, 'ournick' # rpl_welcome
+        type '/win 3'
+        type '/join #bash'
+        irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
+
+        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hi'
+        expect($($('li', '#channels')[1])).toHaveClass 'activity'
+
       it "clears activity and mention style when switching to a window", ->
         type "/win 1"
         irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
