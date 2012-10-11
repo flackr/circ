@@ -15,8 +15,8 @@ class UserCommand
     @run ?= description.run
 
   setContext: (@chat) ->
-    @conn = @chat?.context.currentWindow?.conn
-    @chan = @chat?.context.currentWindow?.target
+    @conn = @chat?.currentWindow?.conn
+    @chan = @chat?.currentWindow?.target
 
   setArgs: (args...) ->
     @_validArgs = @_tryToAssignArgs args

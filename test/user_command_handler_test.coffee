@@ -4,16 +4,15 @@ describe 'A user command handler', ->
   onMessage = jasmine.createSpy 'onMessage'
 
   getContext = ->
-    context:
-      currentWindow:
-        message: onMessage
-        target: '#bash'
-        conn:
-          name: 'freenode.net'
-          irc:
-            state: 'connected'
-            nick: 'ournick'
-            channels: {}
+    currentWindow:
+      message: onMessage
+      target: '#bash'
+      conn:
+        name: 'freenode.net'
+        irc:
+          state: 'connected'
+          nick: 'ournick'
+          channels: {}
 
   beforeEach ->
     onMessage.reset()
@@ -37,7 +36,7 @@ describe 'A user command handler', ->
     expect(onJoin).toHaveBeenCalled()
 
   it "doesn't run commands that can't be run", ->
-    context.context.currentWindow.conn.irc.state = 'disconnected'
+    context.currentWindow.conn.irc.state = 'disconnected'
     handler.handle 'join'
     expect(onJoin).not.toHaveBeenCalled()
 

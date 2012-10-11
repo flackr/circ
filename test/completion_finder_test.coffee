@@ -8,12 +8,12 @@ describe 'A completion finder', ->
     ac.setCompletions ['hi', 'bye']
     expect(ac.getCompletion 'h').toBe 'hi'
 
-  it 'returns NONE on getCompletion() when no completions match', ->
+  it 'returns the stub on getCompletion() when no completions match', ->
     ac.setCompletions ['bourjeu', 'bye']
-    expect(ac.getCompletion 'h').toBe CompletionFinder.NONE
+    expect(ac.getCompletion 'h').toBe 'h'
 
-  it 'returns NONE on getCompletion() when no completions have been added', ->
-    expect(ac.getCompletion 'hello').toBe CompletionFinder.NONE
+  it 'returns the stub on getCompletion() when no completions have been added', ->
+    expect(ac.getCompletion 'hello').toBe 'hello'
 
   it 'returns the same completion when there is only one match', ->
     ac.setCompletions ['hello', 'bye']

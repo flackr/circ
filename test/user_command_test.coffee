@@ -33,15 +33,14 @@ describe 'A user command', ->
     run: -> onRun @server, @port
 
   getContext = ->
-    context:
-      currentWindow:
-        target: '#bash'
-        conn:
-          name: 'freenode.net'
-          irc:
-            state: 'connected'
-            nick: 'ournick'
-            channels: {}
+    currentWindow:
+      target: '#bash'
+      conn:
+        name: 'freenode.net'
+        irc:
+          state: 'connected'
+          nick: 'ournick'
+          channels: {}
 
   beforeEach ->
     onRun.reset()
@@ -74,13 +73,13 @@ describe 'A user command', ->
     expect(eatCommand.hasValidArgs()).toBe false
 
   it 'can require certain conditions to be met', ->
-    context.context.currentWindow.conn.irc.state = 'disconnected'
+    context.currentWindow.conn.irc.state = 'disconnected'
     expect(modeCommand.canRun()).toBe false
 
-    context.context.currentWindow.conn.irc.state = 'connected'
+    context.currentWindow.conn.irc.state = 'connected'
     expect(modeCommand.canRun()).toBe true
 
-    context.context.currentWindow.target = undefined
+    context.currentWindow.target = undefined
     modeCommand.setContext context
     expect(modeCommand.canRun()).toBe false
 

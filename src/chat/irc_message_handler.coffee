@@ -140,9 +140,9 @@ class IRCMessageHandler extends MessageHandler
       notification = new chat.NickMentionedNotification(@_win.target, from, msg)
       notification.show()
     unless @_isFromWindowInFocus()
-      @_chat.context.channelDisplay.activity @_win.conn.name, @_win.target
+      @_chat.channelDisplay.activity @_win.conn.name, @_win.target
       if nickMentioned
-        @_chat.context.channelDisplay.mention @_win.conn.name, @_win.target
+        @_chat.channelDisplay.mention @_win.conn.name, @_win.target
 
   _nickWasMentioned: (from, msg) ->
     nick = @_win.conn.irc.nick
@@ -154,7 +154,7 @@ class IRCMessageHandler extends MessageHandler
     not @_isFromWindowInFocus() or not window.document.hasFocus()
 
   _isFromWindowInFocus: ->
-    @_win.target is @_chat.context.currentWindow.target
+    @_win.target is @_chat.currentWindow.target
 
   _formatPrivateMessage: (from, msg) ->
     @_formatter.setMessage '#content'

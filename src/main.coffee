@@ -2,7 +2,7 @@ userInput = new UserInputHandler $('#cmd'), $(window)
 scriptHandler = new window.script.ScriptHandler
 chat = new window.chat.Chat
 
-userInput.setContext chat.context
+userInput.setContext chat
 
 scriptHandler.addEventsFrom chat
 scriptHandler.addEventsFrom userInput
