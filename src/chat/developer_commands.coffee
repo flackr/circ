@@ -8,8 +8,11 @@ class DeveloperCommands extends MessageHandler
     1: ->
       @_handleCommand "server", "irc.corp.google.com"
 
-    2: ->
+    sn: ->
       @_handleCommand "nick", "sugarman#{Math.floor(Math.random() * 100)}"
+
+    2: ->
+      @_handleCommand "server", "irc.prod.google.com"
 
     3: ->
       @_handleCommand "join", "#sugarman"

@@ -76,6 +76,10 @@ describe 'A channel list', ->
     cl.remove 'irc.dalnet', '#bash2'
     expect(item -1).toHaveClass 'last'
 
+    cl.add 'irc.dalnet', '#bash2'
+    cl.insert 2, 'irc.freenode', '#bash2'
+    expect(item 2).toHaveClass 'last'
+
   it "supports multiple servers and channels", ->
     cl.add 'freenode'
     cl.add 'freenode', '#bash'

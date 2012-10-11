@@ -53,7 +53,7 @@ class ChannelList extends chat.HTMLList
     return not nextNode or not @_isChannel nextNode
 
   _isChannel: (id) ->
-    return id.indexOf ' ' >= 0
+    return id.indexOf(' ') >= 0
 
   disconnect: (server, channel) ->
     @rename @_getID(server, channel), @_getDisconnectedName server, channel

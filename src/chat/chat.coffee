@@ -9,6 +9,7 @@ class Chat extends EventEmitter
     devCommands = new chat.DeveloperCommands @userCommands
     @userCommands.merge devCommands
 
+    @winList = new chat.WindowList
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (server, chan) =>
       win = @winList.get server, chan
@@ -18,7 +19,6 @@ class Chat extends EventEmitter
     @emptyWindow = new chat.Window 'none'
     @channelDisplay.add @emptyWindow.name
     @switchToWindow @emptyWindow
-    @winList = new chat.WindowList()
     @connections = {}
 
     @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
