@@ -42,9 +42,7 @@ class UserCommandHandler extends MessageHandler
       parseArgs: ->
         @channel ?= @chan
       run: ->
-        win = @chat._createWindowForChannel @conn, @channel
-        @chat.switchToWindow win
-        @conn.irc.join @channel
+        @chat.join @conn, @channel
 
     @_addCommand 'part',
       description: "closes the current window and disconnects from the channel"
@@ -82,7 +80,7 @@ class UserCommandHandler extends MessageHandler
       params: ['nick']
       run: ->
         @chat.previousNick = @nick
-        chrome.storage.sync.set {nick: @nick}
+        @chat.syncStorage.nickChanged @nick
         @chat.updateStatus()
         @conn?.irc.doCommand 'NICK', @nick
 

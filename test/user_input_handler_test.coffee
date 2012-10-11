@@ -93,7 +93,7 @@ describe 'A user input handler', ->
     expect(e.context).toEqual { server: 'freenode.net', channel: '#bash' }
     expect(e.args).toEqual 'sugarman for spamming /dance'.split ' '
 
-  describe 'has auto-completion which', ->
+  describe 'auto-complete', ->
 
     it "completes the current word and adds a colon + space after if it starts the phrase", ->
       val = 'b'
@@ -174,7 +174,7 @@ describe 'A user input handler', ->
       tab()
       expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
 
-  describe 'has an input stack which', ->
+  describe 'input stack', ->
 
     upArrow = ->
       keyDown 38

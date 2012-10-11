@@ -15,7 +15,7 @@ describe 'A custom command parser', ->
     parse 'kick -c sugarman "for spamming /dance"'
     expect(result).toEqual ['KICK', '#bash', 'sugarman', 'for spamming /dance']
 
-  describe 'that is merging quoted words', ->
+  describe 'merging quoted words', ->
     merge = (text) ->
       result = parser._mergeQuotedWords (text.split ' ')
 

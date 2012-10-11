@@ -39,13 +39,14 @@ describe 'An IRC client front end', ->
     addHTMLFixtures()
     mocks.ChromeSocket.useMock()
     mocks.NickMentionedNotification.useMock()
+    chrome.storage.sync.clear()
     chrome.storage.sync.set {nick: 'ournick'}
     init()
 
   afterEach ->
     removeHTMLFixtures()
 
-  it "loads the previously used nick", ->
+  it "displays the preferred nick in the status bar", ->
     expect($ '#status').toHaveText '[ournick]'
 
   it "sets the document title to the version", ->
@@ -65,6 +66,33 @@ describe 'An IRC client front end', ->
     type '/op bob'
     type '/msg someguy'
     type '/mode sally +o'
+
+  describe "sync storage", ->
+    sync = chrome.storage.sync
+    beforeEach ->
+      sync.set { servers: [
+          {name: 'freenode', port: 6667},
+          {name: 'dalnet', port: 6697}]}
+      sync.set { channels: [
+          {name: '#bash', server: 'freenode'},
+          {name: '#awesome', server: 'freenode'},
+          {name: '#hiphop', server: 'dalnet'}]}
+      removeHTMLFixtures()
+      addHTMLFixtures()
+      init()
+
+    it "restores the previously used nick", ->
+      expect(client.previousNick).toBe 'ournick'
+
+    it "restores the previously joined servers", ->
+      expect(client.connections['freenode']).toBeDefined()
+      expect(client.connections['dalnet']).toBeDefined()
+
+    it "restores the previously joined channels", ->
+      expect(client.connections['freenode'].windows['#bash']).toBeDefined()
+      expect(client.connections['freenode'].windows['#awesome']).toBeDefined()
+      expect(client.connections['dalnet'].windows['#hiphop']).toBeDefined()
+      expect($('li', '#channels').length).toBe 5
 
   describe "that is connecting", ->
     irc = undefined

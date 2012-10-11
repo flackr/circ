@@ -32,15 +32,8 @@ class Chat extends EventEmitter
     @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
     document.title = "CIRC #{irc.VERSION}"
-    @_loadStateFromStorage()
-
-  _loadStateFromStorage: ->
-    @previousNick = undefined
-    # TODO: don't let the user do anything until we load settings
-    chrome.storage.sync.get 'nick', (settings) =>
-      if settings?.nick
-        @previousNick = settings.nick
-        @updateStatus()
+    @syncStorage = new chat.SyncStorage
+    @syncStorage.restoreState this
 
   listenToCommands: (commandInput) ->
     @userCommands.listenTo commandInput
@@ -67,13 +60,18 @@ class Chat extends EventEmitter
       conn = @connections[name] = {irc:irc, name, serverWindow:win, windows:{}}
       win.conn = conn
       @winList.add win
-      @ircEvents.addEventsFrom irc
+      @ircEvents?.addEventsFrom irc
       @channelDisplay.add conn.name
       irc.setPreferredNick @previousNick if @previousNick?
       if @currentWindow == @emptyWindow
         @channelDisplay.remove @emptyWindow.name
         @switchToWindow win
     irc.connect(server, port)
+
+  join: (conn, channel) ->
+    win = @_createWindowForChannel conn, channel
+    @switchToWindow win
+    conn.irc.join channel
 
   onIRCEvent: (e) =>
     if e.context.channel is chat.CURRENT_WINDOW and
