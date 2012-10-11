@@ -10,6 +10,7 @@ class HTMLList extends EventEmitter
     @insert @nodeNames.length, name
 
   insert: (index, name) ->
+    return if name of @nodes
     if index < 0 or index > @nodeNames.length
       throw "invalid index: #{index}/#{@nodeNames.length}"
 

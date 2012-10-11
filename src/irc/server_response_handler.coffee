@@ -49,9 +49,8 @@ class ServerResponseHandler extends MessageHandler
         @irc.emitMessage 'nick', chanName, from.nick, newNick
 
     JOIN: (from, chanName) ->
-      isOwnNick = irc.util.nicksEqual from.nick, @irc.nick
       chan = @irc.channels[chanName]
-      if isOwnNick
+      if @irc.isOwnNick from.nick
         if chan?
           chan.names = []
         else
@@ -66,7 +65,7 @@ class ServerResponseHandler extends MessageHandler
     PART: (from, chan) ->
       if c = @irc.channels[chan]
         @irc.emitMessage 'part', chan, from.nick
-        if irc.util.nicksEqual from.nick, @irc.nick
+        if @irc.isOwnNick from.nick
           c.names = []
           @irc.emit 'parted', chan
         else
@@ -128,7 +127,7 @@ class ServerResponseHandler extends MessageHandler
 
       delete @irc.channels[channel].names[to]
       @irc.emitMessage 'kick', channel, from.nick, to, reason
-      if irc.util.nicksEqual @irc.nick, to
+      if @irc.isOwnNick to
         @irc.emit 'parted', channel
 
     MODE: (from, chan, mode, to) ->

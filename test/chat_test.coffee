@@ -258,3 +258,54 @@ describe 'An IRC client front end', ->
         client.channelDisplay.emit 'clicked', 'freenode', '#bash'
         expect(client.currentWindow.target).toBe '#bash'
         expect($('li', '#channels').last()).toHaveClass 'selected'
+
+      describe "has a nick list which", ->
+        nicks = undefined
+
+        beforeEach ->
+          nicks = ['bart', 'bill', 'bob', 'charlie', 'derek', 'edward', 'jacob',
+              'megan', 'norman', 'sally', 'sue', 'tereza',
+              'zabo1', 'zabo2', 'zabo3', 'zabo88']
+
+        addNicks = ->
+          irc.emit 'names', '#bash', nicks.slice(0, 7)
+          irc.emit 'names', '#bash', nicks.slice(7, 12)
+          irc.emit 'names', '#bash', nicks.slice(12)
+          nameMap = {}
+          (nameMap[name] = name for name in nicks)
+          irc.channels['#bash'].names = nameMap
+
+        it "displays the user's nick when first joining a channel", ->
+          expect($('li', '#nicks').length).toBe 1
+          expect($('li', '#nicks').children()).toHaveText 'ournick'
+
+        it "displays all nicks in the channel when the nick list is sent", ->
+          addNicks()
+          expect($('li', '#nicks').length).toBe nicks.length + 1
+
+        it "displays nicks in sorted order", ->
+          addNicks()
+          expect($($('li', '#nicks')[9]).children()).toHaveText 'ournick'
+
+        it "displays newly joined nicks after they /join", ->
+          addNicks()
+          irc.handle 'JOIN', {nick: 'alphy'}, '#bash'
+          expect($('li', '#nicks').length).toBe nicks.length + 2
+          expect($($('li', '#nicks')[0]).children()).toHaveText 'alphy'
+
+        it "doesn't display nicks after they have been kicked", ->
+          addNicks()
+          irc.handle 'KICK', {nick: 'bob'}, '#bash', 'zabo88'
+          expect($('li', '#nicks').length).toBe nicks.length
+          expect($('li', '#nicks').last().children()).not.toHaveText 'zabo88'
+
+        it "doesn't display nicks after they left with /parted", ->
+          addNicks()
+          irc.handle 'PART', {nick: 'bob'}, '#bash'
+          expect($('li', '#nicks').length).toBe nicks.length
+          expect($($('li', '#nicks')[2]).children()).not.toHaveText 'bob'
+
+        it "doesn't display duplicate nicks", ->
+          nicks.push 'ournick'
+          addNicks()
+          expect($('li', '#nicks').length).toBe nicks.length

@@ -143,8 +143,9 @@ class Chat extends EventEmitter
     win
 
   onNames: (conn, chan, nicks) ->
-    if win = conn.windows[chan]
-      win.nicks.add(nicks...)
+    return unless win = conn.windows[chan]
+    for nick in nicks
+      win.nicks.add nick
 
   onParted: (conn, chan) ->
     if win = conn.windows[chan]

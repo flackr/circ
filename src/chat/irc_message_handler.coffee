@@ -58,7 +58,8 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.addStyle 'update'
       @_formatter.setMessage '#from is now known as #to'
       if not @_win.isServerWindow()
-        @_win.nicks.replace from, to
+        @_win.nicks.remove from
+        @_win.nicks.add to
 
     mode: (from, to, mode) ->
       return unless to
