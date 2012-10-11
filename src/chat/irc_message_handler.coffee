@@ -148,6 +148,8 @@ class IRCMessageHandler extends MessageHandler
   _nickWasMentioned: (from, msg) ->
     nick = @_win.conn.irc.nick
     return false if @_isOwnNick from
+    return false if @_formatter.hasStyle 'notice'
+    return false if @_formatter.hasStyle 'direct'
     return true if @_win.isPrivate()
     return chat.NickMentionedNotification.shouldNotify nick, msg
 
