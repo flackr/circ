@@ -48,9 +48,9 @@ class SyncStorage
     @_chat = chat
     chrome.storage.sync.get SyncStorage.ITEMS, (prevState) =>
       @_prevState = prevState
+      @_restoreNick()
       @_restoreServers()
       @_restoreChannels()
-      @_restoreNick()
 
   _restoreServers: ->
     return unless servers = @_prevState.servers

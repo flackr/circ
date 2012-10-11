@@ -73,12 +73,12 @@ class Chat extends EventEmitter
     @winList.add win
     @channelDisplay.add conn.name
     @syncStorage.serverJoined conn.name, port
-    @_replaceEmptyWindowIfExists win
+    @_replaceEmptyWindowIfExists()
+    @switchToWindow win
 
-  _replaceEmptyWindowIfExists: (newWin) ->
+  _replaceEmptyWindowIfExists: ->
     if @currentWindow.equals @emptyWindow
       @channelDisplay.remove @emptyWindow.name
-    @switchToWindow newWin
 
   join: (conn, channel) ->
     win = @_createWindowForChannel conn, channel

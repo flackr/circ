@@ -89,7 +89,7 @@ describe 'An IRC client front end', ->
 
     it "restores the previously used nick", ->
       restart()
-      expect(client.previousNick).toBe 'ournick'
+      expect($ '#status').toHaveText '[ournick] #hiphop'
 
     it "restores the previously joined servers", ->
       restart()
