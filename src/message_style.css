@@ -29,10 +29,15 @@
 .message.update.privmsg.mention {
   color: darkred;
 }
+
 .message.update.privmsg.mention .source {
   font-weight: bold;
 }
 
-.message.update.privmsg.direct {
+.message.update.privmsg.direct .source {
   color: #488AA8;
+}
+
+.message.update.privmsg.notice .source {
+  color: #97008B;
 }

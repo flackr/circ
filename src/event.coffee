@@ -9,6 +9,11 @@ class Event
   setContext: (server, channel) ->
     @context = {server, channel}
 
+  ##
+  # Sets a custom style for the event that will effect how it's contents are
+  # displayed.
+  # @param {...string} style
+  ##
   setStyle: (@style...) ->
 
   @wrap: (obj) ->

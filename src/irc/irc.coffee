@@ -153,6 +153,9 @@ class IRC extends EventEmitter
   emitMessage: (name, channel, args...) ->
     event = new Event 'message', name, args...
     event.setContext @server, channel
+    @emitCustomEvent event
+
+  emitCustomEvent: (event) ->
     IRC.__super__.emit.call(this, event.type, event)
 
   isOwnNick: (nick) ->

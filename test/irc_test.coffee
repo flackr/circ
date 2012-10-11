@@ -238,6 +238,13 @@ describe 'An IRC client backend', ->
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith 'ournick', 'privmsg', 'someguy', 'hi!'
 
+      it "emits a privmsg notice when a notice message is received", ->
+        socket.respondWithData ":someguy!user@company.com NOTICE ournick :hi!"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW,
+              'privmsg', 'someguy', 'hi!'
+
       it "emits a privmsg notice when a busy message is received", ->
         socket.respondWithData ":server@freenode.net 301 ournick someguy :I'm busy"
         waitsForArrayBufferConversion()

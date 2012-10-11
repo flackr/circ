@@ -164,7 +164,9 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.setContent "#{from} #{m[1]}"
       @_formatter.addStyle 'action'
     else
-      if @_formatter.hasStyle 'direct'
+      if @_formatter.hasStyle 'notice'
+        @source = "-#{from}-"
+      else if @_formatter.hasStyle 'direct'
         @source = ">#{from}<"
       else
         @source = from
