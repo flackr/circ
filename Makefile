@@ -22,7 +22,6 @@ test: build
 
 package: build
 	-rm -rf package
-	-rm circ.zip
 	mkdir package
 	cp -r bin package
 	cp -r static package
