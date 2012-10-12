@@ -6,12 +6,12 @@ class CTCPHandler
     @_error ="#{@_delimeter}ERRMSG#{@_delimeter}"
 
   isCTCPRequest: (msg) ->
-    /\u0001[\w\s]*\u0001/.test msg
+    return false unless /\u0001[\w\s]*\u0001/.test msg
+    return @getResponses(msg).length > 0
 
   getResponses: (msg) ->
     @_parseMessage msg
     responses = @_getResponseText()
-    return [responses] if responses is @_error
     result = []
     for response in responses
       console.log response
@@ -30,7 +30,7 @@ class CTCPHandler
         [''] # TODO add details when client is available over FTP
       when 'PING'
         [' ' + @args[0]]
-      else @_error
+      else []
 
   _parseMessage: (msg) ->
     msg = msg[1..msg.length-2]
