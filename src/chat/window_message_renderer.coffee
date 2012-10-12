@@ -28,21 +28,23 @@ class MessageRenderer
     @displayEmptyLine()
     @message '', "Type /help <command> to see details about a specific command.",
         'notice help'
+    @displayEmptyLine()
     @_displayWikiUrl('notice help')
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
-        "documentation or give feedback.", style
+        "documentation and give feedback.", style
 
   _printCommands: (commands) ->
-    maxWidth = $('.text').width()
+    maxWidth = 40
     widthPerCommand = @_getMaxCommandWidth commands
     commandsPerLine = maxWidth / Math.floor widthPerCommand
     line = []
     for command, i in commands
       line.push @_fillWithWhiteSpace command, widthPerCommand
       if line.length >= commandsPerLine or i >= commands.length - 1
-        @message '', line.join ' ', 'notice help'
+        @message '', line.join('  '), 'notice help'
+        line = []
 
   _getMaxCommandWidth: (commands) ->
     maxWidth = 0
