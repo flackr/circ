@@ -89,6 +89,7 @@ li div {
 
 #chat-display {
   overflow-y: scroll;
+  overflow-x: hidden;
   -webkit-box-flex: 1;
   padding-bottom: 2px;
   width: 100%;

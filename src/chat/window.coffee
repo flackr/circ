@@ -17,6 +17,7 @@ class Window
     chatDisplayContainer.append @$chatDisplay
     @$chatDisplay.append @$messages
     @$container.append chatDisplayContainer
+    @messageRenderer = new chat.window.MessageRenderer @$messages
 
   setTarget: (@target) ->
     @_addNickList() unless @isPrivate()
@@ -65,59 +66,22 @@ class Window
     scrollPosition = @$chatDisplay.scrollTop() + @$chatDisplay.height()
     scrollPosition >= @$chatDisplay[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
 
-  emptyLine: () ->
-    @_addMessage '&nbsp;', '&nbsp;'
+  displayHelp: (commands) ->
+    @messageRenderer.displayHelp commands
+
+  displayWelcome: ->
+    @messageRenderer.displayWelcome()
+
+  displayEmptyLine: ->
+    @messageRenderer.displayEmptyLine()
 
   message: (from, msg, style...) ->
-    @_addMessage escapeHTML(from), display(msg), style...
-
-  _addMessage: (from, msg, classes...) ->
     wasScrolledDown = @isScrolledDown()
-    @$messages.append $("""
-    <div class='message #{classes.join(' ')}'>
-      <div class='source'>#{from}</div>
-      <div class='text'>#{msg}</div>
-    </div>
-    """)
+    @messageRenderer.message from, msg, style...
     if wasScrolledDown
       @scrollToBottom()
 
   scrollToBottom: ->
     @$chatDisplay.scrollTop(@$chatDisplay[0].scrollHeight)
-
-  displayHelp: (commands) ->
-    # TODO format nicely
-    commandList = ('/'+c for c in commands).join(' ')
-    @message '*', "Commands Available: #{commandList}", 'notice help'
-
-escapeHTML = (html) ->
-  escaped = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-  }
-  String(html).replace(/[&<>"]/g, (chr) -> escaped[chr])
-
-display = (text) ->
-  # Gruber's url-finding regex
-  rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi
-  canonicalise = (url) ->
-    url = escapeHTML url
-    if url.match(/^[a-z][\w-]+:/i)
-      url
-    else
-      'http://' + url
-
-  escape = (str) ->
-    escapeHTML(str).replace(/\S{40,}/,'<span class="longword">$&</span>')
-  res = ''
-  textIndex = 0
-  while m = rurl.exec text
-    res += escape(text.substr(textIndex, m.index - textIndex))
-    res += '<a target="_blank" href="'+canonicalise(m[0])+'">'+escape(m[0])+'</a>'
-    textIndex = m.index + m[0].length
-  res += escape(text.substr(textIndex))
-  return res
 
 exports.Window = Window

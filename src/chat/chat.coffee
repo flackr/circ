@@ -19,17 +19,8 @@ class Chat extends EventEmitter
     @emptyWindow = new chat.Window 'none'
     @channelDisplay.add @emptyWindow.name
     @switchToWindow @emptyWindow
+    @emptyWindow.displayWelcome()
     @connections = {}
-
-    @currentWindow.message '', "Welcome to CIRC, a packaged Chrome app.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Visit https://github.com/noahsug/circ/wiki to read documentation or report an issue.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Type /help to see a full list of commands.", "system"
-    @currentWindow.emptyLine()
-    @currentWindow.message '', "Switch windows with alt+[0-9] or clicking in the channel list on the left.", "system"
 
     document.title = "CIRC #{irc.VERSION}"
     @syncStorage = new chat.SyncStorage
@@ -67,18 +58,20 @@ class Chat extends EventEmitter
   _createWindowForServer: (server, port) ->
     conn = @connections[server]
     win = new chat.Window conn.name
+    @_replaceEmptyWindowIfExists win
     win.message '*', "Connecting to #{conn.name}..."
     win.conn = conn
     conn.serverWindow = win
     @winList.add win
     @channelDisplay.add conn.name
     @syncStorage.serverJoined conn.name, port
-    @_replaceEmptyWindowIfExists()
     @switchToWindow win
 
-  _replaceEmptyWindowIfExists: ->
+  _replaceEmptyWindowIfExists: (win) ->
     if @currentWindow.equals @emptyWindow
       @channelDisplay.remove @emptyWindow.name
+      win.displayWelcome()
+      win.displayEmptyLine()
 
   join: (conn, channel) ->
     win = @_createWindowForChannel conn, channel

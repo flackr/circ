@@ -66,7 +66,7 @@ class UserInputHandler extends EventEmitter
 
   _sendUserCommand: =>
     @_inputStack.addInput @text
-    words = @text.split(/\s+/)
+    words = @text.split(/\s/)
     if @text[0] == '/'
       name = words[0][1..].toLowerCase()
       words = words[1..]
