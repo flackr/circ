@@ -81,13 +81,14 @@ class ServerResponseHandler extends MessageHandler
 
     PRIVMSG: (from, target, msg) ->
       if @ctcpHandler.isCTCPRequest msg
-        # TODO let scripts intercept CTCP requests
         for response in @ctcpHandler.getResponses msg
           @irc.doCommand 'NOTICE', from.nick, response, true
       else
         @irc.emitMessage 'privmsg', target, from.nick, msg
 
     NOTICE: (from, target, msg) ->
+      if not from.user
+        return @irc.emitMessage 'notice', chat.SERVER_WINDOW, msg
       event = new Event 'message', 'privmsg', from.nick, msg
       event.setContext @irc.server, chat.CURRENT_WINDOW
       event.setStyle 'notice'

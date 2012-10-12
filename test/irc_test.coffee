@@ -264,6 +264,14 @@ describe 'An IRC client backend', ->
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW, 'away', 'Now away'
 
+      it "emits 'notice' when the server sends a direct NOTICE", ->
+        chat.onIRCMessage.reset()
+        socket.respondWithData ":server@freenode.net NOTICE * :No Ident response"
+        waitsForArrayBufferConversion()
+        runs ->
+          expect(chat.onIRCMessage).toHaveBeenCalledWith SERVER_WINDOW,
+              'notice', 'No Ident response'
+
       describe "has a CTCP handler which", ->
 
         it "responds to CTCP VERSION with the appropriate notice message", ->
