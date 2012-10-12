@@ -56,10 +56,16 @@ class MessageRenderer
     return command + space.slice 0, maxCommandWidth - command.length
 
   message: (from='', msg=' ', style...) ->
+    from = escapeHTML from
+    msg = display msg
+    style = style.join ' '
+    @_addMessage from, msg, style
+
+  _addMessage: (from, msg, style) ->
     @surface.append $("""
-    <div class='message #{style.join(' ')}'>
-      <div class='source'>#{escapeHTML from}</div>
-      <div class='text'>#{display msg}</div>
+    <div class='message #{style}'>
+      <div class='source'>#{from}</div>
+      <div class='text'>#{msg}</div>
     </div>
     """)
 
@@ -69,7 +75,7 @@ escapeHTML = (html) ->
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    ' ': '&emsp;',
+    ' ': '&emsp;<wbr>',
   }
   String(html).replace(/[\s&<>"]/g, (chr) -> escaped[chr])
 
@@ -84,7 +90,15 @@ display = (text) ->
       'http://' + url
 
   escape = (str) ->
-    escapeHTML(str).replace(/\S{30,}/,'<span class="longword">$&</span>')
+    # long words need to be extracted before escaping so escape HTML characters
+    # don't scew the word length
+    longWords = str.match(/\S{40,}/g) ? []
+    longWords = (escapeHTML(word) for word in longWords)
+    str = escapeHTML(str)
+    for word in longWords
+      str = str.replace word, "<span class=\"longword\">#{word}</span>"
+    str
+
   res = ''
   textIndex = 0
   while m = rurl.exec text
