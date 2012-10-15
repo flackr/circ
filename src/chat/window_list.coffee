@@ -88,10 +88,18 @@ class WindowList
         return count unless win.target?
         count++
         for candidate, i in server.windows
-          return count + i if candidate.target == win.target
+          return count + i if candidate.equals win
         return -1
       else
         count += server.windows.length + 1
     -1
+
+  localIndexOf: (win) ->
+    assert win.conn?.name?
+    for server in @_servers
+      continue unless win.conn.name is server.name
+      for candidate, i in server.windows
+        return i if candidate.equals win
+    return -1
 
 exports.WindowList = WindowList

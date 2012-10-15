@@ -1,29 +1,23 @@
 describe 'An IRC client front end', ->
-  client = undefined
-  divs = ['chat', 'status', 'channels']
+  client = prompt = commandInput = undefined
 
-  prompt = $ '<div>'
-  commandInput = new UserInputHandler(prompt, $ window)
+  room = (index) ->
+    return rooms().last() if index is -1
+    $ rooms()[index]
+
+  rooms = ->
+    $ '#rooms-container .rooms .room'
+
+  textOfRoom = (index) ->
+    $('.content-item', room(index)).text()
 
   type = (text) ->
     prompt.val(text)
     commandInput._handleKeydown { which: 13, preventDefault: -> }
 
-  addHTMLFixtures = ->
-    for div in divs
-      addMockDiv div
-
-  addMockDiv = (id) ->
-    div = $ "<div id='#{id}' style='display: hidden'>"
-    $('body').append div
-
-  removeHTMLFixtures = ->
-    for div in divs
-      $("##{div}").remove()
-
   restart = ->
-    removeHTMLFixtures()
-    addHTMLFixtures()
+    mocks.dom.tearDown()
+    mocks.dom.setUp()
     init()
 
   init = ->
@@ -41,14 +35,16 @@ describe 'An IRC client front end', ->
     client.listenToIRCEvents scriptHandler
 
   beforeEach ->
-    addHTMLFixtures()
+    mocks.dom.setUp()
     mocks.ChromeSocket.useMock()
     mocks.NickMentionedNotification.useMock()
+    prompt = $('#input')
+    commandInput = new UserInputHandler(prompt, $ window)
     chrome.storage.sync.set {nick: 'ournick'}
     init()
 
   afterEach ->
-    removeHTMLFixtures()
+    mocks.dom.tearDown()
     chrome.storage.sync.clear()
 
   it "displays the preferred nick in the status bar", ->
@@ -58,14 +54,15 @@ describe 'An IRC client front end', ->
     expect(document.title).toMatch /^CIRC [0-9].[0-9].[0-9]$/
 
   it "initially has one window", ->
-    expect($('li', '#channels').length).toBe 1
+    expect(rooms().length).toBe 1
 
   it "replaces the initial window with a server window on /connect", ->
     type '/connect freenode'
-    expect($('li', '#channels').length).toBe 1
+    expect(rooms().length).toBe 1
+    expect(room 0).toHaveText 'freenode'
     expect(client.currentWindow.conn.name).toBe 'freenode'
 
-  it "ignores commands that require a connection not connected", ->
+  it "ignores commands that requicre a connection not connected", ->
     type '/names'
     type '/me is 1337'
     type '/op bob'
@@ -101,20 +98,20 @@ describe 'An IRC client front end', ->
       expect(client.connections['freenode'].windows['#bash']).toBeDefined()
       expect(client.connections['freenode'].windows['#awesome']).toBeDefined()
       expect(client.connections['dalnet'].windows['#hiphop']).toBeDefined()
-      expect($('li', '#channels').length).toBe 5
+      expect(rooms().length).toBe 5
 
     it "doesn't restore channels that were parted", ->
       type '/part #hiphop'
       restart()
       expect(client.connections['dalnet'].windows['#hiphop']).not.toBeDefined()
-      expect($('li', '#channels').length).toBe 4
+      expect(rooms().length).toBe 4
 
     it "doesn't restore servers that were parted", ->
       type '/win 1'
       type '/quit'
       restart()
       expect(client.connections['freenode']).not.toBeDefined()
-      expect($('li', '#channels').length).toBe 2
+      expect(rooms().length).toBe 2
 
   describe "that is connecting", ->
     irc = undefined
@@ -131,9 +128,10 @@ describe 'An IRC client front end', ->
 
     it 'allows channels to be joined while connecting', ->
       type '/join #bash'
-      expect($('li', '#channels').length).toBe 2
-      expect($('li', '#channels').last().children()).toHaveText '(#bash)'
-      expect($('li', '#channels').last()).toHaveClass 'selected'
+      expect(rooms().length).toBe 2
+      expect(textOfRoom -1).toBe '#bash'
+      expect(room -1).toHaveClass 'selected'
+      expect(room -1).toHaveClass 'disconnected'
 
     it 'automatically joins queued channels when connected', ->
       type '/join #bash'
@@ -159,7 +157,7 @@ describe 'An IRC client front end', ->
       spyOn irc, 'doCommand'
 
     it "marks the server item in the window list as connected", ->
-      expect($('li', '#channels').children()).toHaveText 'freenode'
+      expect(room 0).not.toHaveClass 'disconnected'
 
     it "updates the status bar on /away", ->
       type '/away'
@@ -168,16 +166,16 @@ describe 'An IRC client front end', ->
 
     it "creates a new window when a direct private message is received", ->
       irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
-      expect($('li', '#channels').length).toBe 2
-      expect($('li', '#channels').last().children()).toHaveText 'someguy'
-      expect($('li', '#channels').last()).toHaveClass 'mention'
-      expect($('li', '#channels').last()).toHaveClass 'activity'
-      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+      expect(rooms().length).toBe 2
+      expect(textOfRoom -1).toBe 'someguy'
+      expect(room -1).toHaveClass 'mention'
+      expect(room -1).toHaveClass 'activity'
+      expect(room -1).not.toHaveClass 'selected'
 
     it "displays /msg text in the current window if there is no existing conversation window", ->
       spyOn(client.currentWindow, 'message').andCallThrough()
       type '/msg someguy hey dude'
-      expect($('li', '#channels').length).toBe 1
+      expect(rooms().length).toBe 1
       expect(client.currentWindow.message).toHaveBeenCalled()
 
     it "displays /msg text in the conversation window when it exists", ->
@@ -190,13 +188,14 @@ describe 'An IRC client front end', ->
       irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
       type '/win 2'
       type '/win 1'
-      expect($('li', '#channels').last()).not.toHaveClass 'mention'
-      expect($('li', '#channels').last()).not.toHaveClass 'activity'
-      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+      expect(room -1).not.toHaveClass 'mention'
+      expect(room -1).not.toHaveClass 'activity'
+      expect(room -1).not.toHaveClass 'selected'
+
       type '/msg someguy hey dude'
-      expect($('li', '#channels').last()).not.toHaveClass 'mention'
-      expect($('li', '#channels').last()).toHaveClass 'activity'
-      expect($('li', '#channels').last()).not.toHaveClass 'selected'
+      expect(room -1).not.toHaveClass 'mention'
+      expect(room -1).toHaveClass 'activity'
+      expect(room -1).not.toHaveClass 'selected'
 
     it "creates a notification when a direct private message is received", ->
       chat.NickMentionedNotification.notificationCount = 0
@@ -215,7 +214,7 @@ describe 'An IRC client front end', ->
         irc.onError 'socket error!'
 
       it 'shows all servers and channels as disconnected', ->
-        expect($('li', '#channels').children()).toHaveText '(freenode)'
+        expect(room 0).toHaveClass 'disconnected'
 
       it 'attempts to reconnect after a short amount of time', ->
         spyOn(irc, 'connect')
@@ -252,8 +251,8 @@ describe 'An IRC client front end', ->
         type '/join #bash'
         irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
 
-      it "adds another item to the window display", ->
-        expect($('li', '#channels').length).toBe 2
+      it "adds another item to the room display", ->
+        expect(rooms().length).toBe 2
 
       it "can switch windows with /win", ->
         type "/win 1"
@@ -264,9 +263,9 @@ describe 'An IRC client front end', ->
         chat.NickMentionedNotification.notificationCount = 0
         irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
         expect(chat.NickMentionedNotification.notificationCount).toBe 1
-        expect($('li', '#channels').last()).toHaveClass 'mention'
-        expect($('li', '#channels').last()).toHaveClass 'activity'
-        expect($('li', '#channels').last()).not.toHaveClass 'selected'
+        expect(room -1).toHaveClass 'mention'
+        expect(room -1).toHaveClass 'activity'
+        expect(room -1).not.toHaveClass 'selected'
 
       it "marks a window as active if a message is sent and it's not selected", ->
         type '/server dalnet'
@@ -277,68 +276,78 @@ describe 'An IRC client front end', ->
         irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
 
         irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hi'
-        expect($($('li', '#channels')[1])).toHaveClass 'activity'
+        expect(room 1).toHaveClass 'activity'
 
       it "clears activity and mention style when switching to a window", ->
         type "/win 1"
         irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
         type "/win 2"
-        expect($('li', '#channels').last()).not.toHaveClass 'mention'
-        expect($('li', '#channels').last()).not.toHaveClass 'activity'
-        expect($('li', '#channels').last()).toHaveClass 'selected'
+        expect(room -1).not.toHaveClass 'mention'
+        expect(room -1).not.toHaveClass 'activity'
+        expect(room -1).toHaveClass 'selected'
 
       it "clicking on a channel in the channel display switches to that channel", ->
         client.channelDisplay.emit 'clicked', 'freenode', '#bash'
         expect(client.currentWindow.target).toBe '#bash'
-        expect($('li', '#channels').last()).toHaveClass 'selected'
+        expect(room -1).toHaveClass 'selected'
 
       describe "has a nick list which", ->
-        nicks = undefined
+        nicks = currentNicks = undefined
+
+        nick = (index) ->
+          return nicks().last() if index is -1
+          $ nicks()[index]
+
+        nicks = ->
+          $ '#nicks-container .nicks .nick'
+
+        textOfNick = (index) ->
+          $('.content-item', nick(index)).text()
 
         beforeEach ->
-          nicks = ['bart', 'bill', 'bob', 'charlie', 'derek', 'edward', 'jacob',
+          currentNicks = ['bart', 'bill', 'bob', 'charlie', 'derek', 'edward', 'jacob',
               'megan', 'norman', 'sally', 'sue', 'tereza',
               'zabo1', 'zabo2', 'zabo3', 'zabo88']
 
         addNicks = ->
-          irc.emit 'names', '#bash', nicks.slice(0, 7)
-          irc.emit 'names', '#bash', nicks.slice(7, 12)
-          irc.emit 'names', '#bash', nicks.slice(12)
+          irc.emit 'names', '#bash', currentNicks.slice(0, 7)
+          irc.emit 'names', '#bash', currentNicks.slice(7, 12)
+          irc.emit 'names', '#bash', currentNicks.slice(12)
           nameMap = {}
-          (nameMap[name] = name for name in nicks)
+          (nameMap[name] = name for name in currentNicks)
           irc.channels['#bash'].names = nameMap
 
         it "displays the user's nick when first joining a channel", ->
-          expect($('li', '#nicks').length).toBe 1
-          expect($('li', '#nicks').children()).toHaveText 'ournick'
+          expect(nicks().length).toBe 1
+          expect(textOfNick 0).toBe 'ournick'
 
         it "displays all nicks in the channel when the nick list is sent", ->
           addNicks()
-          expect($('li', '#nicks').length).toBe nicks.length + 1
+          expect(nicks().length).toBe currentNicks.length + 1
 
         it "displays nicks in sorted order", ->
           addNicks()
-          expect($($('li', '#nicks')[9]).children()).toHaveText 'ournick'
+          expect(textOfNick 9).toBe 'ournick'
 
         it "displays newly joined nicks after they /join", ->
           addNicks()
           irc.handle 'JOIN', {nick: 'alphy'}, '#bash'
-          expect($('li', '#nicks').length).toBe nicks.length + 2
-          expect($($('li', '#nicks')[0]).children()).toHaveText 'alphy'
+          expect(nicks().length).toBe currentNicks.length + 2
+          expect(textOfNick 0).toBe 'alphy'
 
         it "doesn't display nicks after they have been kicked", ->
           addNicks()
           irc.handle 'KICK', {nick: 'bob'}, '#bash', 'zabo88'
-          expect($('li', '#nicks').length).toBe nicks.length
-          expect($('li', '#nicks').last().children()).not.toHaveText 'zabo88'
+          expect(nicks().length).toBe currentNicks.length
+          expect(textOfNick 0).not.toBe 'zabo88'
 
         it "doesn't display nicks after they left with /parted", ->
           addNicks()
           irc.handle 'PART', {nick: 'bob'}, '#bash'
-          expect($('li', '#nicks').length).toBe nicks.length
-          expect($($('li', '#nicks')[2]).children()).not.toHaveText 'bob'
+          expect(nicks().length).toBe currentNicks.length
+          expect(textOfNick 2).not.toBe 'bob'
 
         it "doesn't display duplicate nicks", ->
-          nicks.push 'ournick'
+          currentNicks.push 'ournick'
           addNicks()
-          expect($('li', '#nicks').length).toBe nicks.length
+          expect(nicks().length).toBe currentNicks.length

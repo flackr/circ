@@ -1,4 +1,4 @@
-userInput = new UserInputHandler $('#cmd'), $(window)
+userInput = new UserInputHandler $('#input'), $(window)
 scriptHandler = new window.script.ScriptHandler
 chat = new window.chat.Chat
 

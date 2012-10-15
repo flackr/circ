@@ -75,12 +75,11 @@ class MessageRenderer
       @win.scrollToBottom()
 
   _addMessage: (from, msg, style) ->
-    @win.$messages.append $("""
-    <div class='message #{style}'>
-      <div class='source'>#{from}</div>
-      <div class='text'>#{msg}</div>
-    </div>
-    """)
+    html = $('#templates .message').clone()
+    html.addClass style
+    $('.source', html).html from
+    $('.content', html).html msg
+    @win.$messages.append html
 
 escapeHTML = (html) ->
   escaped = {
@@ -88,7 +87,7 @@ escapeHTML = (html) ->
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    ' ': '&emsp;<wbr>',
+    ' ': '&nbsp;<wbr>',
   }
   String(html).replace(/[\s&<>"]/g, (chr) -> escaped[chr])
 

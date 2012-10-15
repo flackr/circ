@@ -1,76 +1,81 @@
 exports = window.chat ?= {}
 
 # TODO show servers as well as channels
-class ChannelList extends chat.HTMLList
+class ChannelList extends EventEmitter
   constructor: ->
-    super $ '#channels'
-    @lastSelected = undefined
+    super
+    @$surface = $ '#rooms-container .rooms'
+    @roomsByServer = {}
 
   select: (server, channel) ->
-    @removeClass @_lastSelected, 'selected' if @_lastSelected?
-    currentWindow = @_getID server, channel
-    @_lastSelected = currentWindow
-    @removeClass currentWindow, 'activity'
-    @removeClass currentWindow, 'mention'
-    @addClass currentWindow, 'selected'
+    @_removeLastSelected()
+    @_addClass server, channel, 'selected'
+    @_removeClass server, channel, 'activity'
+    @_removeClass server, channel, 'mention'
 
-  activity: (server, channel) ->
-    @addClass @_getID(server, channel), 'activity'
+  _removeLastSelected: ->
+    $('.room.selected', @$surface)?.removeClass 'selected'
 
-  mention: (server, channel) ->
-    @addClass @_getID(server, channel), 'mention'
+  activity: (server, opt_channel) ->
+    @_addClass server, opt_channel, 'activity'
 
-  remove: (server, chan) ->
-    id = @_getID server, chan
-    prev = @getPrevious id
-    super id
-    @_styleLastChannel server, prev
+  mention: (server, opt_channel) ->
+    @_addClass server, opt_channel, 'mention'
 
-  insert: (i, server, chan) ->
-    super i, @_getID server, chan
-    @_formatNode server, chan
+  remove: (server, opt_channel) ->
+    if opt_channel?
+      @roomsByServer[server].channels.remove opt_channel
+    else
+      @roomsByServer[server].html.remove()
+      delete @roomsByServer[server]
 
-  add: (server, chan) ->
-    super @_getID server, chan
-    @_formatNode server, chan
+  insertChannel: (i, server, channel) ->
+    @roomsByServer[server].channels.insert i, channel
+    @disconnect server, channel
 
-  _formatNode: (server, chan) ->
-    @disconnect(server, chan)
-    if chan?
-      id = @_getID server, chan
-      @addClass id, 'indent'
-      @_styleLastChannel server, id
+  addServer: (serverName) ->
+    html = @_createServerHTML serverName
+    server = $ '.server', html
+    channels = @_createChannelList html
+    @_handleMouseEvents serverName, server, channels
+    @roomsByServer[serverName] = { html, server, channels }
+    @disconnect serverName
 
-  _styleLastChannel: (server, id) ->
-    return unless @_isLastChannel id
-    @addClass id, 'last'
-    prev = @getPrevious id
-    @removeClass prev, 'last' if prev
+  _createServerHTML: (serverName) ->
+    html = $('#templates .server-channels').clone()
+    $('.server', html).text serverName
+    @$surface.append html
+    html
 
-  _isLastChannel: (id) ->
-    return false unless id and @_isChannel id
-    nextNode = @getNext id
-    return not nextNode or not @_isChannel nextNode
+  _createChannelList: (html) ->
+    channelTemplate = $ '#templates .channel'
+    channelList = new chat.HTMLList $('.channels', html), channelTemplate
+    channelList
 
-  _isChannel: (id) ->
-    return id.indexOf(' ') >= 0
+  _handleMouseEvents: (serverName, server, channels) ->
+    server.mousedown => @_handleClick serverName
+    channels.on 'clicked', (channelName) =>
+        @_handleClick serverName, channelName
 
-  disconnect: (server, channel) ->
-    @rename @_getID(server, channel), @_getDisconnectedName server, channel
+  disconnect: (server, opt_channel) ->
+    @_addClass server, opt_channel, 'disconnected'
 
-  connect: (server, channel) ->
-    @rename @_getID(server, channel), channel ? server
+  connect: (server, opt_channel) ->
+    @_removeClass server, opt_channel, 'disconnected'
 
-  _getDisconnectedName: (server, channel) ->
-    name = channel ? server
-    return '(' + name + ')'
+  _addClass: (server, channel, c) ->
+    if channel?
+      @roomsByServer[server].channels.addClass channel, c
+    else
+      @roomsByServer[server].server.addClass c
 
-  _getID: (server, channel) ->
-    if not channel?
-      return server
-    return server + ' ' + channel
+  _removeClass: (server, channel, c) ->
+    if channel?
+      @roomsByServer[server].channels.removeClass channel, c
+    else
+      @roomsByServer[server].server.removeClass c
 
-  _handleClick: (node) ->
-    @emit 'clicked', node.name.split(' ')...
+  _handleClick: (server, channel) =>
+    @emit 'clicked', server, channel
 
 exports.ChannelList = ChannelList

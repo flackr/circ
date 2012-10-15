@@ -2,7 +2,7 @@ describe 'A window list', ->
   wl = windows = undefined
 
   createWindow = (server, chan) ->
-    win = { conn: {name: server}, target: chan }
+    win = { conn: {name: server}, target: chan, equals: (w) -> w.target is chan}
     windows.push win
     win
 
@@ -134,3 +134,13 @@ describe 'A window list', ->
     wl.add createWindow 'dalnet'
     expect(wl.get 'freenode').toBe windows[0]
     expect(wl.get 'dalnet').toBe windows[1]
+
+  it "can return the index of a channel in the context of its server", ->
+    wl.add createWindow 'freenode'
+    wl.add createWindow 'dalnet'
+    wl.add createWindow 'dalnet', '#zebra'   # windows 2
+    wl.add createWindow 'freenode', '#zebra' # windows 3
+    wl.add createWindow 'dalnet', '#bash'    # windows 4
+    wl.add createWindow 'freenode', '#bash'  # windows 5
+    expect(wl.localIndexOf windows[2]).toBe 1
+    expect(wl.localIndexOf windows[5]).toBe 0

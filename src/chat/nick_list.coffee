@@ -3,6 +3,9 @@ exports = window.chat ?= {}
 # TODO sort first by op status, then name
 class NickList extends chat.HTMLList
 
+  constructor: (surface) ->
+    super surface, $ '#templates .nick'
+
   add: (nick) ->
     i = @_getClosestIndex nick
     @insert i, nick

@@ -15,9 +15,8 @@ class Chat extends EventEmitter
       win = @winList.get server, chan
       @switchToWindow win if win?
 
-    @$windowContainer = $('#chat')
     @emptyWindow = new chat.Window 'none'
-    @channelDisplay.add @emptyWindow.name
+    @channelDisplay.addServer @emptyWindow.name
     @switchToWindow @emptyWindow
     @emptyWindow.messageRenderer.displayWelcome()
     @connections = {}
@@ -63,7 +62,7 @@ class Chat extends EventEmitter
     win.conn = conn
     conn.serverWindow = win
     @winList.add win
-    @channelDisplay.add conn.name
+    @channelDisplay.addServer conn.name
     @syncStorage.serverJoined conn.name, port
     @switchToWindow win
 
@@ -143,8 +142,8 @@ class Chat extends EventEmitter
     win = conn.windows[chan]
     if not win
       win = @makeWin conn, chan
-      i = @winList.indexOf win
-      @channelDisplay.insert i, conn.name, chan
+      i = @winList.localIndexOf win
+      @channelDisplay.insertChannel i, conn.name, chan
       @syncStorage.channelJoined conn.name, chan
     win
 
@@ -160,7 +159,6 @@ class Chat extends EventEmitter
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
     removedWindows = @winList.remove win
-    @syncStorage.parted win.conn.name, win.target
     for win in removedWindows
       @_removeWindowFromState win
     @_selectNextWindow(index)
@@ -176,7 +174,7 @@ class Chat extends EventEmitter
 
   _selectNextWindow: (preferredIndex) ->
     if @winList.length is 0
-      @channelDisplay.add @emptyWindow.name
+      @channelDisplay.addServer @emptyWindow.name
       @switchToWindow @emptyWindow
     else if @winList.indexOf(@currentWindow) == -1
       nextWin = @winList.get(preferredIndex) ? @winList.get(preferredIndex - 1)
@@ -204,20 +202,23 @@ class Chat extends EventEmitter
     $('#status').text(statusList.join ' ')
 
   switchToWindowByIndex: (winNum) ->
-      winNum = 10 if winNum is 0
-      win = @winList.get winNum - 1
-      @switchToWindow win if win?
+    winNum = 10 if winNum is 0
+    win = @winList.get winNum - 1
+    @switchToWindow win if win?
 
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
     @currentWindow.detach() if @currentWindow
-    win.attachTo @$windowContainer
     @currentWindow = win
-    if win.conn?
+    win.attach()
+    @_selectWindowInChannelDisplay win
+    @updateStatus()
+
+  _selectWindowInChannelDisplay: (win) ->
+    if win.conn
       @channelDisplay.select win.conn.name, win.target
     else
-      @channelDisplay.select Chat.NoConnName
-    @updateStatus()
+      @channelDisplay.select win.name
 
   # emits message to script handler, which decides if it should send it back
   displayMessage: (name, context, args...) ->

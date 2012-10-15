@@ -10,17 +10,26 @@ class Window
   constructor: (server, opt_channel) ->
     @name = server + if opt_channel then " #{opt_channel}" else ''
     @wasScrolledDown = true
-    @$container = $ "<div id='window-container'>"
-    @$messages = $ "<div id='chat-messages'>"
-    @$chatDisplay = $ "<div id='chat-display'>"
-    chatDisplayContainer = $ "<div id='chat-display-container'>"
-    chatDisplayContainer.append @$chatDisplay
-    @$chatDisplay.append @$messages
-    @$container.append chatDisplayContainer
     @messageRenderer = new chat.window.MessageRenderer this
+    @_addUI()
+
+  _addUI: ->
+    @_addMessageUI()
+    @_addNickUI()
+    @$roomsAndNicks = $ '#rooms-and-nicks'
+
+  _addMessageUI: ->
+    @$messagesContainer = $ '#messages-container'
+    @$messages = $('#templates .messages').clone()
+
+  _addNickUI: ->
+    @$nicksContainer = $ '#nicks-container'
+    @$nicks = $('#templates .nicks').clone()
+    @nicks = new chat.NickList @$nicks
 
   setTarget: (@target) ->
-    @_addNickList() unless @isPrivate()
+    return if @isPrivate()
+    @$roomsAndNicks.removeClass 'no-nicks'
 
   isServerWindow: ->
     return not @target?
@@ -33,38 +42,35 @@ class Window
   # Private windows are used for direct messages from /msg.
   ##
   makePrivate: ->
-    @$nickWrapper?.remove()
+    @$roomsAndNicks.addClass 'no-nicks'
     @_private = true
 
   isPrivate: ->
     return @_private?
 
-  _addNickList: ->
-    nicks = $ "<ol id='nicks'>"
-    nickDisplay = $ "<div id='nick-display'>"
-    @$nickWrapper = $ "<div id='nick-display-container'>"
-    nickDisplay.append nicks
-    @$nickWrapper.append nickDisplay
-    @$container.append @$nickWrapper
-    @nicks = new chat.NickList(nicks)
-
   detach: ->
-    @scroll = @$chatDisplay.scrollTop()
+    @scroll = @$messagesContainer.scrollTop()
     @wasScrolledDown = @isScrolledDown()
-    @$container.detach()
+    @$roomsAndNicks.addClass 'no-nicks'
+    @$messages.detach()
+    @$nicks.detach()
 
   remove: ->
-    @$container.remove()
+    @detach()
+    @$messages.remove()
+    @$nicks.remove()
 
-  attachTo: (container) ->
-    container.prepend @$container
+  attach: ->
+    @$roomsAndNicks.removeClass 'no-nicks' if @target?
+    @$messagesContainer.append @$messages
+    @$nicksContainer.append @$nicks
     if @wasScrolledDown
-      @scroll = @$chatDisplay[0].scrollHeight
-    @$chatDisplay.scrollTop(@scroll)
+      @scroll = @$messagesContainer[0].scrollHeight
+    @$messagesContainer.scrollTop @scroll
 
   isScrolledDown: ->
-    scrollPosition = @$chatDisplay.scrollTop() + @$chatDisplay.height()
-    scrollPosition >= @$chatDisplay[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
+    scrollPosition = @$messagesContainer.scrollTop() + @$messagesContainer.height()
+    scrollPosition >= @$messagesContainer[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
 
   message: (from, msg, style...) ->
     wasScrolledDown = @isScrolledDown()
@@ -73,6 +79,6 @@ class Window
       @scrollToBottom()
 
   scrollToBottom: ->
-    @$chatDisplay.scrollTop(@$chatDisplay[0].scrollHeight)
+    @$messagesContainer.scrollTop(@$messagesContainer[0].scrollHeight)
 
 exports.Window = Window

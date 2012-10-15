@@ -1,6 +1,5 @@
 <head>
   <meta charset="utf-8">
-  <title>Chromium IRC</title>
 
   <!-- generic -->
   <script src="util.js"></script>
@@ -52,21 +51,57 @@
 
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="message_style.css">
+  <link rel="stylesheet" href="roboto_font.css">
 </head>
+
 <body>
+  <!-- templates -->
+  <div id="templates">
+
+    <div class="server-channels">
+      <div class="content-item server room"></div>
+      <ul class="channels"></ul>
+    </div>
+
+    <li class="channel room">
+      <div class="content-item"></div>
+    </li>
+
+    <ul class="nicks"></ul>
+
+    <li class="nick">
+      <div class="content-item"></div>
+    </li>
+
+    <ul class="messages"></ul>
+
+    <li class="message">
+      <div class="source"></div>
+      <div class="content"></div>
+    </li>
+
+  </div>
+
+  <!-- main -->
   <div id="main">
-    <div id="channel-display-container">
-      <div id="channel-display">
-        <ul id="channels">
-        </ul>
+    <div id="rooms-and-nicks" class="no-nicks">
+      <div id="rooms-container">
+        <h1>rooms</h1>
+        <div class="rooms"></div>
+      </div>
+      <div id="nicks-container">
+        <h1>members</h1>
       </div>
     </div>
-    <div id="chat">
-      <div id="entry">
-        <div id="status"></div>
-        <input id="cmd"></div>
+
+    <div id="messages-and-input">
+      <div id="messages-container"></div>
+      <div id="status-and-input">
+        <div id="status" class="content-item"></div>
+        <input id="input"></div>
       </div>
     </div>
   </div>
+
   <script src="main.js"></script>
 </body>

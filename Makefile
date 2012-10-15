@@ -8,7 +8,7 @@ build: clean
 	cp src/net/* bin/
 	cp src/script/* bin/
 	cp third_party/*.js bin/
-	cp static/*.* bin/
+	cp -r static/font bin/
 	coffee -c bin/*.coffee
 	rm bin/*.coffee
 

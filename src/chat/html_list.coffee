@@ -1,7 +1,7 @@
 exports = window.chat ?= {}
 
 class HTMLList extends EventEmitter
-  constructor: (@$list) ->
+  constructor: (@$list, @$template) ->
     @nodes = {}
     @nodeNames = []
     super
@@ -61,15 +61,17 @@ class HTMLList extends EventEmitter
     @nodes[name]?.content.text(text)
 
   _createNode: (name) ->
-    node = {html: htmlify(name), name: name}
-    node.content = node.html.children()
-    node.html.mousedown( => @_handleClick(node))
+    node = {html: @_htmlify(name), name: name}
+    node.content = $('.content-item', node.html)
+    node.html.mousedown => @_handleClick node
     node
 
   _handleClick: (node) ->
     @emit 'clicked', node.name
 
-htmlify = (name) ->
-  $ "<li><div>#{name}</div></li>"
+  _htmlify: (name) ->
+    html = @$template.clone()
+    $('.content-item', html).text name
+    html
 
 exports.HTMLList = HTMLList
