@@ -19,7 +19,7 @@ class Chat extends EventEmitter
     @emptyWindow = new chat.Window 'none'
     @channelDisplay.add @emptyWindow.name
     @switchToWindow @emptyWindow
-    @emptyWindow.displayWelcome()
+    @emptyWindow.messageRenderer.displayWelcome()
     @connections = {}
 
     document.title = "CIRC #{irc.VERSION}"
@@ -70,8 +70,8 @@ class Chat extends EventEmitter
   _replaceEmptyWindowIfExists: (win) ->
     if @currentWindow.equals @emptyWindow
       @channelDisplay.remove @emptyWindow.name
-      win.displayWelcome()
-      win.displayEmptyLine()
+      win.messageRenderer.displayWelcome()
+      win.messageRenderer.displayEmptyLine()
 
   join: (conn, channel) ->
     win = @_createWindowForChannel conn, channel

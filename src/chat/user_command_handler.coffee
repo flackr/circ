@@ -131,7 +131,7 @@ class UserCommandHandler extends MessageHandler
           @chat.currentWindow.message '*', @command.getHelp(), 'notice help'
         else
           commands = @chat.userCommands.getCommands()
-          @chat.currentWindow.displayHelp commands
+          @chat.currentWindow.messageRenderer.displayHelp commands
 
     @_addCommand 'raw',
       description: "sends a raw event to the IRC server, use the -c flag to " +
@@ -230,6 +230,11 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @conn.irc.doCommand 'PRIVMSG', @nick, @message
         @displayDirectMessage()
+
+    @_addCommand 'about',
+      description: "displays information about this IRC client"
+      run: ->
+        @chat.currentWindow.messageRenderer.displayAbout()
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

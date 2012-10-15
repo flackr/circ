@@ -4,7 +4,7 @@ class MessageRenderer
 
   @WIKI_URL = "https://github.com/noahsug/circ/wiki"
 
-  constructor: (@surface) ->
+  constructor: (@win) ->
 
   displayEmptyLine: ->
     @message()
@@ -30,6 +30,14 @@ class MessageRenderer
         'notice help'
     @displayEmptyLine()
     @_displayWikiUrl('notice help')
+
+  displayAbout: ->
+    @displayEmptyLine()
+    @message '*', "CIRC is a packaged Chrome app developed by Google Inc. " +
+    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
+    @displayEmptyLine()
+    @message '', "Contributors:", 'notice about'
+    @message '', " * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about'
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
@@ -58,13 +66,16 @@ class MessageRenderer
     return command + space.slice 0, maxCommandWidth - command.length
 
   message: (from='', msg=' ', style...) ->
+    wasScrolledDown = @win.isScrolledDown()
     from = escapeHTML from
     msg = display msg
     style = style.join ' '
     @_addMessage from, msg, style
+    if wasScrolledDown
+      @win.scrollToBottom()
 
   _addMessage: (from, msg, style) ->
-    @surface.append $("""
+    @win.$messages.append $("""
     <div class='message #{style}'>
       <div class='source'>#{from}</div>
       <div class='text'>#{msg}</div>

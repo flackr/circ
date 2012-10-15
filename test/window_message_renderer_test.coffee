@@ -7,7 +7,12 @@ describe "A window message renderer", ->
 
   beforeEach ->
     surface = $ '<div>'
-    renderer = new chat.window.MessageRenderer surface
+    win = {
+      $messages: surface
+      isScrolledDown: ->
+      scrollToBottom: ->
+    }
+    renderer = new chat.window.MessageRenderer win
     spyOn(renderer, '_addMessage').andCallThrough()
 
   afterEach ->

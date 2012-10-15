@@ -17,7 +17,7 @@ class Window
     chatDisplayContainer.append @$chatDisplay
     @$chatDisplay.append @$messages
     @$container.append chatDisplayContainer
-    @messageRenderer = new chat.window.MessageRenderer @$messages
+    @messageRenderer = new chat.window.MessageRenderer this
 
   setTarget: (@target) ->
     @_addNickList() unless @isPrivate()
@@ -65,15 +65,6 @@ class Window
   isScrolledDown: ->
     scrollPosition = @$chatDisplay.scrollTop() + @$chatDisplay.height()
     scrollPosition >= @$chatDisplay[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
-
-  displayHelp: (commands) ->
-    @messageRenderer.displayHelp commands
-
-  displayWelcome: ->
-    @messageRenderer.displayWelcome()
-
-  displayEmptyLine: ->
-    @messageRenderer.displayEmptyLine()
 
   message: (from, msg, style...) ->
     wasScrolledDown = @isScrolledDown()
