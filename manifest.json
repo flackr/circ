@@ -12,7 +12,8 @@
   "permissions": [
     "experimental",
     {"socket": [
-      "tcp-connect"
+      "tcp-connect",
+      "tcp-listen"
     ]},
     "notifications",
     "storage",
