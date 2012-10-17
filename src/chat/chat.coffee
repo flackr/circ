@@ -194,12 +194,10 @@ class Chat extends EventEmitter
     away = @currentWindow.conn?.irc.away
     channel = @currentWindow.target
     topic = @currentWindow.conn?.irc.channels[channel]?.topic
-    statusList.push "[#{nick}]" if nick
-    statusList.push "(away)" if away
-    statusList.push "#{channel}" if channel
-    statusList.push "- #{topic}" if topic
-    statusList.push 'Welcome!' if statusList.length is 0
-    $('#status').text(statusList.join ' ')
+    statusList.push "<span class='nick'>#{nick}</span>" if nick
+    statusList.push "<span class='away'>away</span>" if away
+    statusList.push "<span class='topic'>#{topic}</span>" if topic
+    $('#status').html(statusList.join '') if statusList.length > 0
 
   switchToWindowByIndex: (winNum) ->
     winNum = 10 if winNum is 0

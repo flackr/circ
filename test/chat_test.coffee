@@ -48,7 +48,7 @@ describe 'An IRC client front end', ->
     chrome.storage.sync.clear()
 
   it "displays the preferred nick in the status bar", ->
-    expect($ '#status').toHaveText '[ournick]'
+    expect($ '#status').toHaveText 'ournick'
 
   it "sets the document title to the version", ->
     expect(document.title).toMatch /^CIRC [0-9].[0-9].[0-9]$/
@@ -86,7 +86,7 @@ describe 'An IRC client front end', ->
 
     it "restores the previously used nick", ->
       restart()
-      expect($ '#status').toHaveText '[ournick] #hiphop'
+      expect($ '#status').toHaveText 'ournick'
 
     it "restores the previously joined servers", ->
       restart()
@@ -162,7 +162,7 @@ describe 'An IRC client front end', ->
     it "updates the status bar on /away", ->
       type '/away'
       irc.handle '306' # rpl_nowaway
-      expect($ '#status').toHaveText '[ournick] (away)'
+      expect($ $('#status').children()[1]).toHaveText 'away'
 
     it "creates a new window when a direct private message is received", ->
       irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'

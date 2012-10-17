@@ -48,8 +48,8 @@ ul {
   margin: 0px;
 }
 
-.nick,
-.room {
+#rooms-and-nicks .nick,
+#rooms-and-nicks .room {
   padding: 0 8px;
   line-height: 26px;
 }
@@ -57,7 +57,7 @@ ul {
 #rooms-container {
   -webkit-box-flex: 0;
   border-bottom: 1px solid #CCC;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
 }
 
 .no-nicks #rooms-container {
@@ -65,50 +65,50 @@ ul {
   padding-bottom: 0px;
 }
 
-.rooms .room.server {
+#rooms-and-nicks .room.server {
   background-color: #F2EFD3;
 }
 
-.rooms .room.channel {
+#rooms-and-nicks .room.channel {
   line-height: 0;
 }
 
-.rooms .room.channel:first-child {
+#rooms-and-nicks .room.channel:first-child {
   padding-top: 3px;
 }
 
-.rooms .room.channel:first-child .content-item {
+#rooms-and-nicks .room.channel:first-child .content-item {
   padding-top: 3px;
   line-height: 20px;
 }
 
-.rooms .room.channel:last-child {
+#rooms-and-nicks .room.channel:last-child {
   padding-bottom: 3px;
 }
 
-.rooms .room.channel:last-child .content-item {
+#rooms-and-nicks .room.channel:last-child .content-item {
   padding-bottom: 3px;
   line-height: 20px;
 }
 
-.rooms .room.channel:last-child:first-child .content-item {
+#rooms-and-nicks .room.channel:last-child:first-child .content-item {
   line-height: 17px;
 }
 
-.rooms .room.channel .content-item {
+#rooms-and-nicks .room.channel .content-item {
   border-left: 1px solid rgba(0, 0, 0, .5);
   padding-left: 7px;
 }
 
-.rooms .room.activity {
+#rooms-and-nicks .room.activity {
   font-weight: bold;
 }
 
-.rooms .room.mention {
+#rooms-and-nicks .room.mention {
   color: darkred;
 }
 
-.rooms .room.selected {
+#rooms-and-nicks .room.selected {
   background-color: #D4CA6D;
 }
 
@@ -185,14 +185,28 @@ ul {
   padding: 8px 0px;
 }
 
+#status span {
+  padding: 0px 6px;
+}
+
 #status .nick:before {
   font-weight: bold;
   content: "[ "
 }
-
 #status .nick:after {
   font-weight: bold;
   content: " ]"
+}
+
+#status .away:before {
+  content: "("
+}
+#status .away:after {
+  content: ")"
+}
+
+#status .topic {
+  font-style: italic;
 }
 
 #input {
