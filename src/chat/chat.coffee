@@ -58,7 +58,7 @@ class Chat extends EventEmitter
     conn = @connections[server]
     win = new chat.Window conn.name
     @_replaceEmptyWindowIfExists win
-    win.message '', "Connecting to #{conn.name}...", 'first'
+    win.message '', "Connecting to #{conn.name}..."
     win.conn = conn
     conn.serverWindow = win
     @winList.add win

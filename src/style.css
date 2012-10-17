@@ -21,6 +21,10 @@ ul {
   text-overflow: ellipsis;
 }
 
+.monospace {
+  font-family: "monospace"
+}
+
 #main {
   background-color: #F9F9F9;
   display: -webkit-box;

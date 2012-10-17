@@ -7,26 +7,27 @@ class MessageRenderer
   constructor: (@win) ->
 
   displayWelcome: ->
-    @message '', "Welcome to CIRC, a packaged Chrome app.", "system first"
-    @_displayWikiUrl 'system first'
+    @message '', "Welcome to CIRC, a packaged Chrome app.", "system"
+    @_displayWikiUrl 'system'
     @message '', "Type /server <server> [port] to connect, then /nick " +
-        "<my_nick> and /join <#channel>.", "system first"
-    @message '', "Type /help to see a full list of commands.", "system first"
+        "<my_nick> and /join <#channel>.", "system"
+    @message '', "Type /help to see a full list of commands.", "system"
     @message '', "Switch windows with alt+[0-9] or click in the channel " +
-        "list on the left.", "system first"
+        "list on the left.", "system"
 
   displayHelp: (commands) ->
-    @message '', "Commands Available:", 'notice help first'
+    @message '', "Commands Available:", 'notice help'
     @_printCommands commands
     @message '', "Type /help <command> to see details about a specific command.",
-        'notice help first'
-    @_displayWikiUrl 'notice help first'
+        'notice help'
+    @_displayWikiUrl 'notice help'
 
   displayAbout: ->
     @message '', "CIRC is a packaged Chrome app developed by Google Inc. " +
-    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about first'
-    @message '', "Contributors:", 'notice about first'
-    @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about'
+    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
+    @message '', "Contributors:", 'notice about group'
+    @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about group'
+    @message() # insert an empty message to break the grouping
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
@@ -34,14 +35,14 @@ class MessageRenderer
 
   _printCommands: (commands) ->
     maxWidth = 40
-    style = 'notice help'
+    style = 'notice help monospace group'
     widthPerCommand = @_getMaxCommandWidth commands
     commandsPerLine = maxWidth / Math.floor widthPerCommand
     line = []
     for command, i in commands
       line.push @_fillWithWhiteSpace command, widthPerCommand
       if line.length >= commandsPerLine or i >= commands.length - 1
-        @message '', line.join('  '), if i is 0 then style + 'first' else style
+        @message '', line.join('  '), style
         line = []
 
   _getMaxCommandWidth: (commands) ->
@@ -55,7 +56,7 @@ class MessageRenderer
     space = (' ' for i in [0..maxCommandWidth-1]).join ''
     return command + space.slice 0, maxCommandWidth - command.length
 
-  message: (from='', msg=' ', style...) ->
+  message: (from='', msg='', style...) ->
     wasScrolledDown = @win.isScrolledDown()
     from = escapeHTML from
     msg = display msg
