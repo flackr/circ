@@ -171,7 +171,15 @@ ul {
 
 .message .content {
   display: table-cell;
-  padding-top: 10px;
+  padding-top: 8px;
+}
+
+.message:last-child .content {
+  padding-bottom: 8px;
+}
+
+.message.privmsg + .message.privmsg .content {
+  padding-top: 2px;
 }
 
 .message.group + .message.group .content {

@@ -1,5 +1,5 @@
 .message.system {
-  color: black;
+  color: #505053;
 }
 
 .message.notice {
@@ -19,7 +19,7 @@
 }
 
 .message.update.privmsg {
-  color: black;
+  color: #505053;
 }
 
 .message.update.privmsg.self {
