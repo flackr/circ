@@ -22,17 +22,17 @@ class UserCommandHandler extends MessageHandler
     if not command then return super type, args...
 
     if not command.canRun()
-      @_displayHelp command unless command.name is 'say'
+      @_displayHelpForCommand command unless command.name is 'say'
       return
 
     command.setArgs args...
     if command.hasValidArgs()
       command.run()
     else
-      @_displayHelp command
+      @_displayHelpForCommand command
 
-  _displayHelp: (command) ->
-    @chat.currentWindow.message '*', command.getHelp(), 'notice help'
+  _displayHelpForCommand: (command) ->
+    @chat.currentWindow.message '', command.getHelp(), 'notice help'
 
   _init: ->
     @_addCommand 'join',
@@ -119,7 +119,7 @@ class UserCommandHandler extends MessageHandler
         else
           names = (v for k,v of @conn.irc.channels[@chan].names).sort()
           msg = "Users in #{@chan}: #{JSON.stringify names}"
-        @chat.currentWindow.message '*', msg, 'notice names'
+        @chat.currentWindow.message '', msg, 'notice names'
 
     @_addCommand 'help',
       description: "displays information about a command, lists all commands " +
@@ -128,7 +128,7 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @command = @chat.userCommands.getCommand @command
         if @command
-          @chat.currentWindow.message '*', @command.getHelp(), 'notice help'
+          @chat.currentWindow.message '', @command.getHelp(), 'notice help'
         else
           commands = @chat.userCommands.getCommands()
           @chat.currentWindow.messageRenderer.displayHelp commands

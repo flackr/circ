@@ -58,7 +58,7 @@ class Chat extends EventEmitter
     conn = @connections[server]
     win = new chat.Window conn.name
     @_replaceEmptyWindowIfExists win
-    win.message '*', "Connecting to #{conn.name}..."
+    win.message '', "Connecting to #{conn.name}...", 'first'
     win.conn = conn
     conn.serverWindow = win
     @winList.add win
@@ -70,7 +70,6 @@ class Chat extends EventEmitter
     if @currentWindow.equals @emptyWindow
       @channelDisplay.remove @emptyWindow.name
       win.messageRenderer.displayWelcome()
-      win.messageRenderer.displayEmptyLine()
 
   join: (conn, channel) ->
     win = @_createWindowForChannel conn, channel

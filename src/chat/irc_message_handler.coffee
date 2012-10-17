@@ -17,7 +17,7 @@ class IRCMessageHandler extends MessageHandler
     @_sendFormattedMessage()
 
   _setDefaultValues: (params) ->
-    @source = '*'
+    @source = ''
     @_formatter.clear()
     @_formatter.setContext params...
 
@@ -89,20 +89,21 @@ class IRCMessageHandler extends MessageHandler
       @_formatPrivateMessage from, msg
 
     error: (msg) ->
-      @_formatter.addStyle 'error'
       @_formatter.setContentMessage msg
 
     notice: (msg) ->
-      @_formatter.addStyle 'notice'
+      @_formatter.addStyle 'notice-group'
       @_formatter.setContentMessage msg
 
     welcome: (msg) ->
+      @_formatter.addStyle 'group'
       @_formatter.setContentMessage msg
 
     ##
     # Generic messages - usually boring server stuff like MOTD.
     ##
     other: (cmd) ->
+      @_formatter.addStyle 'group'
       @_formatter.setContentMessage cmd.params[cmd.params.length - 1]
 
     nickinuse: (taken, wanted) ->

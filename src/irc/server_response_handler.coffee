@@ -91,8 +91,8 @@ class ServerResponseHandler extends MessageHandler
         return @irc.emitMessage 'notice', chat.SERVER_WINDOW, msg
       event = new Event 'message', 'privmsg', from.nick, msg
       event.setContext @irc.server, chat.CURRENT_WINDOW
-      event.setStyle 'notice'
-      @irc.emitCustomEvent event
+      event.addStyle 'notice'
+      @irc.emitCustomMessage event
 
     PING: (from, payload) ->
       @irc.send 'PONG', payload

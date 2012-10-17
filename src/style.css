@@ -92,7 +92,7 @@ ul {
 }
 
 #rooms-and-nicks .room.channel:last-child:first-child .content-item {
-  line-height: 17px;
+  line-height: 14px;
 }
 
 #rooms-and-nicks .room.channel .content-item {
@@ -167,7 +167,15 @@ ul {
 
 .message .content {
   display: table-cell;
-  padding: 3px 0;
+  padding-top: 10px;
+}
+
+.message.group + .message.group .content {
+  padding-top: 0px;
+}
+
+.message.notice-group + .message.notice-group .content {
+  padding-top: 0px;
 }
 
 .longword { word-break: break-all; }

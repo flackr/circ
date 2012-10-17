@@ -119,7 +119,7 @@ class IRC extends EventEmitter
         dataView = new Uint8Array @data
         @util.fromSocketData line, (lineStr) =>
           console.log '<=', "(#{@server})", lineStr
-          @onServerMessage(@util.parseCommand lineStr)
+          @onServerMessage(@util.parseCommand(lineStr))
       else
         break
 
@@ -148,11 +148,14 @@ class IRC extends EventEmitter
   emit: (name, channel, args...) ->
     event = new Event 'server', name, args...
     event.setContext @server, channel
-    super event.type, event
+    @emitCustomEvent event
 
   emitMessage: (name, channel, args...) ->
     event = new Event 'message', name, args...
     event.setContext @server, channel
+    @emitCustomMessage event
+
+  emitCustomMessage: (event) ->
     @emitCustomEvent event
 
   emitCustomEvent: (event) ->

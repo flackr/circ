@@ -6,38 +6,27 @@ class MessageRenderer
 
   constructor: (@win) ->
 
-  displayEmptyLine: ->
-    @message()
-
   displayWelcome: ->
-    @message '', "Welcome to CIRC, a packaged Chrome app.", "system"
-    @displayEmptyLine()
-    @_displayWikiUrl('system')
-    @displayEmptyLine()
-    @message '', "Type /server <server> [port] to connect, then /nick <my_nick> and /join <#channel>.", "system"
-    @displayEmptyLine()
-    @message '', "Type /help to see a full list of commands.", "system"
-    @displayEmptyLine()
-    @message '', "Switch windows with alt+[0-9] or click in the channel list on the left.", "system"
+    @message '', "Welcome to CIRC, a packaged Chrome app.", "system first"
+    @_displayWikiUrl 'system first'
+    @message '', "Type /server <server> [port] to connect, then /nick " +
+        "<my_nick> and /join <#channel>.", "system first"
+    @message '', "Type /help to see a full list of commands.", "system first"
+    @message '', "Switch windows with alt+[0-9] or click in the channel " +
+        "list on the left.", "system first"
 
   displayHelp: (commands) ->
-    @displayEmptyLine()
-    @message '*', "Commands Available:", 'notice help'
-    @displayEmptyLine()
+    @message '', "Commands Available:", 'notice help first'
     @_printCommands commands
-    @displayEmptyLine()
     @message '', "Type /help <command> to see details about a specific command.",
-        'notice help'
-    @displayEmptyLine()
-    @_displayWikiUrl('notice help')
+        'notice help first'
+    @_displayWikiUrl 'notice help first'
 
   displayAbout: ->
-    @displayEmptyLine()
-    @message '*', "CIRC is a packaged Chrome app developed by Google Inc. " +
-    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
-    @displayEmptyLine()
-    @message '', "Contributors:", 'notice about'
-    @message '', " * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about'
+    @message '', "CIRC is a packaged Chrome app developed by Google Inc. " +
+    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about first'
+    @message '', "Contributors:", 'notice about first'
+    @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about'
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
@@ -45,13 +34,14 @@ class MessageRenderer
 
   _printCommands: (commands) ->
     maxWidth = 40
+    style = 'notice help'
     widthPerCommand = @_getMaxCommandWidth commands
     commandsPerLine = maxWidth / Math.floor widthPerCommand
     line = []
     for command, i in commands
       line.push @_fillWithWhiteSpace command, widthPerCommand
       if line.length >= commandsPerLine or i >= commands.length - 1
-        @message '', line.join('  '), 'notice help'
+        @message '', line.join('  '), if i is 0 then style + 'first' else style
         line = []
 
   _getMaxCommandWidth: (commands) ->

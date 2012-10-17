@@ -131,7 +131,7 @@ class UserCommand
   _displayDirectMessageInline: (nick, message) ->
     e = new Event 'message', 'privmsg', nick, message
     e.setContext @conn.name, @chan
-    e.setStyle 'direct'
+    e.addStyle 'direct'
     @chat.emit e.type, e
 
   displayMessage: (type, args...) ->
