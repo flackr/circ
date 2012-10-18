@@ -58,6 +58,10 @@ ul {
   line-height: 26px;
 }
 
+#rooms-and-nicks .room {
+  cursor: pointer;
+}
+
 #rooms-container {
   -webkit-box-flex: 0;
   border-bottom: 1px solid #CCC;
@@ -73,16 +77,12 @@ ul {
   background-color: #F2EFD3;
 }
 
-#rooms-and-nicks .room.channel {
-  line-height: 0;
-}
-
 #rooms-and-nicks .room.channel:first-child {
   padding-top: 3px;
 }
 
 #rooms-and-nicks .room.channel:first-child .content-item {
-  padding-top: 3px;
+  padding-bottom: 3px;
   line-height: 20px;
 }
 
@@ -91,7 +91,7 @@ ul {
 }
 
 #rooms-and-nicks .room.channel:last-child .content-item {
-  padding-bottom: 3px;
+  padding-top: 3px;
   line-height: 20px;
 }
 
@@ -112,8 +112,17 @@ ul {
   color: darkred;
 }
 
+#rooms-and-nicks .room.disconnected .content-item {
+  color: #9493A2;
+  font-style: italic;
+}
+
+#rooms-and-nicks .room.channel.disconnected .content-item {
+  border-left: 1px solid #9493A2;
+}
+
 #rooms-and-nicks .room.selected {
-  background-color: #D4CA6D;
+  background-color: #F0E798;
 }
 
 #nicks-container {
@@ -150,6 +159,7 @@ ul {
   overflow-y: auto;
   -webkit-box-flex: 1;
   padding: 0px 15px 0px 20px;
+  border-bottom: 1px solid #CCC;
 }
 
 .messages {
@@ -193,6 +203,7 @@ ul {
 .longword { word-break: break-all; }
 
 #status-and-input {
+  border-top: 1px solid #F9F9F9;
   -webkit-box-flex: 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;

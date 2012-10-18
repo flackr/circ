@@ -25,7 +25,7 @@ describe 'A channel list', ->
 
   it 'displays servers by their name', ->
     cl.addServer 'freenode'
-    expect(items 0).toHaveText 'freenode'
+    expect(textOfItem 0).toBe 'freenode'
 
   it 'can have a channel item inserted', ->
     cl.addServer 'freenode'

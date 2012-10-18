@@ -43,7 +43,7 @@ class ChannelList extends EventEmitter
 
   _createServerHTML: (serverName) ->
     html = $('#templates .server-channels').clone()
-    $('.server', html).text serverName
+    $('.server .content-item', html).text serverName
     @$surface.append html
     html
 

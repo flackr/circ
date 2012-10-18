@@ -59,7 +59,7 @@ describe 'An IRC client front end', ->
   it "replaces the initial window with a server window on /connect", ->
     type '/connect freenode'
     expect(rooms().length).toBe 1
-    expect(room 0).toHaveText 'freenode'
+    expect(textOfRoom 0).toBe 'freenode'
     expect(client.currentWindow.conn.name).toBe 'freenode'
 
   it "ignores commands that requicre a connection not connected", ->
