@@ -21,5 +21,5 @@ describe "An event emitter", ->
     emitter.onAny onAny
     emitter.emit 'drink', 'water'
     emitter.emit 'eat', 'burgers'
-    expect(onAny).toHaveBeenCalledWith 'water'
-    expect(onAny).toHaveBeenCalledWith 'burgers'
+    expect(onAny).toHaveBeenCalledWith 'drink', 'water'
+    expect(onAny).toHaveBeenCalledWith 'eat', 'burgers'

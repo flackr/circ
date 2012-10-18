@@ -71,6 +71,12 @@ exports.concatSocketData = (a, b) ->
 exports.arrayBufferConversionCount = 0
 exports.isConvertingArrayBuffers = -> exports.arrayBufferConversionCount > 0
 
+exports.dataViewToArrayBuffer = (view) ->
+  result = new ArrayBuffer view.byteLength
+  resultView = new Uint8Array result
+  resultView.set view
+  result
+
 concatArrayBuffers = (a, b) ->
   result = new ArrayBuffer a.byteLength + b.byteLength
   resultView = new Uint8Array result

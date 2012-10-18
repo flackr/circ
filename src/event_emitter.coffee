@@ -13,7 +13,7 @@ class EventEmitter
 
   emit: (ev, args...) ->
     l(args...) for l in (@_listeners[ev] ? [])
-    l(args...) for l in @_anyEventListeners
+    l(ev, args...) for l in @_anyEventListeners
 
   once: (ev, cb) ->
     @on ev, f = (args...) =>

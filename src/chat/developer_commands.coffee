@@ -1,7 +1,7 @@
 exports = window.chat ?= {}
 
 class DeveloperCommands extends MessageHandler
-  constructor: (@_commandHandler) ->
+  constructor: (@_chat) ->
     super
 
   _handlers:
@@ -34,6 +34,15 @@ class DeveloperCommands extends MessageHandler
 
     l: ->
       @_handleCommand "load", ""
+
+    z: ->
+      @_handleCommand 'add-device', '172.23.181.94'
+
+    z2: ->
+      @_handleCommand 'make-server', ''
+
+    z3: ->
+      @_handleCommand 'close-sockets', ''
 
     a: (addr='127.0.0.1', port='1341') ->
       port = parseInt port
@@ -85,6 +94,14 @@ class DeveloperCommands extends MessageHandler
       catch error
         console.error "couldn't close socket 3", error
 
+    e: ->
+      chrome.socket.getNetworkList (nis) =>
+        for ni, i in nis
+          console.warn 'network interface', i + ':', ni.name, ni.address
+
+    f: ->
+      console.warn 'is online?', window.navigator.onLine
+
   _onConnect: (rc) =>
     if rc < 0
       console.error "1 couldn't connect to socket:", rc
@@ -107,6 +124,9 @@ class DeveloperCommands extends MessageHandler
       console.error 'onRead: got no data!'
 
   _handleCommand: (command, text) ->
-    @_commandHandler.handle command, text.split(' ')...
+    event = { context:
+      server: @_chat.currentWindow.conn?.name
+      chan: @_chat.currentWindow.target }
+    @_chat.userCommands.handle command, event, text.split(' ')...
 
 exports.DeveloperCommands = DeveloperCommands

@@ -15,14 +15,16 @@ class UserCommandHandler extends MessageHandler
   listenTo: (emitter) ->
     emitter.on 'command', (e) =>
       if @canHandle e.name
-        @handle e.name, e.args...
+        console.warn 'about to handle', e.name, e.context.server, e.context.channel, e.args
+        @handle e.name, e, e.args...
 
-  handle: (type, args...) ->
+  handle: (type, context, args...) ->
     command = @_handlers[type]
     if not command then return super type, args...
 
-    if not command.canRun()
-      @_displayHelpForCommand command unless command.name is 'say'
+    if not command.canRun(@chat, context)
+      if command.name isnt 'say' and command.win isnt window.chat.NO_WINDOW
+        @_displayHelpForCommand command
       return
 
     command.setArgs args...
@@ -32,7 +34,7 @@ class UserCommandHandler extends MessageHandler
       @_displayHelpForCommand command
 
   _displayHelpForCommand: (command) ->
-    @chat.currentWindow.message '', command.getHelp(), 'notice help'
+    command.win.message '', command.getHelp(), 'notice help'
 
   _init: ->
     @_addCommand 'join',
@@ -49,9 +51,9 @@ class UserCommandHandler extends MessageHandler
       params: ['opt_reason...']
       requires: ['connection', 'channel']
       run: ->
-        unless @chat.currentWindow.isPrivate()
+        unless @win.isPrivate()
           @conn.irc.part @chan, @reason
-        @chat.removeWindow()
+        @chat.removeWindow(@win)
 
     @_addCommand 'win',
       description: 'switches windows'
@@ -114,12 +116,12 @@ class UserCommandHandler extends MessageHandler
       description: 'lists nicks in the current channel'
       requires: ['connection', 'channel', 'connected']
       run: ->
-        if @chat.currentWindow.isPrivate()
+        if @win.isPrivate()
           msg = "You're in a private conversation with #{@chan}."
         else
           names = (v for k,v of @conn.irc.channels[@chan].names).sort()
           msg = "Users in #{@chan}: #{JSON.stringify names}"
-        @chat.currentWindow.message '', msg, 'notice names'
+        @win.message '', msg, 'notice names'
 
     @_addCommand 'help',
       description: "displays information about a command, lists all commands " +
@@ -128,10 +130,10 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @command = @chat.userCommands.getCommand @command
         if @command
-          @chat.currentWindow.message '', @command.getHelp(), 'notice help'
+          @win.message '', @command.getHelp(), 'notice help'
         else
           commands = @chat.userCommands.getCommands()
-          @chat.currentWindow.messageRenderer.displayHelp commands
+          @win.messageRenderer.displayHelp commands
 
     @_addCommand 'raw',
       description: "sends a raw event to the IRC server, use the -c flag to " +
@@ -234,11 +236,27 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'about',
       description: "displays information about this IRC client"
       run: ->
-        @chat.currentWindow.messageRenderer.displayAbout()
+        @win.messageRenderer.displayAbout()
+
+    @_addCommand 'add-device',
+      description: "adds a device to share a connection with"
+      params: ['addr']
+      run: ->
+        device = new RemoteDevice @addr
+        @chat.remoteConnection.addDevice device
+
+    @_addCommand 'make-server',
+      description: "make this device share its connection with other known devices"
+      run: ->
+        @chat.remoteConnection.makeServer()
+
+    @_addCommand 'close-sockets',
+      description: "close all remote connection sockets"
+      run: ->
+        @chat.remoteConnection.close()
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription
-    command.setContext @chat
     commandToExtend = @_handlers[commandDescription.extends]
     command.describe commandToExtend.description if commandToExtend
     @_handlers[name] = command

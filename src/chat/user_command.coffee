@@ -14,9 +14,11 @@ class UserCommand
     @_usage ?= description.usage
     @run ?= description.run
 
-  setContext: (@chat) ->
-    @conn = @chat?.currentWindow?.conn
-    @chan = @chat?.currentWindow?.target
+  setContext: (@chat, context) ->
+    @win = @chat.determineWindow context
+    unless @win is window.chat.NO_WINDOW
+      @conn = @win.conn
+      @chan = @win.target
 
   setArgs: (args...) ->
     @_validArgs = @_tryToAssignArgs args
@@ -68,8 +70,8 @@ class UserCommand
         params.splice 0, 0, param
     return params
 
-  canRun: ->
-    @setContext @chat
+  canRun: (opt_chat, opt_context) ->
+    @setContext opt_chat, opt_context if opt_chat and opt_context
     return false if not @run
     return true if not @_requires
     for requirement in @_requires

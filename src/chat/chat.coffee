@@ -4,30 +4,44 @@ class Chat extends EventEmitter
 
   constructor: ->
     super
+    @connections = {}
     @messageHandler = new chat.IRCMessageHandler this
+
     @userCommands = new chat.UserCommandHandler this
-    devCommands = new chat.DeveloperCommands @userCommands
+    devCommands = new chat.DeveloperCommands this
     @userCommands.merge devCommands
 
+    @_initializeUI()
+    @_initializeRemoteConnection()
+
+    @syncStorage = new chat.SyncStorage
+    @syncStorage.restoreState this
+
+    document.title = "CIRC #{irc.VERSION}"
+
+  _initializeUI: ->
     @winList = new chat.WindowList
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (server, chan) =>
       win = @winList.get server, chan
       @switchToWindow win if win?
+    @_addWelcomeWindow()
 
+  _addWelcomeWindow: ->
     @emptyWindow = new chat.Window 'none'
     @channelDisplay.addServer @emptyWindow.name
     @switchToWindow @emptyWindow
     @emptyWindow.messageRenderer.displayWelcome()
-    @connections = {}
 
-    document.title = "CIRC #{irc.VERSION}"
-    @syncStorage = new chat.SyncStorage
-    @syncStorage.restoreState this
 
-  listenToCommands: (commandInput) ->
-    @userCommands.listenTo commandInput
-    commandInput.on 'switch_window', (winNum) =>
+  _initializeRemoteConnection: ->
+    @remoteConnection = new RemoteConnection
+    @userCommands.listenTo @remoteConnection
+
+  listenToCommands: (userInput) ->
+    @remoteConnection.broadcastUserInput userInput
+    @userCommands.listenTo userInput
+    userInput.on 'switch_window', (winNum) =>
       @switchToWindowByIndex winNum
 
   listenToScriptEvents: (@scriptHandler) ->
@@ -50,6 +64,9 @@ class Chat extends EventEmitter
 
   _createConnection: (server) ->
     irc = new window.irc.IRC
+    if @remoteConnection.isEnabled()
+      console.log 'IS ENABLED'
+      irc.setSocket @remoteConnection.createSocket server
     irc.setPreferredNick @previousNick if @previousNick?
     @ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
@@ -77,9 +94,6 @@ class Chat extends EventEmitter
     conn.irc.join channel
 
   onIRCEvent: (e) =>
-    if e.context.channel is chat.CURRENT_WINDOW and
-        e.context.server isnt @currentWindow.conn?.name
-      e.context.channel = chat.SERVER_WINDOW
     conn = @connections[e.context.server]
     return if not conn
     if e.type is 'server' then @onServerEvent conn, e
@@ -90,19 +104,24 @@ class Chat extends EventEmitter
       when 'connect' then @onConnected conn
       when 'disconnect' then @onDisconnected conn
       when 'joined' then @onJoined conn, e.context.channel, e.args...
-      when 'names' then @onNames conn, e.context.channel, e.args...
-      when 'parted' then @onParted conn, e.context.channel, e.args...
+      when 'names' then @onNames e, e.args...
+      when 'parted' then @onParted e
 
   onMessageEvent: (conn, e) =>
-    win = @_determineWindow conn, e
+    win = @determineWindow e
     return if win is chat.NO_WINDOW
     @messageHandler.setWindow(win)
     @messageHandler.setCustomMessageStyle(e.style)
     @messageHandler.handle e.name, e.args...
 
-  _determineWindow: (conn, e) ->
+  determineWindow: (e) ->
+    conn = @connections[e.context.server]
+    return @emptyWindow unless conn
+    if e.context.channel is chat.CURRENT_WINDOW and
+        e.context.server isnt @currentWindow.conn?.name
+      e.context.channel = chat.SERVER_WINDOW
     chan = e.context.channel
-    if conn.irc.isOwnNick chan
+    if conn?.irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
       from = e.args[0]
       conn.windows[from] ?= @_createWindowForChannel conn, from
@@ -146,14 +165,16 @@ class Chat extends EventEmitter
       @syncStorage.channelJoined conn.name, chan
     win
 
-  onNames: (conn, chan, nicks) ->
-    return unless win = conn.windows[chan]
+  onNames: (e, nicks) ->
+    win = @determineWindow e
+    return if win is chat.NO_WINDOW
     for nick in nicks
       win.nicks.add nick
 
-  onParted: (conn, chan) ->
-    if win = conn.windows[chan]
-      @channelDisplay.disconnect conn.name, chan
+  onParted: (e) ->
+    win = @determineWindow e
+    return if win is chat.NO_WINDOW
+    @channelDisplay.disconnect win.conn.name, win.target
 
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win

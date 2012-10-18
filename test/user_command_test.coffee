@@ -1,6 +1,7 @@
 describe 'A user command', ->
-  context = sayCommand = eatCommand = kickCommand = serverCommand = modeCommand = undefined
+  win = sayCommand = eatCommand = kickCommand = serverCommand = modeCommand = undefined
   onRun = jasmine.createSpy 'onRun'
+  context = { determineWindow: -> win }
 
   eatCommandDescription =
     description: 'eats cake'
@@ -32,19 +33,18 @@ describe 'A user command', ->
     params: ['opt_server', 'opt_port']
     run: -> onRun @server, @port
 
-  getContext = ->
-    currentWindow:
-      target: '#bash'
-      conn:
-        name: 'freenode.net'
-        irc:
-          state: 'connected'
-          nick: 'ournick'
-          channels: {}
+  getWindow = ->
+    target: '#bash'
+    conn:
+      name: 'freenode.net'
+      irc:
+        state: 'connected'
+        nick: 'ournick'
+        channels: {}
 
   beforeEach ->
     onRun.reset()
-    context = getContext()
+    win = getWindow()
     eatCommand = new chat.UserCommand 'eat', eatCommandDescription
     sayCommand = new chat.UserCommand 'say', sayCommandDescription
     kickCommand = new chat.UserCommand 'kick', kickCommandDescription
@@ -73,15 +73,14 @@ describe 'A user command', ->
     expect(eatCommand.hasValidArgs()).toBe false
 
   it 'can require certain conditions to be met', ->
-    context.currentWindow.conn.irc.state = 'disconnected'
+    win.conn.irc.state = 'disconnected'
     expect(modeCommand.canRun()).toBe false
 
-    context.currentWindow.conn.irc.state = 'connected'
+    win.conn.irc.state = 'connected'
     expect(modeCommand.canRun()).toBe true
 
-    context.currentWindow.target = undefined
-    modeCommand.setContext context
-    expect(modeCommand.canRun()).toBe false
+    win.target = undefined
+    expect(modeCommand.canRun(context, {})).toBe false
 
   it 'supports optional arguments', ->
     modeCommand.setArgs 'othernick', '+o'
@@ -140,7 +139,7 @@ describe 'A user command', ->
     danceDescription =
       description: "outputs dancing kirbys on the screen"
     danceCommand = new chat.UserCommand 'dance', danceDescription
-    expect(danceCommand.canRun()).toBe false
+    expect(danceCommand.canRun(context, {})).toBe false
 
   it "can have no params", ->
     danceDescription =

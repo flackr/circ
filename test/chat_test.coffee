@@ -37,6 +37,7 @@ describe 'An IRC client front end', ->
   beforeEach ->
     mocks.dom.setUp()
     mocks.ChromeSocket.useMock()
+    mocks.RemoteDevice.useMock()
     mocks.NickMentionedNotification.useMock()
     prompt = $('#input')
     commandInput = new UserInputHandler(prompt, $ window)

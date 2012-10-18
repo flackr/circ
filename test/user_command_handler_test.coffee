@@ -1,22 +1,22 @@
 describe 'A user command handler', ->
-  onMode = onJoin = onMe = handler = context = undefined
+  win = onMode = onJoin = onMe = handler = undefined
 
   onMessage = jasmine.createSpy 'onMessage'
+  context = { determineWindow: -> win }
 
-  getContext = ->
-    currentWindow:
-      message: onMessage
-      target: '#bash'
-      conn:
-        name: 'freenode.net'
-        irc:
-          state: 'connected'
-          nick: 'ournick'
-          channels: {}
+  getWindow = ->
+    message: onMessage
+    target: '#bash'
+    conn:
+      name: 'freenode.net'
+      irc:
+        state: 'connected'
+        nick: 'ournick'
+        channels: {}
 
   beforeEach ->
     onMessage.reset()
-    context = getContext()
+    win = getWindow()
     handler = new chat.UserCommandHandler context
     onJoin = spyOn handler._handlers.join, 'run'
     onMe = spyOn handler._handlers.me, 'run'
@@ -32,38 +32,38 @@ describe 'A user command handler', ->
       expect(handler.canHandle command).toBe false
 
   it 'runs commands that have valid args and can be run', ->
-    handler.handle 'join'
+    handler.handle 'join', {}
     expect(onJoin).toHaveBeenCalled()
 
   it "doesn't run commands that can't be run", ->
-    context.currentWindow.conn.irc.state = 'disconnected'
-    handler.handle 'me', 'hi!'
+    win.conn.irc.state = 'disconnected'
+    handler.handle 'me', {}, 'hi!'
     expect(onMe).not.toHaveBeenCalled()
 
   it "displays a help message when a command is run with invalid args", ->
-    handler.handle 'join', 'channel', 'extra_arg'
+    handler.handle 'join', {}, 'channel', 'extra_arg'
     expect(onJoin).not.toHaveBeenCalled()
     expect(onMessage.mostRecentCall.args[1]).toBe 'JOIN [channel], joins the channel, ' +
         'the current channel is used by default.'
 
   it "allows commands to extend eachother for easy aliasing", ->
-    handler.handle 'me', 'hey guy!'
+    handler.handle 'me', {}, 'hey guy!'
     expect(onMe).toHaveBeenCalled()
     expect(handler._handlers.me.text).toBe '\u0001ACTION hey guy!\u0001'
 
   it "supports the mode command", ->
-    handler.handle 'mode'
+    handler.handle 'mode', {}
     expect(onMode).not.toHaveBeenCalled()
 
   it "supports the away command", ->
     onAway = spyOn handler._handlers.away, 'run'
-    handler.handle 'away'
+    handler.handle 'away', {}
     expect(onAway).not.toHaveBeenCalled()
 
-    handler.handle 'away', "I'm", "busy"
+    handler.handle 'away', {}, "I'm", "busy"
     expect(onAway).toHaveBeenCalled()
 
   it "supports the op command", ->
     onOp = spyOn handler._handlers.op, 'run'
-    handler.handle 'op', 'othernick'
+    handler.handle 'op', {}, 'othernick'
     expect(onOp).toHaveBeenCalled()

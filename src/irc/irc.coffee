@@ -1,18 +1,11 @@
 exports = window.irc ?= {}
 
 class IRC extends EventEmitter
-  constructor: ->
+  constructor: (opt_socket) ->
     super
     @util = irc.util
     @preferredNick = "circ-user-#{@util.randomName(5)}"
-
-    @socket = new net.ChromeSocket
-    @socket.on 'connect', => @onConnect()
-    @socket.on 'data', (data) => @onData data
-    @socket.on 'drain', => @onDrain()
-    @socket.on 'error', (err) => @onError err
-    @socket.on 'end', (err) => @onEnd err
-    @socket.on 'close', (err) => @onClose err
+    @setSocket opt_socket ? new net.ChromeSocket
     @data = @util.emptySocketData()
 
     @exponentialBackoff = 0
@@ -20,6 +13,17 @@ class IRC extends EventEmitter
     @channels = {}
     @serverResponseHandler = new irc.ServerResponseHandler(this)
     @state = 'disconnected'
+
+  setSocket: (socket) ->
+    delete @socket
+    @socket = socket
+    console.log 'setting socket:', @socket
+    @socket.on 'connect', => @onConnect()
+    @socket.on 'data', (data) => @onData data
+    @socket.on 'drain', => @onDrain()
+    @socket.on 'error', (err) => @onError err
+    @socket.on 'end', (err) => @onEnd err
+    @socket.on 'close', (err) => @onClose err
 
   setPreferredNick: (@preferredNick, @password) ->
 
