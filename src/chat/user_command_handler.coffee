@@ -15,7 +15,6 @@ class UserCommandHandler extends MessageHandler
   listenTo: (emitter) ->
     emitter.on 'command', (e) =>
       if @canHandle e.name
-        console.warn 'about to handle', e.name, e.context.server, e.context.channel, e.args
         @handle e.name, e, e.args...
 
   handle: (type, context, args...) ->
@@ -81,10 +80,7 @@ class UserCommandHandler extends MessageHandler
       description: 'sets your nick'
       params: ['nick']
       run: ->
-        @chat.previousNick = @nick
-        @chat.syncStorage.nickChanged @nick
-        @chat.updateStatus()
-        @conn?.irc.doCommand 'NICK', @nick
+        @chat.setNick @conn?.name, @nick
 
     @_addCommand 'server',
       description: 'connects to the server, port 6667 is used by default, ' +
@@ -106,11 +102,7 @@ class UserCommandHandler extends MessageHandler
       params: ['opt_reason...']
       requires: ['connection']
       run: ->
-        if @conn.irc.state is 'reconnecting'
-          @conn.irc.giveup()
-        else
-          @conn.irc.quit @reason ? 'Client Quit'
-        @chat.removeWindow @chat.winList.get @conn.name
+        @chat.closeConnection @conn
 
     @_addCommand 'names',
       description: 'lists nicks in the current channel'
@@ -248,7 +240,7 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'make-server',
       description: "make this device share its connection with other known devices"
       run: ->
-        @chat.remoteConnection.makeServer()
+        @chat.remoteConnection.makeServer @chat.syncStorage.getState()
 
     @_addCommand 'close-sockets',
       description: "close all remote connection sockets"

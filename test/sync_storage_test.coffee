@@ -3,28 +3,28 @@ describe 'IRC sync storage', ->
   sync = chrome.storage.sync
 
   beforeEach ->
-    chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus']
+    chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus', 'setNick']
     chat.connections = { freenode: 'f', dalnet: 'd' }
     ss = new window.chat.SyncStorage
     sync.clear()
 
   it 'does nothing when there is no state to restore', ->
-    ss.restoreState chat
+    ss.restoreSavedState chat
     expect(chat.connect).not.toHaveBeenCalled()
     expect(chat.join).not.toHaveBeenCalled()
     expect(chat.updateStatus).not.toHaveBeenCalled()
-    expect(chat.previousNick).toBe undefined
+    expect(chat.setNick).not.toHaveBeenCalled()
 
   it 'restores the stored nick', ->
-    sync.set { nick: 'ournick' }
-    ss.restoreState chat
-    expect(chat.previousNick).toBe 'ournick'
+    sync.set {nicks: [server: 'freenode', name: 'ournick' ]}
+    ss.restoreSavedState chat
+    expect(chat.setNick).toHaveBeenCalledWith 'freenode', 'ournick'
 
   it 'restores the stored servers', ->
     sync.set { servers: [
         {name: 'freenode', port: 6667},
         {name: 'dalnet', port: 6697}]}
-    ss.restoreState chat
+    ss.restoreSavedState chat
     expect(chat.connect).toHaveBeenCalledWith('freenode', 6667)
     expect(chat.connect).toHaveBeenCalledWith('dalnet', 6697)
 
@@ -34,14 +34,14 @@ describe 'IRC sync storage', ->
         {name: '#awesome', server: 'freenode'},
         {name: '#hiphop', server: 'dalnet'}]}
 
-    ss.restoreState chat
+    ss.restoreSavedState chat
     expect(chat.join).toHaveBeenCalledWith('f', '#bash')
     expect(chat.join).toHaveBeenCalledWith('f', '#awesome')
     expect(chat.join).toHaveBeenCalledWith('d', '#hiphop')
 
   it 'stores the new nick on nickChanged()', ->
-    ss.nickChanged 'newnick'
-    expect(sync._storageMap.nick).toBe 'newnick'
+    ss.nickChanged 'freenode', 'newnick'
+    expect(sync._storageMap.nicks).toEqual [{name: 'newnick', server: 'freenode'}]
 
   it 'stores the joined channel on channelJoined()', ->
     ss.channelJoined 'freenode', '#bash'

@@ -15,7 +15,7 @@ class Chat extends EventEmitter
     @_initializeRemoteConnection()
 
     @syncStorage = new chat.SyncStorage
-    @syncStorage.restoreState this
+    @syncStorage.restoreSavedState this
 
     document.title = "CIRC #{irc.VERSION}"
 
@@ -33,10 +33,33 @@ class Chat extends EventEmitter
     @switchToWindow @emptyWindow
     @emptyWindow.messageRenderer.displayWelcome()
 
-
   _initializeRemoteConnection: ->
     @remoteConnection = new RemoteConnection
     @userCommands.listenTo @remoteConnection
+    @remoteConnection.on 'irc_state', (state) =>
+      @closeAllConnections()
+      console.warn 'Loading IRC STATE', state
+      @syncStorage.loadState this, state
+
+  ##
+  # Loads servers, channels and nick from the given IRC state.
+  # The state has the following format:
+  # { nicks: Array.<{server, name}>, channels: Array.<{sevrer, name}>,
+  #     servers: Array.<{name, port}> }
+  # @param {Object} state An object that represents the current state of an IRC
+  #     client.
+  ##
+  closeAllConnections: ->
+    for server, conn of @connections
+      @closeConnection conn
+
+  closeConnection: (conn) ->
+    console.warn 'closing', conn.name
+    if conn.irc.state is 'reconnecting'
+      conn.irc.giveup()
+    else
+      conn.irc.quit @reason
+    @removeWindow @winList.get conn.name
 
   listenToCommands: (userInput) ->
     @remoteConnection.broadcastUserInput userInput
@@ -92,6 +115,12 @@ class Chat extends EventEmitter
     win = @_createWindowForChannel conn, channel
     @switchToWindow win
     conn.irc.join channel
+
+  setNick: (server, nick) ->
+    @previousNick = nick
+    @syncStorage.nickChanged server, nick
+    @updateStatus()
+    @connections[server]?.irc.doCommand 'NICK', nick
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]

@@ -41,7 +41,7 @@ describe 'An IRC client front end', ->
     mocks.NickMentionedNotification.useMock()
     prompt = $('#input')
     commandInput = new UserInputHandler(prompt, $ window)
-    chrome.storage.sync.set {nick: 'ournick'}
+    chrome.storage.sync.set {nicks: [server: 'freenode', name: 'ournick' ]}
     init()
 
   afterEach ->

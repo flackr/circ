@@ -2,14 +2,21 @@ exports = window.chat ?= {}
 
 class SyncStorage
 
-  @ITEMS = ['nick', 'servers', 'channels']
+  @ITEMS = ['nicks', 'servers', 'channels']
 
   constructor: ->
     @_channels = []
     @_servers = []
+    @_nicks = []
 
-  nickChanged: (newNick) ->
-    @_store 'nick', newNick
+  nickChanged: (server, name) ->
+    for nick, i in @_nicks
+      if server is nick.server
+        @_nicks[i].name = name
+        @_store 'nicks', @_nicks
+        return
+    @_nicks.push { server, name }
+    @_store 'nicks', @_nicks
 
   channelJoined: (server, name) ->
     @_channels.push { server, name }
@@ -44,28 +51,34 @@ class SyncStorage
     storageObj[key] = value
     chrome.storage.sync.set storageObj
 
-  restoreState: (chat) ->
+  getState: ->
+    { servers: @_servers, channels: @_channels, nicks: @_nicks }
+
+  restoreSavedState: (chat) ->
     @_chat = chat
-    chrome.storage.sync.get SyncStorage.ITEMS, (prevState) =>
-      @_prevState = prevState
-      @_restoreNick()
-      @_restoreServers()
-      @_restoreChannels()
+    chrome.storage.sync.get SyncStorage.ITEMS, (savedState) =>
+      @loadState chat, savedState
+
+  loadState: (chat, state) ->
+    @_state = state
+    @_restoreNick()
+    @_restoreServers()
+    @_restoreChannels()
 
   _restoreServers: ->
-    return unless servers = @_prevState.servers
+    return unless (servers = @_state.servers) and Array.isArray servers
     for server in servers
       @_chat.connect server.name, server.port
 
   _restoreChannels: ->
-    return unless channels = @_prevState.channels
+    return unless (channels = @_state.channels) and Array.isArray channels
     for channel in channels
       return unless conn = @_chat.connections[channel.server]
       @_chat.join conn, channel.name
 
   _restoreNick: ->
-    return unless nick = @_prevState.nick
-    @_chat.previousNick = nick
-    @_chat.updateStatus()
+    return unless (nicks = @_state.nicks) and Array.isArray nicks
+    for nick in nicks
+      @_chat.setNick nick.server, nick.name
 
 exports.SyncStorage = SyncStorage

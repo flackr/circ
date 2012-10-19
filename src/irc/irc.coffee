@@ -17,7 +17,6 @@ class IRC extends EventEmitter
   setSocket: (socket) ->
     delete @socket
     @socket = socket
-    console.log 'setting socket:', @socket
     @socket.on 'connect', => @onConnect()
     @socket.on 'data', (data) => @onData data
     @socket.on 'drain', => @onDrain()

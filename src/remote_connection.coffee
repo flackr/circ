@@ -5,6 +5,7 @@ class RemoteConnection extends EventEmitter
   @PORT: 1329
   @USER_INPUT: 'user_input'
   @SOCKET_DATA: 'socket_data'
+  @CONNECTION_MESSAGE: 'connection_message'
 
   constructor: ->
     super
@@ -31,7 +32,6 @@ class RemoteConnection extends EventEmitter
   broadcastUserInput: (userInput) ->
     userInput.on 'command', (event) =>
       return if event.name in ['make-server', 'add-device', 'close-sockets', 'z', 'z2', 'z3']
-      console.warn 'broadcasting event:', event.name, event.context.server, event.context.channel
       @_broadcast RemoteConnection.USER_INPUT, event
 
   broadcastSocketData: (socket, server) ->
@@ -58,6 +58,8 @@ class RemoteConnection extends EventEmitter
       @_emitUserInput args...
     else if type is RemoteConnection.SOCKET_DATA
       @_emitSocketData args...
+    else if type is RemoteConnection.CONNECTION_MESSAGE
+      @_emitConnectionMessage args...
     else
       console.warn "received data from remote server of unknown type:", type, args
 
@@ -72,6 +74,10 @@ class RemoteConnection extends EventEmitter
     if type is 'data'
       data = irc.util.dataViewToArrayBuffer data
     @_socketMap[server]?.emit type, data
+
+  _emitConnectionMessage: (type, args...) ->
+    console.log 'EMITTING connection message', type, args
+    @emit type, args...
 
   close: ->
     for id, device of @_deviceMap
@@ -92,9 +98,11 @@ class RemoteConnection extends EventEmitter
   # Make this device connect through another device, as opposted to connecting
   # directly to the IRC server.
   ##
-  makeServer: ->
+  makeServer: (state) ->
     console.log 'is now server'
     @_isServer = true
+    console.warn 'broadcasting connection info:', state
+    @_broadcast RemoteConnection.CONNECTION_MESSAGE, 'irc_state', state
 
   ##
   # Begin listening to incoming TCP connections and broadcast information to them.
