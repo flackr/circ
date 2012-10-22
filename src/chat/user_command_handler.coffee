@@ -203,7 +203,7 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'away',
       description: "sets your status to away, a response is " +
           "automatically sent when people /msg or WHOIS you"
-      params: ['response...']
+      params: ['opt_response...']
       requires: ['connection']
       parseArgs: ->
         unless stringHasContent @response

@@ -178,7 +178,7 @@ describe 'An IRC client front end', ->
     it "updates the status bar on /away", ->
       type '/away'
       currentIRC.handle '306' # rpl_nowaway
-      expect($ $('#status').children()[1]).toHaveText 'away'
+      expect($ '#status').toHaveText 'ournick' + 'away'
 
     it "creates a new window when a direct private message is received", ->
       currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'

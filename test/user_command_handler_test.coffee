@@ -58,7 +58,7 @@ describe 'A user command handler', ->
   it "supports the away command", ->
     onAway = spyOn handler._handlers.away, 'run'
     handler.handle 'away', {}
-    expect(onAway).not.toHaveBeenCalled()
+    expect(onAway).toHaveBeenCalled()
 
     handler.handle 'away', {}, "I'm", "busy"
     expect(onAway).toHaveBeenCalled()
