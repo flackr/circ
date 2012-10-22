@@ -124,9 +124,6 @@ class DeveloperCommands extends MessageHandler
       console.error 'onRead: got no data!'
 
   _handleCommand: (command, text) ->
-    event = { context:
-      server: @_chat.currentWindow.conn?.name
-      chan: @_chat.currentWindow.target }
-    @_chat.userCommands.handle command, event, text.split(' ')...
+    @_chat.userCommands.handle command, @params[0], text.split(' ')...
 
 exports.DeveloperCommands = DeveloperCommands

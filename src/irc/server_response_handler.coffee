@@ -56,7 +56,7 @@ class ServerResponseHandler extends MessageHandler
         else
           chan = @irc.channels[chanName] = {names:[]}
         @irc.emit 'joined', chanName
-      if chan?
+      if chan
         chan.names[irc.util.normaliseNick from.nick] = from.nick
         @irc.emitMessage 'join', chanName, from.nick
       else
@@ -66,7 +66,7 @@ class ServerResponseHandler extends MessageHandler
       if c = @irc.channels[chan]
         @irc.emitMessage 'part', chan, from.nick
         if @irc.isOwnNick from.nick
-          c.names = []
+          delete @irc.channels[chan]
           @irc.emit 'parted', chan
         else
           delete c.names[irc.util.normaliseNick from.nick]

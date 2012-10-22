@@ -131,13 +131,16 @@ class UserCommand
     @chat.displayMessage 'privmsg', context, @conn.irc.nick, message
 
   _displayDirectMessageInline: (nick, message) ->
-    e = new Event 'message', 'privmsg', nick, message
-    e.setContext @conn.name, @chan
-    e.addStyle 'direct'
-    @chat.emit e.type, e
+    @displayMessageWithStyle 'privmsg', nick, message, 'direct'
 
   displayMessage: (type, args...) ->
     context = { server: @conn?.name, channel: @chan }
     @chat.displayMessage type, context, args...
+
+  displayMessageWithStyle: (type, args..., style) ->
+    e = new Event 'message', type, args...
+    e.setContext @conn?.name, @chan
+    e.addStyle style
+    @chat.emit e.type, e
 
 exports.UserCommand = UserCommand

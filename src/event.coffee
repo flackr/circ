@@ -12,9 +12,10 @@ class Event
   ##
   # Adds a custom style for the event that will effect how it's contents are
   # displayed.
-  # @param {...string} style
+  # @param {Array.<string>} style
   ##
-  addStyle: (style...) ->
+  addStyle: (style) ->
+    style = [style] if not Array.isArray style
     @style = @style.concat style
 
   @wrap: (obj) ->

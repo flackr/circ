@@ -75,12 +75,12 @@ class SyncStorage
     @_restoreIRCStates()
 
   _restoreServers: ->
-    return unless (servers = @_state.servers) and Array.isArray servers
+    return unless servers = @_state.servers
     for server in servers
       @_chat.connect server.name, server.port
 
   _restoreChannels: ->
-    return unless (channels = @_state.channels) and Array.isArray channels
+    return unless channels = @_state.channels
     for channel in channels
       return unless conn = @_chat.connections[channel.server]
       @_chat.join conn, channel.name
@@ -90,7 +90,7 @@ class SyncStorage
     @_chat.setNick nick
 
   _restoreIRCStates: ->
-    return unless (ircStates = @_state.ircStates) and Array.isArray ircStates
+    return unless ircStates = @_state.ircStates
     connectedServers = []
     for ircState in ircStates
       conn = @_chat.connections[ircState.server]

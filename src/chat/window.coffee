@@ -32,7 +32,7 @@ class Window
     @$roomsAndNicks.removeClass 'no-nicks'
 
   isServerWindow: ->
-    return not @target?
+    !@target
 
   equals: (win) ->
     return @name is win.name

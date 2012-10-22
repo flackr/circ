@@ -19,9 +19,9 @@ class UserCommandHandler extends MessageHandler
 
   handle: (type, context, args...) ->
     command = @_handlers[type]
-    if not command then return super type, args...
+    if not command then return super type, context, args...
 
-    if not command.canRun(@chat, context)
+    if not command.canRun @chat, context
       if command.name isnt 'say' and command.win isnt window.chat.NO_WINDOW
         @_displayHelpForCommand command
       return
@@ -230,22 +230,23 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @win.messageRenderer.displayAbout()
 
-    @_addCommand 'add-device',
-      description: "adds a device to share a connection with"
-      params: ['addr']
+    @_addCommand 'join-server',
+      description: "use the connection of another device. Call /connect-info " +
+          "on the server device to find the address and port to connect to."
+      params: ['addr', 'port']
+      parseArgs: ->
+        @port = parseInt @port
       run: ->
-        device = new RemoteDevice @addr
-        @chat.remoteConnection.addDevice device
+        @chat.remoteConnection.connectToServer @addr, @port
 
-    @_addCommand 'make-server',
-      description: "make this device share its connection with other known devices"
+    @_addCommand 'connect-info',
+      description: "displays the address and port number of this device " +
+          "which is used with /join-server by other devices."
       run: ->
-        @chat.remoteConnection.makeServer @chat.syncStorage.getState @chat
-
-    @_addCommand 'close-sockets',
-      description: "close all remote connection sockets"
-      run: ->
-        @chat.remoteConnection.close()
+        connectionInfo = @chat.remoteConnection.getConnectionInfo()
+        @displayMessage 'notice', "Type the following to remotely connect to this device:"
+        @displayMessageWithStyle 'notice', "    /join-server #{connectionInfo.addr} " +
+            "#{connectionInfo.port}", ['no-pretty-format', 'monospace']
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

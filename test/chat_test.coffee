@@ -364,6 +364,13 @@ describe 'An IRC client front end', ->
           addNicks()
           expect(nicks().length).toBe currentNicks.length
 
+        it "stays visible when another non-selected window is closed", ->
+          type "/join #awesome"
+          event = new Event 'command', 'part'
+          event.setContext 'freenode', '#bash'
+          client.userCommands.handle 'part', event
+          expect($ '#rooms-and-nicks').not.toHaveClass 'no-nicks'
+
       describe "with a remote connection", ->
         state = undefined
 
@@ -379,7 +386,7 @@ describe 'An IRC client front end', ->
         beforeEach ->
           state = getState()
           mocks.RemoteDevice.reset()
-          type "/add-device 1.1.1.2"
+          type "/join-server 1.1.1.2 1336"
 
         it "disconnects from the current connection before using the server device's connection", ->
           (device 0).emit 'connection_message', 'irc_state', []

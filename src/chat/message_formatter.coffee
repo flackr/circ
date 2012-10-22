@@ -40,7 +40,7 @@ class MessageFormatter
   clear: ->
     @_style = []
     @_fromUs = @_toUs = false
-    @_usePrettyFormat = true
+    @_forcePrettyFormat = undefined
     @_message = ''
 
   ##
@@ -115,7 +115,10 @@ class MessageFormatter
   # perentheses.
   ##
   setPrettyFormat: (usePrettyFormat) ->
-    @_usePrettyFormat = usePrettyFormat
+    @_forcePrettyFormat = usePrettyFormat
+
+  _usePrettyFormat: ->
+    @_forcePrettyFormat ? not @hasStyle 'no-pretty-format'
 
   ##
   # Returns a message formatted based on the given context.
@@ -124,7 +127,7 @@ class MessageFormatter
   format: ->
     return '' unless @_message
     msg = @_incorporateContext()
-    msg = @_prettyFormat msg if @_usePrettyFormat
+    msg = @_prettyFormat msg if @_usePrettyFormat()
     return msg
 
   ##
@@ -175,10 +178,11 @@ class MessageFormatter
 
   ##
   # Adds the given style.
-  # @param {string} style
+  # @param {Array.<string>} style
   ##
   addStyle: (style) ->
-    @_style.push style
+    style = [style] if not Array.isArray style
+    @_style = @_style.concat style
 
   ##
   #

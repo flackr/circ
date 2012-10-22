@@ -2,35 +2,49 @@ exports = window
 
 class RemoteDevice extends EventEmitter
 
-  constructor: (connectionId) ->
+  # Begin at this port and increment by one until an open port is found.
+  @BASE_PORT: 1329
+
+  constructor: (addr, port) ->
     super
     @_receivedMessages = ''
-    @_port = RemoteConnection.PORT
-    if typeof connectionId is 'string'
-      @_addr = connectionId
+    @id = addr
+    if port?
+      @_initFromAddress addr, port
     else
-      @_socketId = connectionId
-      @_listenForData()
-    @id = connectionId
+      @_initFromSocketId addr
+
+  _initFromAddress: (@addr, @port) ->
+
+  _initFromSocketId: (@_socketId) ->
+    @_listenForData()
 
   @getOwnDevice: (callback) ->
     chrome.socket.getNetworkList (networkInfoList) =>
-      # TODO ideally we'd listen on all addresses, not just one
+      # TODO try different addresses / ports until one works
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
-      console.log 'possible addresses:', JSON.stringify possibleAddrs
-      callback new RemoteDevice possibleAddrs[possibleAddrs.length - 1]
+      callback new RemoteDevice possibleAddrs[0],
+          RemoteDevice.BASE_PORT
 
+  ##
+  # Called when the device is your own device. Listens for connecting client
+  # devices.
+  ##
   listenForNewDevices: (callback) ->
     chrome.socket.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
-      chrome.socket.listen @_socketId, '0.0.0.0', @_port, (rc) =>
-        console.log 'now listening on', '0.0.0.0', @_port, '- RC:', rc
-        @_acceptNewConnection callback
+      chrome.socket.listen @_socketId, '0.0.0.0', @port, (result) =>
+        if result < 0
+          console.warn 'Failed to listen to 0.0.0.0 on port', @port,
+              '- Result code:', result
+        else
+          @_acceptNewConnection callback
 
   _acceptNewConnection: (callback) ->
+    console.log 'Now listening to 0.0.0.0 on port', @port
     chrome.socket.accept @_socketId, (acceptInfo) =>
-      console.log 'accepted a connection!', acceptInfo.resultCode, acceptInfo.socketId
       callback new RemoteDevice acceptInfo.socketId
+      console.log 'Connected to client', @_socketId
       @_acceptNewConnection callback
 
   send: (type, args) ->
@@ -39,25 +53,31 @@ class RemoteDevice extends EventEmitter
     irc.util.toSocketData msg, (data) =>
       chrome.socket.write @_socketId, data, (writeInfo) =>
         if writeInfo.resultCode < 0
-          console.error "send: error on write: ", writeInfo.resultCode, type, args
-        if writeInfo.bytesWritten != data.byteLength
-          console.error "Waaah can't handle non-complete writes"
+          console.warn "failed to send:", type, args, writeInfo.resultCode
+        else if writeInfo.bytesWritten != data.byteLength
+          console.warn "failed to send:", type, args, '(non-complete write)'
+        else
+          console.warn 'successfully sent', type, args
 
+  ##
+  # Called when the device represents a remote server. Creates a connection
+  # to that remote server.
+  ##
   connect: (callback) ->
     if @_socketId
       console.warn 'already have a connection! No need to connect again'
       return
     chrome.socket.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
-      console.log 'created a connection socket', @_socketId
-      chrome.socket.connect @_socketId, @_addr, @_port, (result) => @_onConnect result, callback
+      chrome.socket.connect @_socketId, @addr, @port, (result) =>
+        console.log 'Connected to server', @addr, 'on port', @port
+        @_onConnect result, callback
 
-  _onConnect: (result, callback) =>
+  _onConnect: (result, callback) ->
     if result < 0
-      console.error "Failed to connect to", @_addr
+      console.error "Failed to connect to", @addr, 'on port', @port
       callback false
     else
-      console.log "connected to", @_addr
       @_listenForData()
       callback true
 

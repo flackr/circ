@@ -13,9 +13,7 @@ class Chat extends EventEmitter
 
     @_initializeUI()
     @_initializeRemoteConnection()
-
-    @syncStorage = new chat.SyncStorage
-    @syncStorage.restoreSavedState this
+    @_initializeSyncStorage()
 
     document.title = "CIRC #{irc.VERSION}"
 
@@ -39,6 +37,12 @@ class Chat extends EventEmitter
     @remoteConnection.on 'irc_state', (state) =>
       @closeAllConnections()
       @syncStorage.loadState this, state
+
+  _initializeSyncStorage: ->
+    @syncStorage = new chat.SyncStorage
+    @remoteConnection.setStateGenerator =>
+      @syncStorage.getState this
+    @syncStorage.restoreSavedState this
 
   ##
   # Loads servers, channels and nick from the given IRC state.
@@ -85,8 +89,7 @@ class Chat extends EventEmitter
 
   _createConnection: (server) ->
     irc = new window.irc.IRC
-    if @remoteConnection.isEnabled()
-      irc.setSocket @remoteConnection.createSocket server
+    irc.setSocket @remoteConnection.createSocket server
     irc.setPreferredNick @previousNick if @previousNick
     @ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
@@ -211,6 +214,8 @@ class Chat extends EventEmitter
 
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
+    if win.isServerWindow()
+      @ircEvents.removeEventsFrom win.conn.irc
     removedWindows = @winList.remove win
     for win in removedWindows
       @_removeWindowFromState win
@@ -219,7 +224,6 @@ class Chat extends EventEmitter
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
     @syncStorage.parted win.conn.name, win.target
-    @ircEvents?.removeEventsFrom win.conn.irc
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
     else
@@ -233,6 +237,8 @@ class Chat extends EventEmitter
     else if @winList.indexOf(@currentWindow) == -1
       nextWin = @winList.get(preferredIndex) ? @winList.get(preferredIndex - 1)
       @switchToWindow nextWin
+    else
+      @switchToWindow @currentWindow
 
   makeWin: (conn, chan) ->
     throw new Error("we already have a window for that") if conn.windows[chan]

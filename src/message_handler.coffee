@@ -19,11 +19,11 @@ class MessageHandler
   registerHandler: (type, handler) ->
     @_handlers[type] = handler
 
-  handle: (@type, params...) ->
+  handle: (@type, @params...) ->
     assert @canHandle @type
-    @_handlers[@type]?.apply this, params
+    @_handlers[@type]?.apply this, @params
     for handler in @_mergedHandlers when handler.canHandle @type
-      handler.handle @type, params...
+      handler.handle @type, @params...
 
   canHandle: (type) ->
     return true if type of @_handlers
