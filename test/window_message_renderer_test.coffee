@@ -28,18 +28,18 @@ describe "A window message renderer", ->
   it "escapes html-like text", ->
     renderer.message 'joe', '<a "evil.jpg"/>'
     expect(renderer._addMessage).toHaveBeenCalledWith 'joe',
-        '&lt;a&nbsp;<wbr>&quot;evil.jpg&quot;/&gt;', ''
+        '&lt;a &quot;evil.jpg&quot;/&gt;', ''
 
   it "doesn't collapse multiple spaces", ->
     renderer.message 'bill', 'hi     there'
     expect(renderer._addMessage).toHaveBeenCalledWith 'bill',
-        'hi&nbsp;<wbr>&nbsp;<wbr>&nbsp;<wbr>&nbsp;<wbr>&nbsp;<wbr>there', ''
+        'hi     there', ''
 
   it "auto-links urls", ->
     renderer.message '*', 'check www.youtube.com out'
     expect(renderer._addMessage).toHaveBeenCalledWith '*',
-        'check&nbsp;<wbr><a target="_blank" href="http://www.youtube.com">' +
-        'www.youtube.com</a>&nbsp;<wbr>out', ''
+        'check <a target="_blank" href="http://www.youtube.com">' +
+        'www.youtube.com</a> out', ''
 
   it "allows long words to break", ->
     word = 'thisisareallyreallyreallyreallyreallyreallyreallylongword'
@@ -52,8 +52,15 @@ describe "A window message renderer", ->
     word2 = 'andthisisalsoareallylongword!!!!!!!!!!!!!!!!!'
     renderer.message 'joe', word1 + ' ' + word2
     expect(renderer._addMessage).toHaveBeenCalledWith 'joe',
-        '<span class="longword">' + word1 + '</span>&nbsp;<wbr>' +
+        '<span class="longword">' + word1 + '</span> ' +
         '<span class="longword">' + word2 + '</span>', ''
+
+  it "allows the same long word to be used twice", ->
+    word = 'andthisisalsoareallylongwordddddddddddddd'
+    renderer.message 'joe', word + ' ' + word
+    expect(renderer._addMessage).toHaveBeenCalledWith 'joe',
+        '<span class="longword">' + word + '</span> ' +
+        '<span class="longword">' + word + '</span>', ''
 
   it "allows long words to break even when they contain HTML", ->
     word = 'thisisareallyreallyrea"<>&><"lyreallyreallyreallylongword'
@@ -65,4 +72,4 @@ describe "A window message renderer", ->
   it "doesn't allow short words that seem long due to HTML escaping to break", ->
     renderer.message 'joe', '<a href="evil.jpg"/>'
     expect(renderer._addMessage).toHaveBeenCalledWith 'joe',
-        '&lt;a&nbsp;<wbr>href=&quot;evil.jpg&quot;/&gt;', ''
+        '&lt;a href=&quot;evil.jpg&quot;/&gt;', ''

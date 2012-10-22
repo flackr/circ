@@ -79,9 +79,8 @@ escapeHTML = (html) ->
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
-    ' ': '&nbsp;<wbr>',
   }
-  String(html).replace(/[\s&<>"]/g, (chr) -> escaped[chr])
+  String(html).replace /[&<>"]/g, (character) -> escaped[character] ? character
 
 display = (text) ->
   # Gruber's url-finding regex
@@ -99,9 +98,13 @@ display = (text) ->
     longWords = str.match(/\S{40,}/g) ? []
     longWords = (escapeHTML(word) for word in longWords)
     str = escapeHTML(str)
+    result = ''
     for word in longWords
-      str = str.replace word, "<span class=\"longword\">#{word}</span>"
-    str
+      replacement = "<span class=\"longword\">#{word}</span>"
+      str = str.replace word, replacement
+      result += str[.. str.indexOf(replacement) + replacement.length - 1]
+      str = str[str.indexOf(replacement) + replacement.length..]
+    result + str
 
   res = ''
   textIndex = 0

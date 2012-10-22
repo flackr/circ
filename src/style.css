@@ -186,6 +186,7 @@ ul {
 .message .content {
   display: table-cell;
   padding-top: 8px;
+  white-space: pre-wrap;
 }
 
 .message:last-child .content {
