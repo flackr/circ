@@ -105,6 +105,12 @@ describe 'An IRC client front end', ->
       restart()
       expect($ '#status').toHaveText 'ournick'
 
+    it "generates random nick when no previously used nick is available", ->
+      chrome.storage.sync.set { nick: undefined }
+      restart()
+      type "/connect freenode"
+      expect(irc('freenode').preferredNick).toBeDefined()
+
     it "restores the previously joined servers", ->
       restart()
       expect(client.connections['freenode']).toBeDefined()
@@ -359,15 +365,19 @@ describe 'An IRC client front end', ->
           expect(nicks().length).toBe currentNicks.length
 
       describe "with a remote connection", ->
+        state = undefined
 
-        channels = { '#bash': { nicks: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
+        getChannels = ->
+          { '#bash': { nicks: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
 
-        state =
+        getState = ->
+          nick: 'preferredNick'
           servers: [ { name: 'freenode', port: 6667 }, { name: 'dalnet', port: 6697 } ]
           channels: [ { name: '#bash', server: 'freenode' }, { name: '#awesome', server: 'dalnet' } ]
-          ircStates: [ { server: 'freenode', state: 'connected', nick: 'somenick', away: true, channels } ]
+          ircStates: [ { server: 'freenode', state: 'connected', nick: 'somenick', away: true, channels: getChannels() } ]
 
         beforeEach ->
+          state = getState()
           mocks.RemoteDevice.reset()
           type "/add-device 1.1.1.2"
 
@@ -391,6 +401,12 @@ describe 'An IRC client front end', ->
           for name, i in ['bob', 'Sally', 'somenick']
             expect(textOfNick i).toBe name
           expect($('#status').text()).toBe 'somenick' + 'away'
+
+        it "doesn't set the irc nick if the nick isn't saved", ->
+          state.ircStates[0].nick = undefined
+          state.nick = undefined
+          (device 0).emit 'connection_message', 'irc_state', state
+          expect(irc('freenode').preferredNick).toBeDefined()
 
         it "can listen to user input from the server device", ->
           (device 0).emit 'connection_message', 'irc_state', state

@@ -27,13 +27,13 @@ class RemoteConnection extends EventEmitter
   broadcastUserInput: (userInput) ->
     userInput.on 'command', (event) =>
       return if event.name in ['make-server', 'add-device', 'close-sockets', 'z', 'z2', 'z3']
-      @_broadcast RemoteConnection.USER_INPUT, event
+      @_broadcast 'user_input', event
 
   broadcastSocketData: (socket, server) ->
     socket.onAny (type, data) =>
       if type is 'data'
         data = new Uint8Array data
-      @_broadcast RemoteConnection.SOCKET_DATA, server, type, data
+      @_broadcast 'socket_data', server, type, data
 
   _broadcast: (type, args...) ->
     for id, device of @_deviceMap

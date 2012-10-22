@@ -87,7 +87,7 @@ class Chat extends EventEmitter
     irc = new window.irc.IRC
     if @remoteConnection.isEnabled()
       irc.setSocket @remoteConnection.createSocket server
-    irc.setPreferredNick @previousNick
+    irc.setPreferredNick @previousNick if @previousNick
     @ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
 
@@ -219,6 +219,7 @@ class Chat extends EventEmitter
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
     @syncStorage.parted win.conn.name, win.target
+    @ircEvents?.removeEventsFrom win.conn.irc
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
     else

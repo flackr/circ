@@ -104,10 +104,11 @@ class SyncStorage
 
   _setIRCState: (conn, ircState) ->
     @_chat.onConnected conn
-    conn.irc.state = ircState.state
-    conn.irc.away = ircState.away
-    conn.irc.channels = ircState.channels
+    conn.irc.state = ircState.state if ircState.state
+    conn.irc.away = ircState.away if ircState.away
+    conn.irc.channels = ircState.channels if ircState.channels
     conn.irc.nick = ircState.nick
+    return unless ircState.channels
     for channelName, channelInfo of ircState.channels
       @_chat.onJoined conn, channelName
       nicks = (nick for norm, nick of channelInfo.nicks)

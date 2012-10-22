@@ -31,6 +31,11 @@ class ScriptHandler extends EventEmitter
     for event in @_hookableEvents
       emitter.on event, @_handleEvent
 
+  removeEventsFrom: (emitter) ->
+    @_emitters.splice @_emitters.indexOf(emitter), 1
+    for event in @_hookableEvents
+      emitter.removeListener event, @_handleEvent
+
   _handleEvent: (e) =>
     id = @_eventCount++
     e.id = id

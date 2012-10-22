@@ -36,7 +36,7 @@ class DeveloperCommands extends MessageHandler
       @_handleCommand "load", ""
 
     z: ->
-      @_handleCommand 'add-device', '192.168.2.16'
+      @_handleCommand 'add-device', '172.23.181.94'
 
     z2: ->
       @_handleCommand 'make-server', ''
