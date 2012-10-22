@@ -111,7 +111,7 @@ class SyncStorage
     return unless ircState.channels
     for channelName, channelInfo of ircState.channels
       @_chat.onJoined conn, channelName
-      nicks = (nick for norm, nick of channelInfo.nicks)
+      nicks = (nick for norm, nick of channelInfo.names)
       @_chat.onNames { context: { server: conn.name, channel: channelName } }, nicks
 
 exports.SyncStorage = SyncStorage

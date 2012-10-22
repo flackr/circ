@@ -368,7 +368,7 @@ describe 'An IRC client front end', ->
         state = undefined
 
         getChannels = ->
-          { '#bash': { nicks: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
+          { '#bash': { names: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
 
         getState = ->
           nick: 'preferredNick'
