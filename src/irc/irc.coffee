@@ -11,7 +11,7 @@ class IRC extends EventEmitter
     @exponentialBackoff = 0
     @partialNameLists = {}
     @channels = {}
-    @serverResponseHandler = new irc.ServerResponseHandler(this)
+    @serverResponseHandler = new irc.ServerResponseHandler this
     @state = 'disconnected'
 
   setSocket: (socket) ->

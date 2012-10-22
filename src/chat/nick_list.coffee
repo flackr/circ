@@ -11,8 +11,9 @@ class NickList extends chat.HTMLList
     @insert i, nick
 
   _getClosestIndex: (nick) ->
+    nick = nick.toLowerCase()
     for name, i in @nodeNames
-      return i if name > nick
+      return i if name.toLowerCase() > nick
     @nodeNames.length
 
 exports.NickList = NickList

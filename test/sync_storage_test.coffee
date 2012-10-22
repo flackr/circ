@@ -16,9 +16,9 @@ describe 'IRC sync storage', ->
     expect(chat.setNick).not.toHaveBeenCalled()
 
   it 'restores the stored nick', ->
-    sync.set {nicks: [server: 'freenode', name: 'ournick' ]}
+    sync.set { nick: 'ournick' }
     ss.restoreSavedState chat
-    expect(chat.setNick).toHaveBeenCalledWith 'freenode', 'ournick'
+    expect(chat.setNick).toHaveBeenCalledWith 'ournick'
 
   it 'restores the stored servers', ->
     sync.set { servers: [
@@ -40,8 +40,8 @@ describe 'IRC sync storage', ->
     expect(chat.join).toHaveBeenCalledWith('d', '#hiphop')
 
   it 'stores the new nick on nickChanged()', ->
-    ss.nickChanged 'freenode', 'newnick'
-    expect(sync._storageMap.nicks).toEqual [{name: 'newnick', server: 'freenode'}]
+    ss.nickChanged 'newnick'
+    expect(sync._storageMap.nick).toBe 'newnick'
 
   it 'stores the joined channel on channelJoined()', ->
     ss.channelJoined 'freenode', '#bash'

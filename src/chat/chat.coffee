@@ -38,7 +38,6 @@ class Chat extends EventEmitter
     @userCommands.listenTo @remoteConnection
     @remoteConnection.on 'irc_state', (state) =>
       @closeAllConnections()
-      console.warn 'Loading IRC STATE', state
       @syncStorage.loadState this, state
 
   ##
@@ -50,11 +49,10 @@ class Chat extends EventEmitter
   #     client.
   ##
   closeAllConnections: ->
-    for server, conn of @connections
+     for server, conn of @connections
       @closeConnection conn
 
   closeConnection: (conn) ->
-    console.warn 'closing', conn.name
     if conn.irc.state is 'reconnecting'
       conn.irc.giveup()
     else
@@ -88,9 +86,8 @@ class Chat extends EventEmitter
   _createConnection: (server) ->
     irc = new window.irc.IRC
     if @remoteConnection.isEnabled()
-      console.log 'IS ENABLED'
       irc.setSocket @remoteConnection.createSocket server
-    irc.setPreferredNick @previousNick if @previousNick?
+    irc.setPreferredNick @previousNick
     @ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
 
@@ -116,11 +113,18 @@ class Chat extends EventEmitter
     @switchToWindow win
     conn.irc.join channel
 
-  setNick: (server, nick) ->
+  setNick: (opt_server, nick) ->
+    unless nick
+      nick = opt_server
+      server = undefined
+    else
+      server = opt_server
+    conn = @connections[server]
     @previousNick = nick
-    @syncStorage.nickChanged server, nick
+    @syncStorage.nickChanged nick
     @updateStatus()
-    @connections[server]?.irc.doCommand 'NICK', nick
+    conn?.irc.doCommand 'NICK', nick
+    conn?.irc.setPreferredNick nick
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]

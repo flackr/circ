@@ -3,9 +3,6 @@ exports = window
 class RemoteConnection extends EventEmitter
 
   @PORT: 1329
-  @USER_INPUT: 'user_input'
-  @SOCKET_DATA: 'socket_data'
-  @CONNECTION_MESSAGE: 'connection_message'
 
   constructor: ->
     super
@@ -22,11 +19,9 @@ class RemoteConnection extends EventEmitter
     if @isServer()
       socket = new net.ChromeSocket
       @broadcastSocketData socket, server
-      console.log 'creating server socket'
     else
       socket = new net.RemoteSocket
       @_socketMap[server] = socket
-      console.log 'creating remote socket'
     socket
 
   broadcastUserInput: (userInput) ->
@@ -51,32 +46,19 @@ class RemoteConnection extends EventEmitter
   _addConnectedDevice: (device) =>
     @enable()
     @_deviceMap[device.id] = device
-    device.on 'message', @_onMessage
+    device.on 'user_input', @_emitUserInput
+    device.on 'socket_data', @_emitSocketData
+    device.on 'connection_message', @_emitConnectionMessage
 
-  _onMessage: (type, args) =>
-    if type is RemoteConnection.USER_INPUT
-      @_emitUserInput args...
-    else if type is RemoteConnection.SOCKET_DATA
-      @_emitSocketData args...
-    else if type is RemoteConnection.CONNECTION_MESSAGE
-      @_emitConnectionMessage args...
-    else
-      console.warn "received data from remote server of unknown type:", type, args
+  _emitUserInput: (event) =>
+    @emit event.type, Event.wrap event
 
-  _emitUserInput: (event) ->
-    event = Event.wrap event
-    console.log 'EMITTING user input', event.name,
-        event.context.server, event.context.channel, event.args
-    @emit event.type, event
-
-  _emitSocketData: (server, type, data) ->
-    console.log 'EMITTING socket data', type, data
+  _emitSocketData: (server, type, data) =>
     if type is 'data'
       data = irc.util.dataViewToArrayBuffer data
     @_socketMap[server]?.emit type, data
 
-  _emitConnectionMessage: (type, args...) ->
-    console.log 'EMITTING connection message', type, args
+  _emitConnectionMessage: (type, args...) =>
     @emit type, args...
 
   close: ->
@@ -88,7 +70,6 @@ class RemoteConnection extends EventEmitter
     @_enabled
 
   enable: ->
-    console.log 'is now enabled'
     @_enabled = true
 
   isServer: ->
@@ -99,10 +80,8 @@ class RemoteConnection extends EventEmitter
   # directly to the IRC server.
   ##
   makeServer: (state) ->
-    console.log 'is now server'
     @_isServer = true
-    console.warn 'broadcasting connection info:', state
-    @_broadcast RemoteConnection.CONNECTION_MESSAGE, 'irc_state', state
+    @_broadcast 'connection_message', 'irc_state', state
 
   ##
   # Begin listening to incoming TCP connections and broadcast information to them.

@@ -11,6 +11,22 @@ describe 'An IRC client front end', ->
   textOfRoom = (index) ->
     $('.content-item', room(index)).text()
 
+  nick = (index) ->
+    return nicks().last() if index is -1
+    $ nicks()[index]
+
+  nicks = ->
+    $ '#nicks-container .nicks .nick'
+
+  textOfNick = (index) ->
+    $('.content-item', nick(index)).text()
+
+  device = (i) ->
+    mocks.RemoteDevice.devices[i]
+
+  irc = (name) ->
+    client.connections[name]?.irc
+
   type = (text) ->
     prompt.val(text)
     commandInput._handleKeydown { which: 13, preventDefault: -> }
@@ -41,7 +57,7 @@ describe 'An IRC client front end', ->
     mocks.NickMentionedNotification.useMock()
     prompt = $('#input')
     commandInput = new UserInputHandler(prompt, $ window)
-    chrome.storage.sync.set {nicks: [server: 'freenode', name: 'ournick' ]}
+    chrome.storage.sync.set { nick: 'ournick' }
     init()
 
   afterEach ->
@@ -111,21 +127,20 @@ describe 'An IRC client front end', ->
       type '/win 1'
       type '/quit'
       restart()
-      expect(client.connections['freenode']).not.toBeDefined()
+      expect(irc 'freenode').not.toBeDefined()
       expect(rooms().length).toBe 2
 
   describe "that is connecting", ->
-    irc = undefined
 
     beforeEach ->
       type '/server freenode'
-      irc = client.currentWindow.conn.irc
-      expect(irc.state).toBe 'connecting'
+      expect(irc('freenode').state).toBe 'connecting'
 
     it 'can queue a disconnection request with /quit', ->
+      currentIRC = irc('freenode')
       type '/quit'
-      irc.handle '1', {}, 'ournick' # rpl_welcome
-      expect(irc.state).toBe 'disconnected'
+      currentIRC.handle '1', {}, 'ournick' # rpl_welcome
+      expect(currentIRC.state).toBe 'disconnected'
 
     it 'allows channels to be joined while connecting', ->
       type '/join #bash'
@@ -137,36 +152,36 @@ describe 'An IRC client front end', ->
     it 'automatically joins queued channels when connected', ->
       type '/join #bash'
       type '/part'
-      spyOn irc, 'send'
-      irc.handle '1', {}, 'ournick' # rpl_welcome
-      expect(irc.send).not.toHaveBeenCalled()
+      spyOn irc('freenode'), 'send'
+      irc('freenode').handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc('freenode').send).not.toHaveBeenCalled()
 
     it 'removes queued channels on /part', ->
       type '/join #bash'
-      spyOn irc, 'send'
-      irc.handle '1', {}, 'ournick' # rpl_welcome
-      expect(irc.send).toHaveBeenCalledWith 'JOIN', '#bash'
+      spyOn irc('freenode'), 'send'
+      irc('freenode').handle '1', {}, 'ournick' # rpl_welcome
+      expect(irc('freenode').send).toHaveBeenCalledWith 'JOIN', '#bash'
 
   describe "that connects", ->
-    irc = undefined
+    currentIRC = undefined
 
     beforeEach ->
       type '/server freenode'
-      irc = client.currentWindow.conn.irc
-      irc.handle '1', {}, 'ournick' # rpl_welcome
-      expect(irc.state).toBe 'connected'
-      spyOn irc, 'doCommand'
+      currentIRC = irc('freenode')
+      currentIRC.handle '1', {}, 'ournick' # rpl_welcome
+      expect(currentIRC.state).toBe 'connected'
+      spyOn currentIRC, 'doCommand'
 
     it "marks the server item in the window list as connected", ->
       expect(room 0).not.toHaveClass 'disconnected'
 
     it "updates the status bar on /away", ->
       type '/away'
-      irc.handle '306' # rpl_nowaway
+      currentIRC.handle '306' # rpl_nowaway
       expect($ $('#status').children()[1]).toHaveText 'away'
 
     it "creates a new window when a direct private message is received", ->
-      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
       expect(rooms().length).toBe 2
       expect(textOfRoom -1).toBe 'someguy'
       expect(room -1).toHaveClass 'mention'
@@ -180,13 +195,13 @@ describe 'An IRC client front end', ->
       expect(client.currentWindow.message).toHaveBeenCalled()
 
     it "displays /msg text in the conversation window when it exists", ->
-      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
       spyOn(client.currentWindow, 'message').andCallThrough()
       type '/msg someguy hey dude'
       expect(client.currentWindow.message).not.toHaveBeenCalled()
 
     it "/msg causes the conversation window to be marked with activity", ->
-      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
       type '/win 2'
       type '/win 1'
       expect(room -1).not.toHaveClass 'mention'
@@ -200,57 +215,57 @@ describe 'An IRC client front end', ->
 
     it "creates a notification when a direct private message is received", ->
       chat.NickMentionedNotification.notificationCount = 0
-      irc.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
+      currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
       expect(chat.NickMentionedNotification.notificationCount).toBe 1
 
     it "can join a channel with /join", ->
       type '/join #bash'
-      expect(irc.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
+      expect(currentIRC.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
       expect(client.currentWindow.target).toBe '#bash'
 
     describe "then is disconnected by a socket error", ->
 
       beforeEach ->
         jasmine.Clock.useMock()
-        irc.onError 'socket error!'
+        currentIRC.onError 'socket error!'
 
       it 'shows all servers and channels as disconnected', ->
         expect(room 0).toHaveClass 'disconnected'
 
       it 'attempts to reconnect after a short amount of time', ->
-        spyOn(irc, 'connect')
+        spyOn(currentIRC, 'connect')
         jasmine.Clock.tick(2000)
-        expect(irc.connect).toHaveBeenCalled()
+        expect(currentIRC.connect).toHaveBeenCalled()
 
       it 'uses exponential backoff for reconnection attempts', ->
         jasmine.Clock.tick(2000)
-        irc.onError 'socket error!'
+        currentIRC.onError 'socket error!'
 
-        spyOn(irc, 'connect')
+        spyOn(currentIRC, 'connect')
         jasmine.Clock.tick(2000)
-        expect(irc.connect).not.toHaveBeenCalled()
+        expect(currentIRC.connect).not.toHaveBeenCalled()
 
         jasmine.Clock.tick(2000)
-        expect(irc.connect).toHaveBeenCalled()
+        expect(currentIRC.connect).toHaveBeenCalled()
 
-        irc.connect.reset()
-        irc.onError 'socket error!'
+        currentIRC.connect.reset()
+        currentIRC.onError 'socket error!'
         jasmine.Clock.tick(7999)
-        expect(irc.connect).not.toHaveBeenCalled()
+        expect(currentIRC.connect).not.toHaveBeenCalled()
 
       it 'closes the current window and stops reconnecting on /quit', ->
         type "/quit"
         expect(client.currentWindow.name).toBe 'none'
 
-        spyOn(irc, 'connect')
+        spyOn(currentIRC, 'connect')
         jasmine.Clock.tick(9000)
-        expect(irc.connect).not.toHaveBeenCalled()
+        expect(currentIRC.connect).not.toHaveBeenCalled()
 
     describe "then joins a channel", ->
 
       beforeEach ->
         type '/join #bash'
-        irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
+        currentIRC.handle 'JOIN', {nick: 'ournick'}, '#bash'
 
       it "adds another item to the room display", ->
         expect(rooms().length).toBe 2
@@ -262,7 +277,7 @@ describe 'An IRC client front end', ->
       it "creates a notification when the users nick is mentioned", ->
         type "/win 1"
         chat.NickMentionedNotification.notificationCount = 0
-        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
+        currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
         expect(chat.NickMentionedNotification.notificationCount).toBe 1
         expect(room -1).toHaveClass 'mention'
         expect(room -1).toHaveClass 'activity'
@@ -274,14 +289,14 @@ describe 'An IRC client front end', ->
         irc2.handle '1', {}, 'ournick' # rpl_welcome
         type '/win 3'
         type '/join #bash'
-        irc.handle 'JOIN', {nick: 'ournick'}, '#bash'
+        currentIRC.handle 'JOIN', {nick: 'ournick'}, '#bash'
 
-        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hi'
+        currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hi'
         expect(room 1).toHaveClass 'activity'
 
       it "clears activity and mention style when switching to a window", ->
         type "/win 1"
-        irc.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
+        currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
         type "/win 2"
         expect(room -1).not.toHaveClass 'mention'
         expect(room -1).not.toHaveClass 'activity'
@@ -293,30 +308,20 @@ describe 'An IRC client front end', ->
         expect(room -1).toHaveClass 'selected'
 
       describe "has a nick list which", ->
-        nicks = currentNicks = undefined
-
-        nick = (index) ->
-          return nicks().last() if index is -1
-          $ nicks()[index]
-
-        nicks = ->
-          $ '#nicks-container .nicks .nick'
-
-        textOfNick = (index) ->
-          $('.content-item', nick(index)).text()
+        currentNicks = undefined
 
         beforeEach ->
           currentNicks = ['bart', 'bill', 'bob', 'charlie', 'derek', 'edward', 'jacob',
-              'megan', 'norman', 'sally', 'sue', 'tereza',
-              'zabo1', 'zabo2', 'zabo3', 'zabo88']
+              'megan', 'norman', 'sally', 'sue', 'Tereza',
+              'zabo1', 'ZABO2', 'zabo3', 'Zabo88']
 
         addNicks = ->
-          irc.emit 'names', '#bash', currentNicks.slice(0, 7)
-          irc.emit 'names', '#bash', currentNicks.slice(7, 12)
-          irc.emit 'names', '#bash', currentNicks.slice(12)
+          currentIRC.emit 'names', '#bash', currentNicks.slice(0, 7)
+          currentIRC.emit 'names', '#bash', currentNicks.slice(7, 12)
+          currentIRC.emit 'names', '#bash', currentNicks.slice(12)
           nameMap = {}
           (nameMap[name] = name for name in currentNicks)
-          irc.channels['#bash'].names = nameMap
+          currentIRC.channels['#bash'].names = nameMap
 
         it "displays the user's nick when first joining a channel", ->
           expect(nicks().length).toBe 1
@@ -332,19 +337,19 @@ describe 'An IRC client front end', ->
 
         it "displays newly joined nicks after they /join", ->
           addNicks()
-          irc.handle 'JOIN', {nick: 'alphy'}, '#bash'
+          currentIRC.handle 'JOIN', {nick: 'alphy'}, '#bash'
           expect(nicks().length).toBe currentNicks.length + 2
           expect(textOfNick 0).toBe 'alphy'
 
         it "doesn't display nicks after they have been kicked", ->
           addNicks()
-          irc.handle 'KICK', {nick: 'bob'}, '#bash', 'zabo88'
+          currentIRC.handle 'KICK', {nick: 'bob'}, '#bash', 'Zabo88'
           expect(nicks().length).toBe currentNicks.length
-          expect(textOfNick 0).not.toBe 'zabo88'
+          expect(textOfNick 0).not.toBe 'Zabo88'
 
         it "doesn't display nicks after they left with /parted", ->
           addNicks()
-          irc.handle 'PART', {nick: 'bob'}, '#bash'
+          currentIRC.handle 'PART', {nick: 'bob'}, '#bash'
           expect(nicks().length).toBe currentNicks.length
           expect(textOfNick 2).not.toBe 'bob'
 
@@ -352,3 +357,51 @@ describe 'An IRC client front end', ->
           currentNicks.push 'ournick'
           addNicks()
           expect(nicks().length).toBe currentNicks.length
+
+      describe "with a remote connection", ->
+
+        channels = { '#bash': { nicks: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
+
+        state =
+          servers: [ { name: 'freenode', port: 6667 }, { name: 'dalnet', port: 6697 } ]
+          channels: [ { name: '#bash', server: 'freenode' }, { name: '#awesome', server: 'dalnet' } ]
+          ircStates: [ { server: 'freenode', state: 'connected', nick: 'somenick', away: true, channels } ]
+
+        beforeEach ->
+          mocks.RemoteDevice.reset()
+          type "/add-device 1.1.1.2"
+
+        it "disconnects from the current connection before using the server device's connection", ->
+          (device 0).emit 'connection_message', 'irc_state', []
+          expect(rooms().length).toBe 1
+          expect(client.connections['freenode']).not.toBeDefined()
+
+        it "can load the IRC state from the server device", ->
+          (device 0).emit 'connection_message', 'irc_state', state
+
+          expect(rooms().length).toBe 4
+          expect(irc('freenode').state).toBe 'connected'
+          expect(irc('dalnet').state).toBe 'disconnected'
+          expect(room 0).not.toHaveClass 'disconnected'
+          expect(room 1).not.toHaveClass 'disconnected'
+          expect(room 2).toHaveClass 'disconnected'
+          expect(room 3).toHaveClass 'disconnected'
+
+          type '/win 2'
+          for name, i in ['bob', 'Sally', 'somenick']
+            expect(textOfNick i).toBe name
+          expect($('#status').text()).toBe 'somenick' + 'away'
+
+        it "can listen to user input from the server device", ->
+          (device 0).emit 'connection_message', 'irc_state', state
+          event = new Event 'command', 'nick', 'newnick'
+          event.setContext 'freenode'
+          spyOn client, 'setNick'
+          (device 0).emit 'user_input', event
+          expect(client.setNick).toHaveBeenCalledWith 'freenode', 'newnick'
+
+        it "can listen to socket data from the server device", ->
+          (device 0).emit 'connection_message', 'irc_state', state
+          spyOn irc('freenode'), 'onDrain'
+          (device 0).emit 'socket_data', 'freenode', 'drain'
+          expect(irc('freenode').onDrain).toHaveBeenCalled()

@@ -1,31 +1,28 @@
 exports = window.mocks ?= {}
 
-class RemoteDevice
+class RemoteDevice extends EventEmitter
   @useMock: ->
     window.RemoteDevice = RemoteDevice
 
-  constructor: (connectionId) ->
-    if typeof connectionId is 'string'
-      @_addr = connectionId
-    else
-      @_socketId = connectionId
-    @id = connectionId
+  @devices: []
+
+  @reset: ->
+    @devices = []
+
+  constructor: (@id) ->
+    super
+    RemoteDevice.devices.push this
 
   @getOwnDevice: (callback) ->
-    callback new RemoteDevice '127.0.0.1'
+    callback new RemoteDevice '1.1.1.1'
+
+  send: ->
 
   listenForNewDevices: (callback) ->
 
-  _acceptNewConnection: (addr, port, callback) ->
-
-  _send: (type, args) ->
-
-  connect: ->
+  connect: (callback) ->
+    callback true
 
   close: ->
-
-  _setSocketId: ->
-
-  _listenForData: ->
 
 exports.RemoteDevice = RemoteDevice

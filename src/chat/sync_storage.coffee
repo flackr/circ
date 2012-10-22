@@ -2,21 +2,16 @@ exports = window.chat ?= {}
 
 class SyncStorage
 
-  @ITEMS = ['nicks', 'servers', 'channels']
+  @ITEMS = ['nick', 'servers', 'channels']
 
   constructor: ->
     @_channels = []
     @_servers = []
-    @_nicks = []
+    @_nick = ''
 
-  nickChanged: (server, name) ->
-    for nick, i in @_nicks
-      if server is nick.server
-        @_nicks[i].name = name
-        @_store 'nicks', @_nicks
-        return
-    @_nicks.push { server, name }
-    @_store 'nicks', @_nicks
+  nickChanged: (nick) ->
+    @_nick = nick
+    @_store 'nick', nick
 
   channelJoined: (server, name) ->
     @_channels.push { server, name }
@@ -51,8 +46,21 @@ class SyncStorage
     storageObj[key] = value
     chrome.storage.sync.set storageObj
 
-  getState: ->
-    { servers: @_servers, channels: @_channels, nicks: @_nicks }
+  getState: (chat) ->
+    @_chat = chat
+    ircStates = @_createIRCStates()
+    { ircStates, servers: @_servers, channels: @_channels, nick: @_nick }
+
+  _createIRCStates: ->
+    ircStates = []
+    for name, conn of @_chat.connections
+      ircStates.push
+        server: conn.name
+        state: conn.irc.state
+        channels: conn.irc.channels
+        away: conn.irc.away
+        nick: conn.irc.nick
+    ircStates
 
   restoreSavedState: (chat) ->
     @_chat = chat
@@ -64,6 +72,7 @@ class SyncStorage
     @_restoreNick()
     @_restoreServers()
     @_restoreChannels()
+    @_restoreIRCStates()
 
   _restoreServers: ->
     return unless (servers = @_state.servers) and Array.isArray servers
@@ -77,8 +86,31 @@ class SyncStorage
       @_chat.join conn, channel.name
 
   _restoreNick: ->
-    return unless (nicks = @_state.nicks) and Array.isArray nicks
-    for nick in nicks
-      @_chat.setNick nick.server, nick.name
+    return unless (nick = @_state.nick) and typeof nick is 'string'
+    @_chat.setNick nick
+
+  _restoreIRCStates: ->
+    return unless (ircStates = @_state.ircStates) and Array.isArray ircStates
+    connectedServers = []
+    for ircState in ircStates
+      conn = @_chat.connections[ircState.server]
+      connectedServers.push ircState.server
+      @_setIRCState conn, ircState if conn
+    @_disconnectServersWithNoState connectedServers
+
+  _disconnectServersWithNoState: (connectedServers) ->
+    for name, conn of @_chat.connections
+      conn.irc.state = 'disconnected' unless name in connectedServers
+
+  _setIRCState: (conn, ircState) ->
+    @_chat.onConnected conn
+    conn.irc.state = ircState.state
+    conn.irc.away = ircState.away
+    conn.irc.channels = ircState.channels
+    conn.irc.nick = ircState.nick
+    for channelName, channelInfo of ircState.channels
+      @_chat.onJoined conn, channelName
+      nicks = (nick for norm, nick of channelInfo.nicks)
+      @_chat.onNames { context: { server: conn.name, channel: channelName } }, nicks
 
 exports.SyncStorage = SyncStorage

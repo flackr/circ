@@ -240,7 +240,7 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'make-server',
       description: "make this device share its connection with other known devices"
       run: ->
-        @chat.remoteConnection.makeServer @chat.syncStorage.getState()
+        @chat.remoteConnection.makeServer @chat.syncStorage.getState @chat
 
     @_addCommand 'close-sockets',
       description: "close all remote connection sockets"

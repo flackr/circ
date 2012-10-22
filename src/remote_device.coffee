@@ -1,6 +1,7 @@
 exports = window
 
 class RemoteDevice extends EventEmitter
+
   constructor: (connectionId) ->
     super
     @_receivedMessages = ''
@@ -77,7 +78,7 @@ class RemoteDevice extends EventEmitter
           completeMessages = @_parseReceivedMessages()
           for json in completeMessages
             data = JSON.parse json
-            @emit 'message', data.type, data.args
+            @emit data.type, data.args...
         @_listenForData()
       else
         console.error 'onRead: got no data!'
