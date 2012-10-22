@@ -70,6 +70,7 @@ class MessageRenderer
     html.addClass style
     $('.source', html).html from
     $('.content', html).html msg
+    $('.source', html).addClass('empty') unless from
     @win.$messages.append html
 
 escapeHTML = (html) ->

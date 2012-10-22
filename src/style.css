@@ -48,7 +48,7 @@ ul {
   color: #406698;
   text-transform: uppercase;
   font-size: 12px;
-  padding: 8px 0px 2px 10px;
+  padding: 8px 0px 2px 8px;
   margin: 0px;
 }
 
@@ -179,6 +179,10 @@ ul {
   text-align: right;
 }
 
+.message .source.empty {
+  padding-right: 0;
+}
+
 .message .content {
   display: table-cell;
   padding-top: 8px;
@@ -217,7 +221,7 @@ ul {
 }
 
 #status span {
-  padding: 0px 6px;
+  padding-right: 10px;
 }
 
 #status .nick:before {
