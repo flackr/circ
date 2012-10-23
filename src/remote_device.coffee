@@ -59,11 +59,11 @@ class RemoteDevice extends EventEmitter
         @_acceptNewConnection callback
 
   _acceptNewConnection: (callback) ->
-    console.log 'Now listening to 0.0.0.0 on port', @port
+    @_log 'Now listening to 0.0.0.0 on port', @port
     chrome.socket.accept @_socketId, (acceptInfo) =>
       return unless acceptInfo.socketId
+      @_log 'Connected to a client device', @_socketId
       callback new RemoteDevice acceptInfo.socketId
-      console.log 'Connected to client', @_socketId
       @_acceptNewConnection callback
 
   send: (type, args) ->
@@ -72,11 +72,11 @@ class RemoteDevice extends EventEmitter
     irc.util.toSocketData msg, (data) =>
       chrome.socket.write @_socketId, data, (writeInfo) =>
         if writeInfo.resultCode < 0
-#          console.warn "failed to send:", type, args, writeInfo.resultCode
+          @_log 'w', 'failed to send:', type, args, writeInfo.resultCode
         else if writeInfo.bytesWritten != data.byteLength
-#          console.warn "failed to send:", type, args, '(non-complete write)'
+          @_log 'w', 'failed to send (non-complete-write):', type, args, writeInfo.resultCode
         else
-#          console.warn 'successfully sent', type, args
+          @_log 'successfully sent', type, args
 
   ##
   # Called when the device represents a remote server. Creates a connection
@@ -133,6 +133,7 @@ class RemoteDevice extends EventEmitter
           completeMessages = @_parseReceivedMessages()
           for json in completeMessages
             data = JSON.parse json
+            @_log 'received', data.type, data.args...
             @emit data.type, data.args...
         @_listenForData()
       else

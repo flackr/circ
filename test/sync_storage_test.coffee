@@ -3,7 +3,8 @@ describe 'IRC sync storage', ->
   sync = chrome.storage.sync
 
   beforeEach ->
-    chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus', 'setNick']
+    chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus',
+        'setNick', 'setPassword']
     chat.connections = { freenode: 'f', dalnet: 'd' }
     ss = new window.chat.SyncStorage
     sync.clear()
@@ -19,6 +20,11 @@ describe 'IRC sync storage', ->
     sync.set { nick: 'ournick' }
     ss.restoreSavedState chat
     expect(chat.setNick).toHaveBeenCalledWith 'ournick'
+
+  it 'restores the stored password', ->
+    sync.set { password: 'somepw' }
+    ss.restoreSavedState chat
+    expect(chat.setPassword).toHaveBeenCalledWith 'somepw'
 
   it 'restores the stored servers', ->
     sync.set { servers: [

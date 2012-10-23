@@ -33,73 +33,20 @@ class DeveloperCommands extends MessageHandler
       new chat.Notification('test', 'hi!').show()
 
     l: ->
-      @_handleCommand "load", ""
+      @_handleCommand "load"
 
     z: ->
-      @_handleCommand 'add-device', '172.23.181.94'
+      @_handleCommand 'connect-info'
 
-    z2: ->
-      @_handleCommand 'make-server', ''
+    zp: ->
+      @_chat.displayMessage 'notice', @params[0].context, 'Your password is: ' +
+          @_chat.remoteConnection._password
 
-    z3: ->
-      @_handleCommand 'close-sockets', ''
+    zps: (event) ->
+      @_chat.syncStorage._store 'password', event.args[0]
+      @_chat.setPassword event.args[0]
 
-    a: (addr='127.0.0.1', port='1341') ->
-      port = parseInt port
-      chrome.socket.create 'tcp', {}, (socketInfo) =>
-        @socketId2 = socketInfo.socketId
-        console.warn 'created socket 2', @socketId2
-
-        chrome.socket.listen @socketId2, addr, port, (rc) =>
-          console.warn 'socket 2 is now listening on', addr, port, '- RC:', rc
-
-          chrome.socket.accept @socketId2, (acceptInfo) =>
-            console.warn 'socket 2 accepted a connection!',
-                acceptInfo.resultCode, acceptInfo.socketId
-            @socketId3 = acceptInfo.socketId
-            console.warn 'socket 3 created!', @socketId3
-            chrome.socket.read @socketId3, (ri) => @_onRead @socketId3, ri
-
-    b: (addr='127.0.0.1', port='1341') ->
-      port = parseInt port
-      chrome.socket.create 'tcp', {}, (socketInfo) =>
-        @socketId = socketInfo.socketId
-        console.warn 'created socket 1', @socketId
-        chrome.socket.connect @socketId, addr, port, @_onConnect
-
-    c: (s, msg) ->
-      id = if s is 1 then @socketId else if s is 2 then @socketId2 else @socketId3
-      console.warn 'about to send', msg
-      irc.util.toSocketData msg, (data) =>
-
-        chrome.socket.write id, data, (writeInfo) =>
-          if writeInfo.resultCode < 0
-            console.error s, "writeData: error on write: ", writeInfo.resultCode
-          if writeInfo.bytesWritten == data.byteLength
-            console.warn s, 'drain'
-          else
-            console.error s, "Waaah can't handle non-complete writes"
-
-    d: ->
-      try
-        chrome.socket.destroy @socketId
-      catch error
-        console.error "couldn't close socket 1", error
-      try
-        chrome.socket.destroy @socketId2
-      catch error
-        console.error "couldn't close socket 2", error
-      try
-        chrome.socket.destroy @socketId3
-      catch error
-        console.error "couldn't close socket 3", error
-
-    e: ->
-      chrome.socket.getNetworkList (nis) =>
-        for ni, i in nis
-          console.warn 'network interface', i + ':', ni.name, ni.address
-
-    f: ->
+    zo: ->
       console.warn 'is online?', window.navigator.onLine
 
   _onConnect: (rc) =>
@@ -123,7 +70,7 @@ class DeveloperCommands extends MessageHandler
     else
       console.error 'onRead: got no data!'
 
-  _handleCommand: (command, text) ->
+  _handleCommand: (command, text='') ->
     @_chat.userCommands.handle command, @params[0], text.split(' ')...
 
 exports.DeveloperCommands = DeveloperCommands

@@ -34,19 +34,18 @@ class Chat extends EventEmitter
   _initializeRemoteConnection: ->
     @remoteConnection = new RemoteConnection
     @userCommands.listenTo @remoteConnection
-    @remoteConnection.setAuthTokenGenerator @_generateAuthenticationToken
     @remoteConnection.on 'irc_state', (state) =>
       @closeAllConnections()
       @syncStorage.loadState this, state
-
-  _generateAuthenticationToken: (value) =>
-    hex_md5 @password + value
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
     @remoteConnection.setStateGenerator =>
       @syncStorage.getState this
     @syncStorage.restoreSavedState this
+
+  setPassword: (password) ->
+    @remoteConnection.setPassword password
 
   ##
   # Loads servers, channels and nick from the given IRC state.

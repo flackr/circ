@@ -81,7 +81,7 @@ class SyncStorage
     if not @_password
       @_password = irc.util.randomName()
       @_store 'password', @_password
-    @_chat.password = @_password
+    @_chat.setPassword @_password
 
   _restoreServers: ->
     return unless servers = @_state.servers

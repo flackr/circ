@@ -12,22 +12,31 @@ class RemoteConnection extends EventEmitter
     @_getState = -> {}
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
-  setAuthTokenGenerator: (@_getAuthToken) ->
+  setPassword: (password) ->
+    @_password = password
+
+  _getAuthToken: (value) =>
+    hex_md5 @_password + value
 
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
     @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
 
   _addUnauthenticatedDevice: (device) =>
+    @_log 'adding unauthenticated device', device.id
     device.getAddr =>
+      @_log 'found unauthenticated device addr', device.addr
       device.on 'authenticate', (authToken) =>
         @_authenticateDevice device, authToken
 
   _authenticateDevice: (device, authToken) ->
     if authToken is @_getAuthToken device.addr
       @_addClientDevice device
+    else
+      @_log 'e', 'AUTH FAILED', @_getAuthToken(device.addr), 'should be', authToken
 
   _addClientDevice: (device) ->
+    @_log 'auth passed, adding client device', device.id, device.addr
     @_addDevice device
     @_listenToDevice device
     @_broadcast 'connection_message', 'irc_state', @_getState()

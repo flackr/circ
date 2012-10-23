@@ -2,6 +2,7 @@ exports = window
 
 class EventEmitter
   constructor: ->
+    @_log = (type, msg...) => log this, type, msg...
     @_listeners = {}
     @_anyEventListeners = []
 

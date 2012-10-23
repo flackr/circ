@@ -102,12 +102,12 @@ describe 'An IRC client front end', ->
       doActivity()
 
     it "chooses a new password when one doesn't currently exist", ->
-      expect(client.password).toEqual jasmine.any(String)
+      expect(client.remoteConnection._password).toEqual jasmine.any(String)
 
     it "keeps the old password when one exists", ->
       chrome.storage.sync.set { password: 'bob' }
       restart()
-      expect(client.password).toEqual 'bob'
+      expect(client.remoteConnection._password).toBe 'bob'
 
     it "restores the previously used nick", ->
       restart()
@@ -415,7 +415,7 @@ describe 'An IRC client front end', ->
         it "add a client after it authenticates", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
           expect(client.remoteConnection._devices[1]).not.toBeDefined()
-          device(1).emit 'authenticate', client._generateAuthenticationToken '1.1.1.1'
+          device(1).emit 'authenticate', client.remoteConnection._getAuthToken '1.1.1.1'
           expect(client.remoteConnection._devices[1]).toBeDefined()
 
         it "disconnects from the current connection before using the server device's connection", ->
