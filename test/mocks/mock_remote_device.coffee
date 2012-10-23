@@ -3,6 +3,9 @@ exports = window.mocks ?= {}
 class RemoteDevice extends EventEmitter
   @useMock: ->
     window.RemoteDevice = RemoteDevice
+    (window.chrome ?= {}).socket =
+      create: ->
+      listen: ->
 
   @devices: []
 

@@ -237,7 +237,11 @@ class UserCommandHandler extends MessageHandler
       parseArgs: ->
         @port = parseInt @port
       run: ->
-        @chat.remoteConnection.connectToServer @addr, @port
+        if @chat.remoteConnection.isSupported()
+          @chat.remoteConnection.connectToServer @addr, @port
+        else
+          @displayMessage 'notice', "Your version of Chrome is not supported. " +
+              "Please update to a newer version."
 
     @_addCommand 'network-info',
       description: "displays network information including " +

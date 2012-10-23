@@ -463,3 +463,11 @@ describe 'An IRC client front end', ->
           spyOn irc('freenode'), 'onDrain'
           (device 1).emit 'socket_data', 'freenode', 'drain'
           expect(irc('freenode').onDrain).toHaveBeenCalled()
+
+        it "becomes a server again after connection to the server is lost", ->
+          type "/join-server 1.1.1.2 1336"
+          (device 1).emit 'connection_message', 'irc_state', []
+          spyOn client, 'closeAllConnections'
+          (device 1).emit 'closed'
+          expect(client.remoteConnection.isServer()).toBe true
+          expect(client.closeAllConnections).toHaveBeenCalled()

@@ -25,7 +25,7 @@ class RemoteDevice extends EventEmitter
     @_listenForData()
 
   @getOwnDevice: (callback) ->
-    chrome.socket.getNetworkList (networkInfoList) =>
+    chrome.socket?.getNetworkList (networkInfoList) =>
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
       device = new RemoteDevice possibleAddrs[0], RemoteDevice.FINDING_PORT
       device.possibleAddrs = possibleAddrs
@@ -37,7 +37,7 @@ class RemoteDevice extends EventEmitter
   ##
   listenForNewDevices: (callback) ->
     return unless @addr
-    chrome.socket.create 'tcp', {}, (socketInfo) =>
+    chrome.socket?.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
       @_listenOnValidPort callback
 
@@ -47,7 +47,7 @@ class RemoteDevice extends EventEmitter
   ##
   _listenOnValidPort: (callback, port) =>
     port = RemoteDevice.BASE_PORT unless port >= 0
-    chrome.socket.listen @_socketId, '0.0.0.0', port, (result) =>
+    chrome.socket?.listen @_socketId, '0.0.0.0', port, (result) =>
       if result < 0
         if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
           console.error "Couldn't listen to 0.0.0.0 on any attempted ports"
@@ -60,7 +60,7 @@ class RemoteDevice extends EventEmitter
 
   _acceptNewConnection: (callback) ->
     @_log 'Now listening to 0.0.0.0 on port', @port
-    chrome.socket.accept @_socketId, (acceptInfo) =>
+    chrome.socket?.accept @_socketId, (acceptInfo) =>
       return unless acceptInfo.socketId
       @_log 'Connected to a client device', @_socketId
       callback new RemoteDevice acceptInfo.socketId
@@ -70,7 +70,7 @@ class RemoteDevice extends EventEmitter
     msg = JSON.stringify { type, args }
     msg = msg.length + '$' + msg
     irc.util.toSocketData msg, (data) =>
-      chrome.socket.write @_socketId, data, (writeInfo) =>
+      chrome.socket?.write @_socketId, data, (writeInfo) =>
         if writeInfo.resultCode < 0
           @_log 'w', 'failed to send:', type, args, writeInfo.resultCode
         else if writeInfo.bytesWritten != data.byteLength
@@ -83,19 +83,17 @@ class RemoteDevice extends EventEmitter
   # to that remote server.
   ##
   connect: (callback) ->
-    if @_socketId
-      console.warn 'already have a connection! No need to connect again'
-      return
-    chrome.socket.create 'tcp', {}, (socketInfo) =>
+    @close()
+    chrome.socket?.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
       callback false unless @_socketId
-      chrome.socket.connect @_socketId, @addr, @port, (result) =>
+      chrome.socket?.connect @_socketId, @addr, @port, (result) =>
         console.log 'Connected to server', @addr, 'on port', @port
         @_onConnect result, callback
 
   _onConnect: (result, callback) ->
     if result < 0
-      console.error "Failed to connect to", @addr, 'on port', @port
+      @_log 'w', "Couldn't connect to server", @addr, 'on port', @port
       callback false
     else
       @_listenForData()
@@ -105,7 +103,7 @@ class RemoteDevice extends EventEmitter
   # Called when a remote device to find the remote ip address.
   ##
   getAddr: (callback) ->
-    chrome.socket.getInfo @_socketId, (socketInfo) =>
+    chrome.socket?.getInfo @_socketId, (socketInfo) =>
       @addr = socketInfo.peerAddress
       callback()
 
@@ -113,20 +111,19 @@ class RemoteDevice extends EventEmitter
   # Called when a remote server device to authenticate the connection.
   ##
   sendAuthentication: (getAuthToken) ->
-    chrome.socket.getInfo @_socketId, (socketInfo) =>
+    chrome.socket?.getInfo @_socketId, (socketInfo) =>
       @send 'authenticate', [getAuthToken socketInfo.localAddress]
 
   close: ->
     if @_socketId
-      chrome.socket.destroy @_socketId
-      console.warn 'closed', @_socketId
+      chrome.socket?.destroy @_socketId
 
   _listenForData: ->
-    chrome.socket.read @_socketId, (readInfo) =>
-      if readInfo.resultCode < 0
-        console.error 'onRead: bad read', readInfo.resultCode, 'socket:', @_socketId
-      else if readInfo.resultCode is 0
-        console.error 'onRead: got result code 0, should close now'
+    chrome.socket?.read @_socketId, (readInfo) =>
+      if readInfo.resultCode <= 0
+        @_log 'w', 'bad read - closing socket', readInfo.resultCode
+        @emit 'closed'
+        @close()
       else if readInfo.data.byteLength
         irc.util.fromSocketData readInfo.data, (partialMessage) =>
           @_receivedMessages += partialMessage
@@ -137,7 +134,7 @@ class RemoteDevice extends EventEmitter
             @emit data.type, data.args...
         @_listenForData()
       else
-        console.error 'onRead: got no data!'
+        @_log 'w', 'onRead - got no data?!'
 
   _parseReceivedMessages: (result=[]) ->
     return result unless @_receivedMessages

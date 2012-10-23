@@ -12,6 +12,9 @@ class RemoteConnection extends EventEmitter
     @_getState = -> {}
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
+  isSupported: ->
+    return !!chrome.socket.create
+
   setPassword: (password) ->
     @_password = password
 
@@ -33,12 +36,13 @@ class RemoteConnection extends EventEmitter
     if authToken is @_getAuthToken device.addr
       @_addClientDevice device
     else
-      @_log 'e', 'AUTH FAILED', @_getAuthToken(device.addr), 'should be', authToken
+      @_log 'w', 'AUTH FAILED', @_getAuthToken(device.addr), 'should be', authToken
+      device.close()
 
   _addClientDevice: (device) ->
     @_log 'auth passed, adding client device', device.id, device.addr
-    @_addDevice device
     @_listenToDevice device
+    @_addDevice device
     @_broadcast 'connection_message', 'irc_state', @_getState()
 
   _addDevice: (device) ->
@@ -48,6 +52,30 @@ class RemoteConnection extends EventEmitter
     device.on 'user_input', @_emitUserInput
     device.on 'socket_data', @_emitSocketData
     device.on 'connection_message', @_emitConnectionMessage
+    device.on 'closed', => @_onDeviceClosed device
+
+  _emitUserInput: (event) =>
+    @emit event.type, Event.wrap event
+
+  _emitSocketData: (server, type, data) =>
+    if type is 'data'
+      data = irc.util.dataViewToArrayBuffer data
+    @_ircSocketMap[server]?.emit type, data
+
+  _emitConnectionMessage: (type, args...) =>
+    if type is 'irc_state' and @isServer()
+      @_makeClient()
+    @emit type, args...
+
+  _onDeviceClosed: (closedDevice) ->
+    for device, i in @devices
+      @devices.splice i, 1 if device.id is closedDevice.id
+      break
+    if not @_isServer and closedDevice.id is @serverDevice.id
+      @_log 'w', 'lost connection to server -', closedDevice.addr
+      @_isServer = true
+      @emit 'server_disconnected'
+      @connectToServer @serverDevice.addr, @serverDevice.port
 
   getConnectionInfo: ->
     @_thisDevice
@@ -84,19 +112,6 @@ class RemoteConnection extends EventEmitter
     @_listenToDevice @serverDevice
     @serverDevice.connect (success) =>
       @serverDevice.sendAuthentication @_getAuthToken if success
-
-  _emitUserInput: (event) =>
-    @emit event.type, Event.wrap event
-
-  _emitSocketData: (server, type, data) =>
-    if type is 'data'
-      data = irc.util.dataViewToArrayBuffer data
-    @_ircSocketMap[server]?.emit type, data
-
-  _emitConnectionMessage: (type, args...) =>
-    if type is 'irc_state' and @isServer()
-      @_makeClient()
-    @emit type, args...
 
   close: ->
     for device in @devices
