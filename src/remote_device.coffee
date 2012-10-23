@@ -4,12 +4,15 @@ class RemoteDevice extends EventEmitter
 
   # Begin at this port and increment by one until an open port is found.
   @BASE_PORT: 1329
+  @MAX_CONNECTION_ATTEMPTS: 30
+  @FINDING_PORT: -1
+  @PORT_NOT_FOUND: -2
 
   constructor: (addr, port) ->
     super
     @_receivedMessages = ''
     @id = addr
-    if port?
+    if typeof addr is 'string'
       @_initFromAddress addr, port
     else
       @_initFromSocketId addr
@@ -21,10 +24,10 @@ class RemoteDevice extends EventEmitter
 
   @getOwnDevice: (callback) ->
     chrome.socket.getNetworkList (networkInfoList) =>
-      # TODO try different addresses / ports until one works
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
-      callback new RemoteDevice possibleAddrs[0],
-          RemoteDevice.BASE_PORT
+      device = new RemoteDevice possibleAddrs[0], RemoteDevice.FINDING_PORT
+      device.possibleAddrs = possibleAddrs
+      callback device
 
   ##
   # Called when the device is your own device. Listens for connecting client
@@ -33,12 +36,24 @@ class RemoteDevice extends EventEmitter
   listenForNewDevices: (callback) ->
     chrome.socket.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
-      chrome.socket.listen @_socketId, '0.0.0.0', @port, (result) =>
-        if result < 0
-          console.warn 'Failed to listen to 0.0.0.0 on port', @port,
-              '- Result code:', result
-        else
-          @_acceptNewConnection callback
+      @_listenOnValidPort callback
+
+  ##
+  # Attempt to listen on the default port, then increment the port by a random
+  # amount if the attempt fails and try again.
+  ##
+  _listenOnValidPort: (callback, port) =>
+    port = RemoteDevice.BASE_PORT unless port >= 0
+    chrome.socket.listen @_socketId, '0.0.0.0', port, (result) =>
+      if result < 0
+        if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
+          console.error "Couldn't listen to 0.0.0.0 on any attempted ports"
+          @port = RemoteDevice.PORT_NOT_FOUND
+          return
+        @_listenOnValidPort callback, port + Math.floor Math.random() * 100
+      else
+        @port = port
+        @_acceptNewConnection callback
 
   _acceptNewConnection: (callback) ->
     console.log 'Now listening to 0.0.0.0 on port', @port

@@ -244,9 +244,18 @@ class UserCommandHandler extends MessageHandler
           "which is used with /join-server by other devices."
       run: ->
         connectionInfo = @chat.remoteConnection.getConnectionInfo()
-        @displayMessage 'notice', "Type the following to remotely connect to this device:"
-        @displayMessageWithStyle 'notice', "    /join-server #{connectionInfo.addr} " +
-            "#{connectionInfo.port}", ['no-pretty-format', 'monospace']
+        if connectionInfo.port is RemoteDevice.FINDING_PORT
+          @displayMessage 'notice', "Still searching for a valid port. " +
+              "Please run this command again in a few moments."
+        else if connectionInfo.port is RemoteDevice.PORT_NOT_FOUND
+          @displayMessage 'notice', "This device has not been able to find " +
+            "a valid port and cannot be used as a server at this time. " +
+            "Please check your firewall settings"
+        else
+          @displayMessage 'notice', "Possible addresses to connect on:"
+          for addr in connectionInfo.possibleAddrs
+            @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
+          @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

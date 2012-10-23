@@ -7,7 +7,7 @@ class RemoteConnection extends EventEmitter
     @_isServer = true
     @_devices = {}
     @_ircSocketMap = {}
-    @_thisDevice = {}
+    @_thisDevice = {port: RemoteDevice.FINDING_PORT}
     @_getState = -> {}
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
