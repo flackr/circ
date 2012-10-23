@@ -88,7 +88,7 @@ class IRCMessageHandler extends MessageHandler
       @_handleMention from, msg
       @_formatPrivateMessage from, msg
 
-    breakgroup: (msg) ->
+    breakgroup: (msg='') ->
       @_formatter.setContentMessage msg
 
     error: (msg) ->

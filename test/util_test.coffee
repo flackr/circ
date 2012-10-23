@@ -16,3 +16,8 @@ describe "Util", ->
     expect(console.log).toHaveBeenCalledWith 'TestClass1:', 'this is my message!'
     expect(console.warn).toHaveBeenCalledWith 'TestClass2:', 'warning', 5, 'is a great number'
     expect(console.error).toHaveBeenCalledWith 'TestClass1:', 'error!', 'error msg'
+
+  it "capitalizes strings with capitalizeString()", ->
+    expect(capitalizeString 'bob').toBe 'Bob'
+    expect(capitalizeString 'BILL').toBe 'BILL'
+    expect(capitalizeString '').toBe ''

@@ -22,11 +22,12 @@ exports.log = (caller, opt_type, msg...) ->
   getLogger(type) "#{caller.constructor.name}:", msg...
 
 ##
-# Capitalises the given string.
+# Capitalizes the given string.
 # @param {string} sentence
 # @return {string}
 ##
-exports.capitaliseString = (sentence) ->
+exports.capitalizeString = (sentence) ->
+  return sentence unless sentence
   sentence[0].toUpperCase() + sentence[1..]
 
 ##

@@ -410,13 +410,13 @@ describe 'An IRC client front end', ->
 
         it "doesn't add a client before the client is authenticated", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
-          expect(client.remoteConnection._devices[1]).not.toBeDefined()
+          expect(client.remoteConnection.devices[0]).not.toBeDefined()
 
         it "add a client after it authenticates", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
-          expect(client.remoteConnection._devices[1]).not.toBeDefined()
+          expect(client.remoteConnection.devices[0]).not.toBeDefined()
           device(1).emit 'authenticate', client.remoteConnection._getAuthToken '1.1.1.1'
-          expect(client.remoteConnection._devices[1]).toBeDefined()
+          expect(client.remoteConnection.devices[0]).toBeDefined()
 
         it "disconnects from the current connection before using the server device's connection", ->
           type "/join-server 1.1.1.2 1336"

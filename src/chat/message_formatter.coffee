@@ -148,7 +148,7 @@ class MessageFormatter
   # @return {string} Returns the formatted message.
   ##
   _prettyFormat: (msg) ->
-    msg = capitaliseString msg unless @_startsWithNick msg
+    msg = capitalizeString msg unless @_startsWithNick msg
     if @_fromUs
       msg = "(#{msg})"
     else if /[a-zA-Z0-9]$/.test msg

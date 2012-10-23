@@ -231,7 +231,7 @@ class UserCommandHandler extends MessageHandler
         @win.messageRenderer.displayAbout()
 
     @_addCommand 'join-server',
-      description: "use the connection of another device. Call /connect-info " +
+      description: "use the connection of another device. Use /network-info " +
           "on the server device to find the address and port to connect to"
       params: ['addr', 'port']
       parseArgs: ->
@@ -239,23 +239,45 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @chat.remoteConnection.connectToServer @addr, @port
 
-    @_addCommand 'connect-info',
-      description: "displays the address and port number of this device " +
-          "which is used with /join-server by other devices."
+    @_addCommand 'network-info',
+      description: "displays network information including " +
+          "port, ip address and remote connection status"
       run: ->
+        @displayMessage 'breakgroup'
+        if @chat.remoteConnection.isServer()
+          numClients = @chat.remoteConnection.devices.length
+          if numClients > 0
+            @displayMessage 'notice', "This device is acting as a server for " +
+                @chat.remoteConnection.devices.length + " other device" +
+                (if numClients is 1 then '' else 's')
+
+          else
+            @displayMessage 'notice', "This device is not connected to any other devices"
+
+        else
+          @displayMessage 'notice', "This device is connected to server device " +
+              @chat.remoteConnection.serverDevice.addr + " on port " +
+              @chat.remoteConnection.serverDevice.port
+
+        @displayMessage 'breakgroup'
         connectionInfo = @chat.remoteConnection.getConnectionInfo()
         if connectionInfo.port is RemoteDevice.FINDING_PORT
           @displayMessage 'notice', "Still searching for a valid port. " +
               "Please run this command again in a few moments"
+
         else if connectionInfo.port is RemoteDevice.PORT_NOT_FOUND
           @displayMessage 'notice', "This device has not been able to find " +
             "a valid port and cannot be used as a server at this time. " +
             "This may be caused by your firewall settings"
+
         else
+          @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
+          @displayMessage 'breakgroup'
           @displayMessage 'notice', "Possible addresses to connect on:"
           for addr in connectionInfo.possibleAddrs
             @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
-          @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
+
+        @displayMessage 'breakgroup'
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

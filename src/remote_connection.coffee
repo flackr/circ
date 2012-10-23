@@ -4,10 +4,10 @@ class RemoteConnection extends EventEmitter
 
   constructor: ->
     super
+    @serverDevice = undefined
     @_isServer = true
-    @_devices = {}
+    @devices = []
     @_ircSocketMap = {}
-    @_serverDevice = undefined
     @_thisDevice = {port: RemoteDevice.FINDING_PORT}
     @_getState = -> {}
     RemoteDevice.getOwnDevice @_onHasOwnDevice
@@ -42,7 +42,7 @@ class RemoteConnection extends EventEmitter
     @_broadcast 'connection_message', 'irc_state', @_getState()
 
   _addDevice: (device) ->
-    @_devices[device.id] = device
+    @devices.push device
 
   _listenToDevice: (device) ->
     device.on 'user_input', @_emitUserInput
@@ -66,7 +66,8 @@ class RemoteConnection extends EventEmitter
 
   broadcastUserInput: (userInput) ->
     userInput.on 'command', (event) =>
-      @_broadcast 'user_input', event
+      unless event.name in ['network-info', 'join-server']
+        @_broadcast 'user_input', event
 
   broadcastSocketData: (socket, server) ->
     socket.onAny (type, data) =>
@@ -75,14 +76,14 @@ class RemoteConnection extends EventEmitter
       @_broadcast 'socket_data', server, type, data
 
   _broadcast: (type, args...) ->
-    for id, device of @_devices
+    for device in @devices
       device.send type, args
 
   connectToServer: (addr, port) ->
-    @_serverDevice = new RemoteDevice addr, port
-    @_listenToDevice @_serverDevice
-    @_serverDevice.connect (success) =>
-      @_serverDevice.sendAuthentication @_getAuthToken if success
+    @serverDevice = new RemoteDevice addr, port
+    @_listenToDevice @serverDevice
+    @serverDevice.connect (success) =>
+      @serverDevice.sendAuthentication @_getAuthToken if success
 
   _emitUserInput: (event) =>
     @emit event.type, Event.wrap event
@@ -98,7 +99,7 @@ class RemoteConnection extends EventEmitter
     @emit type, args...
 
   close: ->
-    for id, device of @_devices
+    for device in @devices
       device.close()
     @_thisDevice.close()
 
@@ -106,7 +107,7 @@ class RemoteConnection extends EventEmitter
     @_isServer
 
   _makeClient: ->
-    @_addDevice @_serverDevice
+    @_addDevice @serverDevice
     @_isServer = false
 
 exports.RemoteConnection = RemoteConnection

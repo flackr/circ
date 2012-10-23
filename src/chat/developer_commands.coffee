@@ -36,15 +36,16 @@ class DeveloperCommands extends MessageHandler
       @_handleCommand "load"
 
     z: ->
-      @_handleCommand 'connect-info'
+      @_handleCommand 'network-info'
 
     zp: ->
       @_chat.displayMessage 'notice', @params[0].context, 'Your password is: ' +
           @_chat.remoteConnection._password
 
     zps: (event) ->
-      @_chat.syncStorage._store 'password', event.args[0]
-      @_chat.setPassword event.args[0]
+      password = event.args[0] ? 'bacon'
+      @_chat.syncStorage._store 'password', password
+      @_chat.setPassword password
 
     zo: ->
       console.warn 'is online?', window.navigator.onLine
