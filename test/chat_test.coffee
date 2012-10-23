@@ -101,6 +101,14 @@ describe 'An IRC client front end', ->
       chrome.storage.sync.clear()
       doActivity()
 
+    it "chooses a new password when one doesn't currently exist", ->
+      expect(client.password).toEqual jasmine.any(String)
+
+    it "keeps the old password when one exists", ->
+      chrome.storage.sync.set { password: 'bob' }
+      restart()
+      expect(client.password).toEqual 'bob'
+
     it "restores the previously used nick", ->
       restart()
       expect($ '#status').toHaveText 'ournick'
@@ -372,7 +380,7 @@ describe 'An IRC client front end', ->
           expect($ '#rooms-and-nicks').not.toHaveClass 'no-nicks'
 
       describe "with a remote connection", ->
-        state = undefined
+        state = onAuth = undefined
 
         getChannels = ->
           { '#bash': { names: { sally: 'Sally', bob: 'bob', somenick: 'somenick' } } }
@@ -385,16 +393,40 @@ describe 'An IRC client front end', ->
 
         beforeEach ->
           state = getState()
+          onAuth = spyOn mocks.RemoteDevice, 'sendAuthentication'
+
+        afterEach ->
           mocks.RemoteDevice.reset()
+
+        it "sends authentication when first connected to the server", ->
           type "/join-server 1.1.1.2 1336"
+          expect(onAuth).toHaveBeenCalledWith jasmine.any(String)
+
+        it "becomes a client after receiving IRC state", ->
+          type "/join-server 1.1.1.2 1336"
+          expect(client.remoteConnection.isServer()).toBe true
+          (device 1).emit 'connection_message', 'irc_state', []
+          expect(client.remoteConnection.isServer()).toBe false
+
+        it "doesn't add a client before the client is authenticated", ->
+          RemoteDevice.onNewDevice new RemoteDevice 1
+          expect(client.remoteConnection._devices[1]).not.toBeDefined()
+
+        it "add a client after it authenticates", ->
+          RemoteDevice.onNewDevice new RemoteDevice 1
+          expect(client.remoteConnection._devices[1]).not.toBeDefined()
+          device(1).emit 'authenticate', client._generateAuthenticationToken '1.1.1.1'
+          expect(client.remoteConnection._devices[1]).toBeDefined()
 
         it "disconnects from the current connection before using the server device's connection", ->
-          (device 0).emit 'connection_message', 'irc_state', []
+          type "/join-server 1.1.1.2 1336"
+          (device 1).emit 'connection_message', 'irc_state', []
           expect(rooms().length).toBe 1
           expect(client.connections['freenode']).not.toBeDefined()
 
         it "can load the IRC state from the server device", ->
-          (device 0).emit 'connection_message', 'irc_state', state
+          type "/join-server 1.1.1.2 1336"
+          (device 1).emit 'connection_message', 'irc_state', state
 
           expect(rooms().length).toBe 4
           expect(irc('freenode').state).toBe 'connected'
@@ -410,21 +442,24 @@ describe 'An IRC client front end', ->
           expect($('#status').text()).toBe 'somenick' + 'away'
 
         it "doesn't set the irc nick if the nick isn't saved", ->
+          type "/join-server 1.1.1.2 1336"
           state.ircStates[0].nick = undefined
           state.nick = undefined
           (device 0).emit 'connection_message', 'irc_state', state
           expect(irc('freenode').preferredNick).toBeDefined()
 
         it "can listen to user input from the server device", ->
-          (device 0).emit 'connection_message', 'irc_state', state
+          type "/join-server 1.1.1.2 1336"
+          (device 1).emit 'connection_message', 'irc_state', state
           event = new Event 'command', 'nick', 'newnick'
           event.setContext 'freenode'
           spyOn client, 'setNick'
-          (device 0).emit 'user_input', event
+          (device 1).emit 'user_input', event
           expect(client.setNick).toHaveBeenCalledWith 'freenode', 'newnick'
 
         it "can listen to socket data from the server device", ->
-          (device 0).emit 'connection_message', 'irc_state', state
+          type "/join-server 1.1.1.2 1336"
+          (device 1).emit 'connection_message', 'irc_state', state
           spyOn irc('freenode'), 'onDrain'
-          (device 0).emit 'socket_data', 'freenode', 'drain'
+          (device 1).emit 'socket_data', 'freenode', 'drain'
           expect(irc('freenode').onDrain).toHaveBeenCalled()

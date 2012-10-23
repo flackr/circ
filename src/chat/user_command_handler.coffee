@@ -232,7 +232,7 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'join-server',
       description: "use the connection of another device. Call /connect-info " +
-          "on the server device to find the address and port to connect to."
+          "on the server device to find the address and port to connect to"
       params: ['addr', 'port']
       parseArgs: ->
         @port = parseInt @port
@@ -246,11 +246,11 @@ class UserCommandHandler extends MessageHandler
         connectionInfo = @chat.remoteConnection.getConnectionInfo()
         if connectionInfo.port is RemoteDevice.FINDING_PORT
           @displayMessage 'notice', "Still searching for a valid port. " +
-              "Please run this command again in a few moments."
+              "Please run this command again in a few moments"
         else if connectionInfo.port is RemoteDevice.PORT_NOT_FOUND
           @displayMessage 'notice', "This device has not been able to find " +
             "a valid port and cannot be used as a server at this time. " +
-            "Please check your firewall settings"
+            "This may be caused by your firewall settings"
         else
           @displayMessage 'notice', "Possible addresses to connect on:"
           for addr in connectionInfo.possibleAddrs

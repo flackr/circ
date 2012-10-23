@@ -14,8 +14,10 @@ class RemoteDevice extends EventEmitter
     @id = addr
     if typeof addr is 'string'
       @_initFromAddress addr, port
-    else
+    else if addr
       @_initFromSocketId addr
+    else
+      @port = RemoteDevice.PORT_NOT_FOUND
 
   _initFromAddress: (@addr, @port) ->
 
@@ -34,6 +36,7 @@ class RemoteDevice extends EventEmitter
   # devices.
   ##
   listenForNewDevices: (callback) ->
+    return unless @addr
     chrome.socket.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
       @_listenOnValidPort callback
@@ -58,6 +61,7 @@ class RemoteDevice extends EventEmitter
   _acceptNewConnection: (callback) ->
     console.log 'Now listening to 0.0.0.0 on port', @port
     chrome.socket.accept @_socketId, (acceptInfo) =>
+      return unless acceptInfo.socketId
       callback new RemoteDevice acceptInfo.socketId
       console.log 'Connected to client', @_socketId
       @_acceptNewConnection callback
@@ -68,11 +72,11 @@ class RemoteDevice extends EventEmitter
     irc.util.toSocketData msg, (data) =>
       chrome.socket.write @_socketId, data, (writeInfo) =>
         if writeInfo.resultCode < 0
-          console.warn "failed to send:", type, args, writeInfo.resultCode
+#          console.warn "failed to send:", type, args, writeInfo.resultCode
         else if writeInfo.bytesWritten != data.byteLength
-          console.warn "failed to send:", type, args, '(non-complete write)'
+#          console.warn "failed to send:", type, args, '(non-complete write)'
         else
-          console.warn 'successfully sent', type, args
+#          console.warn 'successfully sent', type, args
 
   ##
   # Called when the device represents a remote server. Creates a connection
@@ -84,6 +88,7 @@ class RemoteDevice extends EventEmitter
       return
     chrome.socket.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
+      callback false unless @_socketId
       chrome.socket.connect @_socketId, @addr, @port, (result) =>
         console.log 'Connected to server', @addr, 'on port', @port
         @_onConnect result, callback
@@ -95,6 +100,21 @@ class RemoteDevice extends EventEmitter
     else
       @_listenForData()
       callback true
+
+  ##
+  # Called when a remote device to find the remote ip address.
+  ##
+  getAddr: (callback) ->
+    chrome.socket.getInfo @_socketId, (socketInfo) =>
+      @addr = socketInfo.peerAddress
+      callback()
+
+  ##
+  # Called when a remote server device to authenticate the connection.
+  ##
+  sendAuthentication: (getAuthToken) ->
+    chrome.socket.getInfo @_socketId, (socketInfo) =>
+      @send 'authenticate', [getAuthToken socketInfo.localAddress]
 
   close: ->
     if @_socketId

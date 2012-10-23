@@ -2,12 +2,13 @@ exports = window.chat ?= {}
 
 class SyncStorage
 
-  @ITEMS = ['nick', 'servers', 'channels']
+  @ITEMS = ['nick', 'servers', 'channels', 'password']
 
   constructor: ->
     @_channels = []
     @_servers = []
-    @_nick = ''
+    @_nick = undefined
+    @_password = undefined
 
   nickChanged: (nick) ->
     @_nick = nick
@@ -73,6 +74,14 @@ class SyncStorage
     @_restoreServers()
     @_restoreChannels()
     @_restoreIRCStates()
+    @_restorePassword()
+
+  _restorePassword: ->
+    @_password = @_state.password
+    if not @_password
+      @_password = irc.util.randomName()
+      @_store 'password', @_password
+    @_chat.password = @_password
 
   _restoreServers: ->
     return unless servers = @_state.servers
@@ -103,7 +112,7 @@ class SyncStorage
       conn.irc.state = 'disconnected' unless name in connectedServers
 
   _setIRCState: (conn, ircState) ->
-    @_chat.onConnected conn
+    @_chat.onConnected conn if ircState.state is 'connected'
     conn.irc.state = ircState.state if ircState.state
     conn.irc.away = ircState.away if ircState.away
     conn.irc.channels = ircState.channels if ircState.channels

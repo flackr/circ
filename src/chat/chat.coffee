@@ -34,9 +34,13 @@ class Chat extends EventEmitter
   _initializeRemoteConnection: ->
     @remoteConnection = new RemoteConnection
     @userCommands.listenTo @remoteConnection
+    @remoteConnection.setAuthTokenGenerator @_generateAuthenticationToken
     @remoteConnection.on 'irc_state', (state) =>
       @closeAllConnections()
       @syncStorage.loadState this, state
+
+  _generateAuthenticationToken: (value) =>
+    hex_md5 @password + value
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
@@ -131,11 +135,11 @@ class Chat extends EventEmitter
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]
-    return if not conn
     if e.type is 'server' then @onServerEvent conn, e
     else @onMessageEvent conn, e
 
   onServerEvent: (conn, e) =>
+    return if not conn
     switch e.name
       when 'connect' then @onConnected conn
       when 'disconnect' then @onDisconnected conn

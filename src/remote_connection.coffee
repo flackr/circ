@@ -7,20 +7,35 @@ class RemoteConnection extends EventEmitter
     @_isServer = true
     @_devices = {}
     @_ircSocketMap = {}
+    @_serverDevice = undefined
     @_thisDevice = {port: RemoteDevice.FINDING_PORT}
     @_getState = -> {}
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
+  setAuthTokenGenerator: (@_getAuthToken) ->
+
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
-    @_thisDevice.listenForNewDevices @_addClientDevice
+    @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
 
-  _addClientDevice: (device) =>
+  _addUnauthenticatedDevice: (device) =>
+    device.getAddr =>
+      device.on 'authenticate', (authToken) =>
+        @_authenticateDevice device, authToken
+
+  _authenticateDevice: (device, authToken) ->
+    if authToken is @_getAuthToken device.addr
+      @_addClientDevice device
+
+  _addClientDevice: (device) ->
     @_addDevice device
+    @_listenToDevice device
     @_broadcast 'connection_message', 'irc_state', @_getState()
 
   _addDevice: (device) ->
     @_devices[device.id] = device
+
+  _listenToDevice: (device) ->
     device.on 'user_input', @_emitUserInput
     device.on 'socket_data', @_emitSocketData
     device.on 'connection_message', @_emitConnectionMessage
@@ -55,14 +70,10 @@ class RemoteConnection extends EventEmitter
       device.send type, args
 
   connectToServer: (addr, port) ->
-    device = @_createServerDevice addr, port
-    device.connect (success) =>
-      @_makeClient() if success
-
-  _createServerDevice: (addr, port) ->
-    device = new RemoteDevice addr, port
-    @_addDevice device
-    device
+    @_serverDevice = new RemoteDevice addr, port
+    @_listenToDevice @_serverDevice
+    @_serverDevice.connect (success) =>
+      @_serverDevice.sendAuthentication @_getAuthToken if success
 
   _emitUserInput: (event) =>
     @emit event.type, Event.wrap event
@@ -73,6 +84,8 @@ class RemoteConnection extends EventEmitter
     @_ircSocketMap[server]?.emit type, data
 
   _emitConnectionMessage: (type, args...) =>
+    if type is 'irc_state' and @isServer()
+      @_makeClient()
     @emit type, args...
 
   close: ->
@@ -84,6 +97,7 @@ class RemoteConnection extends EventEmitter
     @_isServer
 
   _makeClient: ->
+    @_addDevice @_serverDevice
     @_isServer = false
 
 exports.RemoteConnection = RemoteConnection
