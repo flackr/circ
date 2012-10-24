@@ -9,6 +9,26 @@ class SyncStorage
     @_servers = []
     @_nick = undefined
     @_password = undefined
+    chrome.storage.onChanged.addListener @_onChanged
+
+  ##
+  # Listen for storage changes.
+  # If the password updated then change our own. If the password was cleared
+  # then restore it.
+  ##
+  _onChanged: (changeMap, areaName) =>
+    passwordChange = changeMap.password
+    return unless passwordChange and passwordChange.newValue isnt @_password
+    if passwordChange.newValue
+      @_password = passwordChange.newValue
+    else
+      @_store 'password', @_password
+
+  pause: ->
+    @_paused = true
+
+  resume: ->
+    @_paused = false
 
   nickChanged: (nick) ->
     @_nick = nick
@@ -43,6 +63,7 @@ class SyncStorage
     @_store 'servers', @_servers
 
   _store: (key, value) ->
+    return if @_paused
     storageObj = {}
     storageObj[key] = value
     chrome.storage.sync.set storageObj
@@ -85,17 +106,20 @@ class SyncStorage
 
   _restoreServers: ->
     return unless servers = @_state.servers
+    @_servers = servers
     for server in servers
       @_chat.connect server.name, server.port
 
   _restoreChannels: ->
     return unless channels = @_state.channels
+    @_channels = channels
     for channel in channels
       return unless conn = @_chat.connections[channel.server]
       @_chat.join conn, channel.name
 
   _restoreNick: ->
     return unless (nick = @_state.nick) and typeof nick is 'string'
+    @_nick = nick
     @_chat.setNick nick
 
   _restoreIRCStates: ->

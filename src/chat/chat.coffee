@@ -36,8 +36,10 @@ class Chat extends EventEmitter
     @userCommands.listenTo @remoteConnection
     @remoteConnection.on 'server_disconnected', =>
       @closeAllConnections()
+      @syncStorage.resume()
       @syncStorage.restoreSavedState this
     @remoteConnection.on 'irc_state', (state) =>
+      @syncStorage.pause()
       @closeAllConnections()
       @syncStorage.loadState this, state
 

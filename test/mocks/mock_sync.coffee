@@ -17,4 +17,8 @@ class Sync
   clear: ->
     @_storageMap = {}
 
+exports.onChanged =
+  addListener: (update) ->
+    exports.update = update
+
 exports.sync = new Sync

@@ -16,6 +16,27 @@ describe 'IRC sync storage', ->
     expect(chat.updateStatus).not.toHaveBeenCalled()
     expect(chat.setNick).not.toHaveBeenCalled()
 
+  it 'does nothing when there syncing has been paused', ->
+    ss.pause()
+    ss.nickChanged 'bob'
+    ss.serverJoined 'freenode'
+    ss.channelJoined 'freenode', '#bash'
+    ss.restoreSavedState chat
+    expect(chat.connect).not.toHaveBeenCalled()
+    expect(chat.join).not.toHaveBeenCalled()
+    expect(chat.updateStatus).not.toHaveBeenCalled()
+    expect(chat.setNick).not.toHaveBeenCalled()
+
+  it 'sets a new password if one is not found', ->
+    ss.restoreSavedState chat
+    expect(ss._password).toEqual jasmine.any(String)
+
+  it 'restores the password if it was cleared', ->
+    ss.restoreSavedState chat
+    password = ss._password
+    chrome.storage.update { password: { newValue: undefined } }, 'sync'
+    expect(sync._storageMap.password).toBe password
+
   it 'restores the stored nick', ->
     sync.set { nick: 'ournick' }
     ss.restoreSavedState chat
