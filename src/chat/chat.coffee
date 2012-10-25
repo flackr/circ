@@ -11,11 +11,11 @@ class Chat extends EventEmitter
     devCommands = new chat.DeveloperCommands this
     @userCommands.merge devCommands
 
-    @_initializeUI()
     @_initializeRemoteConnection()
+    @_initializeUI()
     @_initializeSyncStorage()
 
-    document.title = "CIRC #{irc.VERSION}"
+    @updateStatus()
 
   _initializeUI: ->
     @winList = new chat.WindowList
@@ -34,14 +34,47 @@ class Chat extends EventEmitter
   _initializeRemoteConnection: ->
     @remoteConnection = new RemoteConnection
     @userCommands.listenTo @remoteConnection
+
+    @remoteConnection.on 'addr_found', =>
+      @_onIPAddressFound()
+
+    @remoteConnection.on 'invalid_server', (connectInfo) =>
+      # TODO log to a system window
+      @displayMessage 'notice', @getCurrentContext, 'Failed to connect to device ' +
+          connectInfo.toString()
+
     @remoteConnection.on 'server_disconnected', =>
       @closeAllConnections()
       @syncStorage.resume()
       @syncStorage.restoreSavedState this
+
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
+      @_log 'server connection established - loading state', state
       @syncStorage.loadState this, state
+
+    @remoteConnection.on 'became_server', =>
+      @displayMessage 'notice', @getCurrentContext(), 'Now accepting ' +
+          'connections from other devices'
+
+    @remoteConnection.on 'client_joined', (client) =>
+      @displayMessage 'notice', @getCurrentContext(), client.addr +
+          ' connected to this device'
+
+  _onIPAddressFound: ->
+    if @syncStorage.serverDevice
+      @_connectToDevice @syncStorage.serverDevice
+    else
+      @_log 'No server found'
+
+  _connectToDevice: (deviceInfo) ->
+    if @remoteConnection.getConnectionInfo().addr is deviceInfo.addr
+      # TODO update sync storage in some way so other devices know to conenct
+      @_log 'this device is the official server'
+      return
+    @_log 'automatically connecting to', deviceInfo.addr, deviceInfo.port
+    @remoteConnection.connectToServer deviceInfo
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
@@ -266,6 +299,15 @@ class Chat extends EventEmitter
     statusList.push "<span class='away'>away</span>" if away
     statusList.push "<span class='topic'>#{topic}</span>" if topic
     $('#status').html(statusList.join '') if statusList.length > 0
+    @_updateDocumentTitle()
+
+  _updateDocumentTitle: ->
+    titleList = []
+    titleList.push "CIRC #{irc.VERSION}"
+    if @remoteConnection.isClient()
+      titleList.push '- Connected through ' +
+          @remoteConnection.serverDevice.addr
+    document.title = titleList.join ' '
 
   switchToWindowByIndex: (winNum) ->
     winNum = 10 if winNum is 0
@@ -291,6 +333,9 @@ class Chat extends EventEmitter
     event = new Event 'message', name, args...
     event.setContext context.server, context.channel
     @emit event.type, event
+
+  getCurrentContext: ->
+    {server: @currentWindow.conn?.name, channel: chat.CURRENT_WINDOW }
 
 exports.SERVER_WINDOW = '@server_window'
 exports.CURRENT_WINDOW = '@current_window'

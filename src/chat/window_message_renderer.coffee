@@ -25,9 +25,10 @@ class MessageRenderer
   displayAbout: ->
     @message '', "CIRC is a packaged Chrome app developed by Google Inc. " +
     "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
+    @message '', "Version: #{irc.VERSION}", 'notice about'
     @message '', "Contributors:", 'notice about group'
     @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about group'
-    @message() # insert an empty message to break the grouping
+    @message()
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +

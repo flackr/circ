@@ -408,7 +408,7 @@ describe 'An IRC client front end', ->
           (device 1).emit 'connection_message', 'irc_state', []
           expect(client.remoteConnection.isServer()).toBe false
 
-        it "doesn't add a client before the client is authenticated", ->
+        it "doesn't add a client before authentication", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
           expect(client.remoteConnection.devices[0]).not.toBeDefined()
 

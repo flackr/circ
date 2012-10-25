@@ -5,25 +5,37 @@ class RemoteConnection extends EventEmitter
   constructor: ->
     super
     @serverDevice = undefined
-    @_isServer = true
+    @_type = 'server'
     @devices = []
     @_ircSocketMap = {}
     @_thisDevice = {port: RemoteDevice.FINDING_PORT}
     @_getState = -> {}
+    @_state = 'device_state'
     RemoteDevice.getOwnDevice @_onHasOwnDevice
-
-  isSupported: ->
-    return !!chrome.socket.create
 
   setPassword: (password) ->
     @_password = password
+
+  getConnectionInfo: ->
+    @_thisDevice
+
+  getState: ->
+    if @_state is 'device_state'
+      @_thisDevice.getState()
+    else
+      @_state
 
   _getAuthToken: (value) =>
     hex_md5 @_password + value
 
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
+    if @_thisDevice.getState() is 'no_addr'
+      @_log 'w', "Wasn't able to find address of own device"
+      return
     @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
+    @_thisDevice.on 'addr_found', =>
+      @emit 'addr_found', device.addr, device.port
 
   _addUnauthenticatedDevice: (device) =>
     @_log 'adding unauthenticated device', device.id
@@ -43,6 +55,7 @@ class RemoteConnection extends EventEmitter
     @_log 'auth passed, adding client device', device.id, device.addr
     @_listenToDevice device
     @_addDevice device
+    @emit 'client_joined', device
     @_broadcast 'connection_message', 'irc_state', @_getState()
 
   _addDevice: (device) ->
@@ -63,22 +76,20 @@ class RemoteConnection extends EventEmitter
     @_ircSocketMap[server]?.emit type, data
 
   _emitConnectionMessage: (type, args...) =>
-    if type is 'irc_state' and @isServer()
-      @_makeClient()
+    if type is 'irc_state'
+      @_makeClient() unless @isClient()
     @emit type, args...
 
   _onDeviceClosed: (closedDevice) ->
     for device, i in @devices
       @devices.splice i, 1 if device.id is closedDevice.id
       break
-    if not @_isServer and closedDevice.id is @serverDevice.id
+    if not @isOfficialServer() and closedDevice.id is @serverDevice.id
       @_log 'w', 'lost connection to server -', closedDevice.addr
-      @_isServer = true
+      @_state = 'device_state'
+      @_type = 'server'
       @emit 'server_disconnected'
-      @connectToServer @serverDevice.addr, @serverDevice.port
-
-  getConnectionInfo: ->
-    @_thisDevice
+      @connectToServer @serverDevice
 
   setStateGenerator: (getState) ->
     @_getState = getState
@@ -107,11 +118,22 @@ class RemoteConnection extends EventEmitter
     for device in @devices
       device.send type, args
 
-  connectToServer: (addr, port) ->
-    @serverDevice = new RemoteDevice addr, port
+  ##
+  # Connect to a remote server. The IRC connection of the remote server will
+  # replace the local connection.
+  # @params {{port: number, addr: string}} connectInfo
+  ##
+  connectToServer: (connectInfo) ->
+    @_state = 'connecting'
+    @serverDevice = new RemoteDevice connectInfo.addr, connectInfo.port
     @_listenToDevice @serverDevice
     @serverDevice.connect (success) =>
-      @serverDevice.sendAuthentication @_getAuthToken if success
+      if success
+        @_log 'successfully connected to server', connectInfo.addr, connectInfo.port
+        @serverDevice.sendAuthentication @_getAuthToken
+      else
+        @emit 'invalid_server', connectInfo
+        @_state = 'device_state'
 
   close: ->
     for device in @devices
@@ -119,10 +141,26 @@ class RemoteConnection extends EventEmitter
     @_thisDevice.close()
 
   isServer: ->
-    @_isServer
+    @_type is 'server' or @isOfficialServer()
+
+  isClient: ->
+    @_type is 'client'
+
+  isOfficialServer: ->
+    @_type is 'official_server'
+
+  makeOfficialServer: ->
+    wasClient = @isClient()
+    @_type = 'official_server'
+    if wasClient
+      @serverDevice.close()
+    if @_getState() is 'finding_addr'
+      @on 'addr_found', => @makeOfficialServer
+    @emit 'became_server'
 
   _makeClient: ->
+    @_type = 'client'
+    @_state = 'connected'
     @_addDevice @serverDevice
-    @_isServer = false
 
 exports.RemoteConnection = RemoteConnection

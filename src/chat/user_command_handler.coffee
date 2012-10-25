@@ -231,17 +231,42 @@ class UserCommandHandler extends MessageHandler
         @win.messageRenderer.displayAbout()
 
     @_addCommand 'join-server',
-      description: "use the connection of another device. Use /network-info " +
-          "on the server device to find the address and port to connect to"
-      params: ['addr', 'port']
+      description: "use the IRC connection of another device. This allows you " +
+          "to be logged in with the same nick on multiple devices. By default, " +
+          "will connect to the device that called /make-server"
+      params: ['opt_addr', 'opt_port']
       parseArgs: ->
-        @port = parseInt @port
+        parsedPort = parseInt(@port)
+        return false if (@port || @addr) and not (parsedPort || @addr)
+        connectInfo = @chat.syncStorage.serverDevice
+        @port = parsedPort || connectInfo?.port
+        @addr ?= connectInfo?.addr
+        true
       run: ->
-        if @chat.remoteConnection.isSupported()
-          @chat.remoteConnection.connectToServer @addr, @port
+        if @port and @addr
+          if @addr is @chat.remoteConnection.getConnectionInfo().addr
+            @displayMessage 'error', "this device is the server. It cannot " +
+                "connect to itself. Call /join-server on other devices to " +
+                "have them connect to this device or call /make-server on " +
+                "another device to make it the server"
+          else
+            @chat.remoteConnection.connectToServer { port: @port, addr: @addr }
         else
-          @displayMessage 'notice', "Your version of Chrome is not supported. " +
-              "Please update to a newer version."
+          @displayMessage 'error', "No server exists. Use /make-server " +
+              "on the device you wish to become the server."
+
+    @_addCommand 'make-server',
+      description: "makes this device a server to which other devices can " +
+          "connect. Connected devices use the IRC connection of this device"
+      run: ->
+        state = @chat.remoteConnection.getState()
+        if state is 'no_addr'
+          @displayMessage 'error', "this device can not be used as a " +
+              "server at this time because no valid port was found"
+        else
+          @chat.remoteConnection.makeOfficialServer()
+          connectionInfo = @chat.remoteConnection.getConnectionInfo()
+          @chat.syncStorage.becomeRemoteServer connectionInfo
 
     @_addCommand 'network-info',
       description: "displays network information including " +
@@ -251,33 +276,33 @@ class UserCommandHandler extends MessageHandler
         if @chat.remoteConnection.isServer()
           numClients = @chat.remoteConnection.devices.length
           if numClients > 0
-            @displayMessage 'notice', "This device is acting as a server for " +
+            @displayMessage 'notice', "this device is acting as a server for " +
                 @chat.remoteConnection.devices.length + " other device" +
                 (if numClients is 1 then '' else 's')
 
           else
-            @displayMessage 'notice', "This device is not connected to any other devices"
+            @displayMessage 'notice', "this device is not connected to any other devices"
 
         else
-          @displayMessage 'notice', "This device is connected to server device " +
+          @displayMessage 'notice', "this device is connected to server device " +
               @chat.remoteConnection.serverDevice.addr + " on port " +
               @chat.remoteConnection.serverDevice.port
 
         @displayMessage 'breakgroup'
         connectionInfo = @chat.remoteConnection.getConnectionInfo()
         if connectionInfo.port is RemoteDevice.FINDING_PORT
-          @displayMessage 'notice', "Still searching for a valid port. " +
+          @displayMessage 'notice', "still searching for a valid port. " +
               "Please run this command again in a few moments"
 
         else if connectionInfo.port is RemoteDevice.PORT_NOT_FOUND
-          @displayMessage 'notice', "This device has not been able to find " +
+          @displayMessage 'notice', "this device has not been able to find " +
             "a valid port and cannot be used as a server at this time. " +
             "This may be caused by your firewall settings"
 
         else
           @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
           @displayMessage 'breakgroup'
-          @displayMessage 'notice', "Possible addresses to connect on:"
+          @displayMessage 'notice', "possible addresses to connect on:"
           for addr in connectionInfo.possibleAddrs
             @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
 

@@ -7,12 +7,17 @@ class RemoteDevice extends EventEmitter
       create: ->
       listen: ->
 
+  @state: 'finding_addr'
+
   @devices: []
 
   @reset: ->
     @devices = []
 
   @sendAuthentication: ->
+
+  getState: ->
+    RemoteDevice.state
 
   constructor: (@id) ->
     super

@@ -19,6 +19,12 @@ class RemoteDevice extends EventEmitter
     else
       @port = RemoteDevice.PORT_NOT_FOUND
 
+  getState: ->
+    switch @port
+      when RemoteDevice.FINDING_PORT then 'finding_addr'
+      when RemoteDevice.PORT_NOT_FOUND then 'no_addr'
+      else 'found_addr'
+
   _initFromAddress: (@addr, @port) ->
 
   _initFromSocketId: (@_socketId) ->
@@ -27,16 +33,26 @@ class RemoteDevice extends EventEmitter
   @getOwnDevice: (callback) ->
     chrome.socket?.getNetworkList (networkInfoList) =>
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
-      device = new RemoteDevice possibleAddrs[0], RemoteDevice.FINDING_PORT
+      if possibleAddrs.length > 0
+        addr = RemoteDevice._getValidAddr possibleAddrs
+        device = new RemoteDevice possibleAddrs[0], RemoteDevice.FINDING_PORT
+      else
+        device = new RemoteDevice '', RemoteDevice.PORT_NOT_FOUND
       device.possibleAddrs = possibleAddrs
       callback device
+
+  @_getValidAddr: (addrs) ->
+    # TODO currently we return the first IPv4 address. Will this always work?
+    shortest = ''
+    for addr in addrs
+      shortest = addr if addr.length < shortest.length
+    shortest
 
   ##
   # Called when the device is your own device. Listens for connecting client
   # devices.
   ##
   listenForNewDevices: (callback) ->
-    return unless @addr
     chrome.socket?.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
       @_listenOnValidPort callback
@@ -56,6 +72,7 @@ class RemoteDevice extends EventEmitter
         @_listenOnValidPort callback, port + Math.floor Math.random() * 100
       else
         @port = port
+        @emit 'addr_found'
         @_acceptNewConnection callback
 
   _acceptNewConnection: (callback) ->
@@ -76,7 +93,7 @@ class RemoteDevice extends EventEmitter
         else if writeInfo.bytesWritten != data.byteLength
           @_log 'w', 'failed to send (non-complete-write):', type, args, writeInfo.resultCode
         else
-          @_log 'successfully sent', type, args
+          @_log 'sent', type, args
 
   ##
   # Called when the device represents a remote server. Creates a connection
@@ -93,7 +110,7 @@ class RemoteDevice extends EventEmitter
 
   _onConnect: (result, callback) ->
     if result < 0
-      @_log 'w', "Couldn't connect to server", @addr, 'on port', @port
+      @_log 'w', "Couldn't connect to server", @addr, 'on port', @port, '-', result
       callback false
     else
       @_listenForData()
@@ -147,5 +164,11 @@ class RemoteDevice extends EventEmitter
     result.push message
     @_receivedMessages = @_receivedMessages[prefixEnd + length + 1..]
     return @_parseReceivedMessages result
+
+  toString: ->
+    if @addr
+      "#{@addr} on port #{@port}"
+    else
+      "#{@socketId}"
 
 exports.RemoteDevice = RemoteDevice

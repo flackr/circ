@@ -2,13 +2,15 @@ exports = window.chat ?= {}
 
 class SyncStorage
 
-  @ITEMS = ['nick', 'servers', 'channels', 'password']
+  @ITEMS = ['nick', 'servers', 'channels', 'password', 'remote_server']
 
   constructor: ->
+    @_log = (type, msg...) => log this, type, msg...
     @_channels = []
     @_servers = []
     @_nick = undefined
     @_password = undefined
+    @serverDevice = undefined
     chrome.storage.onChanged.addListener @_onChanged
 
   ##
@@ -17,12 +19,30 @@ class SyncStorage
   # then restore it.
   ##
   _onChanged: (changeMap, areaName) =>
-    passwordChange = changeMap.password
-    return unless passwordChange and passwordChange.newValue isnt @_password
+    if changeMap.password
+      @_onPasswordChange changeMap.password
+    if changeMap.remote_server
+      @_onRemoteServerChange changeMap.remote_server
+
+  _onPasswordChange: (passwordChange) ->
+    return if passwordChange.newValue is @_password
     if passwordChange.newValue
+      @_log "another device changed the password from " +
+          "#{passwordChange.oldValue} to #{passwordChange.newValue}"
       @_password = passwordChange.newValue
     else
+      @_log "password was cleared. Setting password back to #{@_password}"
       @_store 'password', @_password
+
+  _onRemoteServerChange: (serverChange) ->
+    return unless serverChange.newValue.addr
+    return if serverChange.newValue.addr is @serverDevice?.addr
+    @_log "another device changed the remote server from " +
+        "#{serverChange.oldValue} to #{serverChange.newValue}"
+    @serverDevice = serverChange.newValue
+    # TODO display a prompt asking if the user would like to use this other
+    # connection
+    @_chat.remoteConnection.connectToServer @serverDevice
 
   pause: ->
     @_paused = true
@@ -84,6 +104,12 @@ class SyncStorage
         nick: conn.irc.nick
     ircStates
 
+  loadServerDevice: (chat) ->
+    @_chat = chat
+    chrome.storage.sync.get 'remote_server', (state) =>
+      @_state = state
+      @_loadRemoteConnection()
+
   restoreSavedState: (chat) ->
     @_chat = chat
     chrome.storage.sync.get SyncStorage.ITEMS, (savedState) =>
@@ -96,12 +122,15 @@ class SyncStorage
     @_restoreChannels()
     @_restoreIRCStates()
     @_restorePassword()
+    @_loadRemoteConnection()
 
   _restorePassword: ->
     @_password = @_state.password
     if not @_password
       @_password = irc.util.randomName()
+      @_log 'no password found, setting new password to', @_password
       @_store 'password', @_password
+    else @_log 'password loaded from storage:', @_password
     @_chat.setPassword @_password
 
   _restoreServers: ->
@@ -146,5 +175,13 @@ class SyncStorage
       @_chat.onJoined conn, channelName
       nicks = (nick for norm, nick of channelInfo.names)
       @_chat.onNames { context: { server: conn.name, channel: channelName } }, nicks
+
+  _loadRemoteConnection: ->
+    @_log 'no remote server found', @_state unless @_state.remote_server
+    @serverDevice = @_state.remote_server
+
+  becomeRemoteServer: (connectionInfo) ->
+    @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }
+    @_store 'remote_server', @serverDevice
 
 exports.SyncStorage = SyncStorage

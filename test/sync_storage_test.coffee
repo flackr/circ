@@ -5,7 +5,10 @@ describe 'IRC sync storage', ->
   beforeEach ->
     chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus',
         'setNick', 'setPassword']
+    chat.remoteConnection = { isSupported: -> true }
+    chat.remoteConnection.connectToServer = jasmine.createSpy 'connectToServer'
     chat.connections = { freenode: 'f', dalnet: 'd' }
+
     ss = new window.chat.SyncStorage
     sync.clear()
 
@@ -87,3 +90,28 @@ describe 'IRC sync storage', ->
     ss.serverJoined 'freenode', 6697
     ss.parted 'freenode', 6697
     expect(sync._storageMap.channels).toEqual []
+
+  it 'loads the stored server device', ->
+    connectInfo = { addr: '1.1.1.1', port: 1 }
+    sync.set { remote_server: connectInfo }
+    ss.restoreSavedState chat
+    expect(ss.remoteServer).toEqual connectInfo
+
+  it 'can store a new server device', ->
+    connectInfo = { addr: '1.1.1.1', port: 1 }
+    ss.becomeRemoteServer connectInfo
+    expect(sync._storageMap.remote_server).toEqual connectInfo
+
+  it 'connects to the server automatically when a new server is set', ->
+    connectInfo = { addr: '1.1.1.2', port: 1 }
+    sync.set { remote_server: { addr: '1.1.1.1', port: 1 } }
+    ss.restoreSavedState chat
+    chrome.storage.update { remote_server: { newValue: connectInfo } }, 'sync'
+    expect(chat.remoteConnection.connectToServer).toHaveBeenCalledWith connectInfo
+
+  it "doesn't connect to itself when it sets the server", ->
+    connectInfo = { addr: '1.1.1.1', port: 1 }
+    sync.set { remote_server: { addr: '1.1.1.1', port: 1 } }
+    ss.restoreSavedState chat
+    chrome.storage.update { remote_server: { newValue: connectInfo } }, 'sync'
+    expect(chat.remoteConnection.connectToServer).not.toHaveBeenCalled()

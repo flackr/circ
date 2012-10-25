@@ -86,6 +86,7 @@ class MessageFormatter
   # @param {string} content
   ##
   setContentMessage: (content) ->
+    @setContext undefined, undefined, content
     @setContent content
     @setMessage '#content'
 
