@@ -299,6 +299,7 @@ class UserCommandHandler extends MessageHandler
             "a valid port and cannot be used as a server at this time. " +
             "This may be caused by your firewall settings"
         else
+          connectionInfo = @chat.remoteConnection.getConnectionInfo()
           @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
           @displayMessage 'breakgroup'
           @displayMessage 'notice', "possible addresses to connect on:"

@@ -80,7 +80,7 @@ class Chat extends EventEmitter
     @_log 'can make a connection - device:', @syncStorage.serverDevice,
         ', is server?', @_isOfficialServer()
 
-    if @syncStorage.serverDevice and not @_isOfficialServer
+    if @syncStorage.serverDevice and not @_isOfficialServer()
       @useServerDeviceConnection()
     else
       @useOwnConnection()

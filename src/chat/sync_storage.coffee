@@ -56,16 +56,32 @@ class SyncStorage
     @_paused = false
 
   nickChanged: (nick) ->
+    return if nick is @_nick
     @_nick = nick
     @_store 'nick', nick
 
   channelJoined: (server, name) ->
+    return if @_isDuplicateChannel server, name
     @_channels.push { server, name }
     @_store 'channels', @_channels
 
+  _isDuplicateChannel: (server, name) ->
+    for chan in @_channels
+      return true if chan.server is server and chan.name is name
+    false
+
   serverJoined: (name, port) ->
+    return if @_isDuplicateServer name, port
     @_servers.push { name, port }
     @_store 'servers', @_servers
+
+  _isDuplicateServer: (name, port) ->
+    for server, i in @_servers
+      if server.name is name
+        return true if server.port is port
+        @_servers.splice i, 1
+        break
+    return false
 
   parted: (server, channel) ->
     if channel?
