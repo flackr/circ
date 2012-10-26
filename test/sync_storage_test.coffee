@@ -4,12 +4,13 @@ describe 'IRC sync storage', ->
 
   beforeEach ->
     chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus',
-        'setNick', 'setPassword']
+        'setNick', 'setPassword', 'determineConnection']
     chat.remoteConnection = { isSupported: -> true }
     chat.remoteConnection.connectToServer = jasmine.createSpy 'connectToServer'
     chat.connections = { freenode: 'f', dalnet: 'd' }
 
     ss = new window.chat.SyncStorage
+    ss.resume()
     sync.clear()
 
   it 'does nothing when there is no state to restore', ->
@@ -31,12 +32,12 @@ describe 'IRC sync storage', ->
     expect(chat.setNick).not.toHaveBeenCalled()
 
   it 'sets a new password if one is not found', ->
-    ss.restoreSavedState chat
-    expect(ss._password).toEqual jasmine.any(String)
+    ss.loadConnectionInfo chat
+    expect(ss.password).toEqual jasmine.any(String)
 
   it 'restores the password if it was cleared', ->
-    ss.restoreSavedState chat
-    password = ss._password
+    ss.loadConnectionInfo chat
+    password = ss.password
     chrome.storage.update { password: { newValue: undefined } }, 'sync'
     expect(sync._storageMap.password).toBe password
 
@@ -47,7 +48,7 @@ describe 'IRC sync storage', ->
 
   it 'restores the stored password', ->
     sync.set { password: 'somepw' }
-    ss.restoreSavedState chat
+    ss.loadConnectionInfo chat
     expect(chat.setPassword).toHaveBeenCalledWith 'somepw'
 
   it 'restores the stored servers', ->
@@ -93,25 +94,18 @@ describe 'IRC sync storage', ->
 
   it 'loads the stored server device', ->
     connectInfo = { addr: '1.1.1.1', port: 1 }
-    sync.set { remote_server: connectInfo }
-    ss.restoreSavedState chat
-    expect(ss.remoteServer).toEqual connectInfo
+    sync.set { server_device: connectInfo }
+    ss.loadConnectionInfo chat
+    expect(ss.serverDevice).toEqual connectInfo
 
   it 'can store a new server device', ->
     connectInfo = { addr: '1.1.1.1', port: 1 }
-    ss.becomeRemoteServer connectInfo
-    expect(sync._storageMap.remote_server).toEqual connectInfo
+    ss.becomeServerDevice connectInfo
+    expect(sync._storageMap.server_device).toEqual connectInfo
 
   it 'connects to the server automatically when a new server is set', ->
     connectInfo = { addr: '1.1.1.2', port: 1 }
-    sync.set { remote_server: { addr: '1.1.1.1', port: 1 } }
-    ss.restoreSavedState chat
-    chrome.storage.update { remote_server: { newValue: connectInfo } }, 'sync'
-    expect(chat.remoteConnection.connectToServer).toHaveBeenCalledWith connectInfo
-
-  it "doesn't connect to itself when it sets the server", ->
-    connectInfo = { addr: '1.1.1.1', port: 1 }
-    sync.set { remote_server: { addr: '1.1.1.1', port: 1 } }
-    ss.restoreSavedState chat
-    chrome.storage.update { remote_server: { newValue: connectInfo } }, 'sync'
-    expect(chat.remoteConnection.connectToServer).not.toHaveBeenCalled()
+    sync.set { server_device: { addr: '1.1.1.1', port: 1 } }
+    ss.loadConnectionInfo chat
+    chrome.storage.update { server_device: { newValue: connectInfo } }, 'sync'
+    expect(chat.determineConnection).toHaveBeenCalledWith connectInfo

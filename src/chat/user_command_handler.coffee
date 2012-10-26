@@ -245,7 +245,7 @@ class UserCommandHandler extends MessageHandler
       run: ->
         if @port and @addr
           if @addr is @chat.remoteConnection.getConnectionInfo().addr
-            @displayMessage 'error', "this device is the server. It cannot " +
+            @displayMessage 'error', "this device is the server and cannot " +
                 "connect to itself. Call /join-server on other devices to " +
                 "have them connect to this device or call /make-server on " +
                 "another device to make it the server"
@@ -260,13 +260,15 @@ class UserCommandHandler extends MessageHandler
           "connect. Connected devices use the IRC connection of this device"
       run: ->
         state = @chat.remoteConnection.getState()
-        if state is 'no_addr'
+        if state is 'no_port'
           @displayMessage 'error', "this device can not be used as a " +
               "server at this time because no valid port was found"
+        else if state is 'finding_port'
+          @chat.remoteConnection.waitForPort => @run
         else
           @chat.remoteConnection.makeOfficialServer()
           connectionInfo = @chat.remoteConnection.getConnectionInfo()
-          @chat.syncStorage.becomeRemoteServer connectionInfo
+          @chat.syncStorage.becomeServerDevice connectionInfo
 
     @_addCommand 'network-info',
       description: "displays network information including " +
@@ -287,18 +289,15 @@ class UserCommandHandler extends MessageHandler
           @displayMessage 'notice', "this device is connected to server device " +
               @chat.remoteConnection.serverDevice.addr + " on port " +
               @chat.remoteConnection.serverDevice.port
-
         @displayMessage 'breakgroup'
-        connectionInfo = @chat.remoteConnection.getConnectionInfo()
-        if connectionInfo.port is RemoteDevice.FINDING_PORT
-          @displayMessage 'notice', "still searching for a valid port. " +
-              "Please run this command again in a few moments"
 
-        else if connectionInfo.port is RemoteDevice.PORT_NOT_FOUND
+        state = @chat.remoteConnection.getState()
+        if state is 'finding_port'
+          @chat.remoteConnection.waitForPort => @run
+        else if state is 'no_port'
           @displayMessage 'notice', "this device has not been able to find " +
             "a valid port and cannot be used as a server at this time. " +
             "This may be caused by your firewall settings"
-
         else
           @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
           @displayMessage 'breakgroup'

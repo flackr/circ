@@ -8,8 +8,7 @@ class RemoteConnection extends EventEmitter
     @_type = 'server'
     @devices = []
     @_ircSocketMap = {}
-    @_thisDevice = {port: RemoteDevice.FINDING_PORT}
-    @_getState = -> {}
+    @_thisDevice = {}
     @_state = 'device_state'
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
@@ -21,6 +20,7 @@ class RemoteConnection extends EventEmitter
 
   getState: ->
     if @_state is 'device_state'
+      return 'finding_port' unless @_thisDevice.port
       @_thisDevice.getState()
     else
       @_state
@@ -30,12 +30,14 @@ class RemoteConnection extends EventEmitter
 
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
-    if @_thisDevice.getState() is 'no_addr'
+    if @_thisDevice.getState() is 'no_port'
       @_log 'w', "Wasn't able to find address of own device"
+      @emit 'no_port'
       return
+    @emit 'found_addr'
     @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
-    @_thisDevice.on 'addr_found', =>
-      @emit 'addr_found', device.addr, device.port
+    @_thisDevice.on 'found_port', =>
+      @emit 'found_port', device.addr, device.port
 
   _addUnauthenticatedDevice: (device) =>
     @_log 'adding unauthenticated device', device.id
@@ -58,8 +60,10 @@ class RemoteConnection extends EventEmitter
     @emit 'client_joined', device
     @_broadcast 'connection_message', 'irc_state', @_getState()
 
-  _addDevice: (device) ->
-    @devices.push device
+  _addDevice: (newDevice) ->
+    for device in @devices
+      device.close() if device.addr is newDevice.addr
+    @devices.push newDevice
 
   _listenToDevice: (device) ->
     device.on 'user_input', @_emitUserInput
@@ -84,12 +88,22 @@ class RemoteConnection extends EventEmitter
     for device, i in @devices
       @devices.splice i, 1 if device.id is closedDevice.id
       break
-    if not @isOfficialServer() and closedDevice.id is @serverDevice.id
+
+    if @_deviceIsClient closedDevice
+      @emit 'client_parted', closedDevice
+
+    else if @getState() is 'connected' and @_deviceIsServer closedDevice
       @_log 'w', 'lost connection to server -', closedDevice.addr
       @_state = 'device_state'
       @_type = 'server'
       @emit 'server_disconnected'
-      @connectToServer @serverDevice
+
+  _deviceIsServer: (device) ->
+    device.id is @serverDevice?.id
+
+  _deviceIsClient: (device) ->
+    device.id isnt @serverDevice?.id and
+        device.id isnt @_thisDevice?.id
 
   setStateGenerator: (getState) ->
     @_getState = getState
@@ -149,13 +163,21 @@ class RemoteConnection extends EventEmitter
   isOfficialServer: ->
     @_type is 'official_server'
 
+  waitForPort: (callback) ->
+    if @getState() is 'found_port'
+      return callback true
+    if @getState() is 'no_port'
+      return callback false
+    @on 'found_port', =>
+      callback true
+    @on 'no_port', =>
+      callback false
+
   makeOfficialServer: ->
     wasClient = @isClient()
     @_type = 'official_server'
     if wasClient
       @serverDevice.close()
-    if @_getState() is 'finding_addr'
-      @on 'addr_found', => @makeOfficialServer
     @emit 'became_server'
 
   _makeClient: ->

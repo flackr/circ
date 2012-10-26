@@ -19,13 +19,15 @@ class RemoteDevice extends EventEmitter
   getState: ->
     RemoteDevice.state
 
-  constructor: (@id) ->
+  constructor: (@addr, @port) ->
     super
-    @addr = @id
+    @id = @addr
     RemoteDevice.devices.push this
 
   @getOwnDevice: (callback) ->
-    callback new RemoteDevice '1.1.1.1'
+    device = new RemoteDevice '1.1.1.1'
+    device.possibleAddrs = ['1.1.1.1']
+    callback device
 
   send: ->
 
@@ -40,7 +42,7 @@ class RemoteDevice extends EventEmitter
 
   getAddr: (callback) ->
     @addr = '1.1.1.1'
-    callback '1.1.1.1'
+    callback @addr
 
   close: ->
 

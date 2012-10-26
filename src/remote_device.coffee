@@ -21,9 +21,9 @@ class RemoteDevice extends EventEmitter
 
   getState: ->
     switch @port
-      when RemoteDevice.FINDING_PORT then 'finding_addr'
-      when RemoteDevice.PORT_NOT_FOUND then 'no_addr'
-      else 'found_addr'
+      when RemoteDevice.FINDING_PORT then 'finding_port'
+      when RemoteDevice.PORT_NOT_FOUND then 'no_port'
+      else 'found_port'
 
   _initFromAddress: (@addr, @port) ->
 
@@ -35,7 +35,7 @@ class RemoteDevice extends EventEmitter
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
       if possibleAddrs.length > 0
         addr = RemoteDevice._getValidAddr possibleAddrs
-        device = new RemoteDevice possibleAddrs[0], RemoteDevice.FINDING_PORT
+        device = new RemoteDevice addr, RemoteDevice.FINDING_PORT
       else
         device = new RemoteDevice '', RemoteDevice.PORT_NOT_FOUND
       device.possibleAddrs = possibleAddrs
@@ -43,7 +43,7 @@ class RemoteDevice extends EventEmitter
 
   @_getValidAddr: (addrs) ->
     # TODO currently we return the first IPv4 address. Will this always work?
-    shortest = ''
+    shortest = addrs[0]
     for addr in addrs
       shortest = addr if addr.length < shortest.length
     shortest
@@ -72,7 +72,7 @@ class RemoteDevice extends EventEmitter
         @_listenOnValidPort callback, port + Math.floor Math.random() * 100
       else
         @port = port
-        @emit 'addr_found'
+        @emit 'found_port'
         @_acceptNewConnection callback
 
   _acceptNewConnection: (callback) ->
@@ -134,6 +134,7 @@ class RemoteDevice extends EventEmitter
   close: ->
     if @_socketId
       chrome.socket?.destroy @_socketId
+      @emit 'closed'
 
   _listenForData: ->
     chrome.socket?.read @_socketId, (readInfo) =>

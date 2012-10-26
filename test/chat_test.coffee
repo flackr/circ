@@ -471,3 +471,10 @@ describe 'An IRC client front end', ->
           (device 1).emit 'closed'
           expect(client.remoteConnection.isServer()).toBe true
           expect(client.closeAllConnections).toHaveBeenCalled()
+
+        it "automatically connects if an existing server is present", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          RemoteDevice.state = 'found_port'
+          restart()
+          authToken = client.remoteConnection._getAuthToken '1.1.1.1'
+          expect(mocks.RemoteDevice.sendAuthentication).toHaveBeenCalledWith authToken

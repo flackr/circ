@@ -35,24 +35,26 @@ class Chat extends EventEmitter
     @remoteConnection = new RemoteConnection
     @userCommands.listenTo @remoteConnection
 
-    @remoteConnection.on 'addr_found', =>
-      @_onIPAddressFound()
+    @remoteConnection.on 'found_addr', =>
+      @determineConnection()
+
+    @remoteConnection.on 'no_port', =>
+      @useOwnConnection()
 
     @remoteConnection.on 'invalid_server', (connectInfo) =>
       # TODO log to a system window
       @displayMessage 'notice', @getCurrentContext, 'Failed to connect to device ' +
           connectInfo.toString()
-
-    @remoteConnection.on 'server_disconnected', =>
-      @closeAllConnections()
-      @syncStorage.resume()
-      @syncStorage.restoreSavedState this
+      @useOwnConnection()
 
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
       @_log 'server connection established - loading state', state
       @syncStorage.loadState this, state
+
+    @remoteConnection.on 'server_disconnected', =>
+      @useOwnConnection()
 
     @remoteConnection.on 'became_server', =>
       @displayMessage 'notice', @getCurrentContext(), 'Now accepting ' +
@@ -62,25 +64,49 @@ class Chat extends EventEmitter
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' connected to this device'
 
-  _onIPAddressFound: ->
-    if @syncStorage.serverDevice
-      @_connectToDevice @syncStorage.serverDevice
-    else
-      @_log 'No server found'
+    @remoteConnection.on 'client_parted', (client) =>
+      @displayMessage 'notice', @getCurrentContext(), client.addr +
+          ' disconnected from this device'
 
-  _connectToDevice: (deviceInfo) ->
-    if @remoteConnection.getConnectionInfo().addr is deviceInfo.addr
-      # TODO update sync storage in some way so other devices know to conenct
-      @_log 'this device is the official server'
-      return
-    @_log 'automatically connecting to', deviceInfo.addr, deviceInfo.port
-    @remoteConnection.connectToServer deviceInfo
+  ##
+  # Determine if we should connect directly to IRC or connect through another
+  # device's IRC connection.
+  ##
+  determineConnection: ->
+    @_log 'determining connection...', @remoteConnection.getConnectionInfo().addr,
+        @syncStorage.loadedServerDevice, @syncStorage.password
+    return unless @remoteConnection.getConnectionInfo().addr and
+        @syncStorage.loadedServerDevice and @syncStorage.password
+    @_log 'can make a connection - device:', @syncStorage.serverDevice,
+        ', is server?', @_isOfficialServer()
+
+    if @syncStorage.serverDevice and not @_isOfficialServer
+      @useServerDeviceConnection()
+    else
+      @useOwnConnection()
+
+  useOwnConnection: ->
+    @_log 'using own connection'
+    @closeAllConnections()
+    @syncStorage.restoreSavedState this
+    @syncStorage.resume()
+
+  useServerDeviceConnection: ->
+    if @remoteConnection.getState() in ['connected', 'connecting']
+      @remoteConnection.disconnectFromServer()
+    serverDevice = @syncStorage.serverDevice
+    @_log 'automatically connecting to', serverDevice.addr, serverDevice.port
+    @remoteConnection.connectToServer serverDevice
+
+  _isOfficialServer: ->
+    @syncStorage.serverDevice?.addr in
+        @remoteConnection.getConnectionInfo().possibleAddrs
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
     @remoteConnection.setStateGenerator =>
       @syncStorage.getState this
-    @syncStorage.restoreSavedState this
+    @syncStorage.loadConnectionInfo this
 
   setPassword: (password) ->
     @remoteConnection.setPassword password
@@ -256,7 +282,7 @@ class Chat extends EventEmitter
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
     if win.isServerWindow()
-      @ircEvents.removeEventsFrom win.conn.irc
+      @ircEvents?.removeEventsFrom win.conn.irc
     removedWindows = @winList.remove win
     for win in removedWindows
       @_removeWindowFromState win
