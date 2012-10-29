@@ -266,9 +266,8 @@ class UserCommandHandler extends MessageHandler
         else if state is 'finding_port'
           @chat.remoteConnection.waitForPort => @run
         else
-          @chat.remoteConnection.makeOfficialServer()
-          connectionInfo = @chat.remoteConnection.getConnectionInfo()
-          @chat.syncStorage.becomeServerDevice connectionInfo
+          @chat.syncStorage.becomeServerDevice @chat.remoteConnection.getConnectionInfo()
+          @chat.determineConnection()
 
     @_addCommand 'network-info',
       description: "displays network information including " +

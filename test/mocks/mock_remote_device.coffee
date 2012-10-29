@@ -16,6 +16,9 @@ class RemoteDevice extends EventEmitter
 
   @sendAuthentication: ->
 
+  equals: (o) ->
+    o?.id is @id
+
   getState: ->
     RemoteDevice.state
 

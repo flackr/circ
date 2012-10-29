@@ -5,7 +5,7 @@ class RemoteConnection extends EventEmitter
   constructor: ->
     super
     @serverDevice = undefined
-    @_type = 'server'
+    @_type = undefined
     @devices = []
     @_ircSocketMap = {}
     @_thisDevice = {}
@@ -36,17 +36,14 @@ class RemoteConnection extends EventEmitter
       return
     @emit 'found_addr'
     @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
-    @_thisDevice.on 'found_port', =>
-      @emit 'found_port', device.addr, device.port
 
   _addUnauthenticatedDevice: (device) =>
     @_log 'adding unauthenticated device', device.id
     device.getAddr =>
       @_log 'found unauthenticated device addr', device.addr
-      device.on 'authenticate', (authToken) =>
-        @_authenticateDevice device, authToken
+      device.on 'authenticate', @_authenticateDevice
 
-  _authenticateDevice: (device, authToken) ->
+  _authenticateDevice: (device, authToken) =>
     if authToken is @_getAuthToken device.addr
       @_addClientDevice device
     else
@@ -69,41 +66,51 @@ class RemoteConnection extends EventEmitter
     device.on 'user_input', @_emitUserInput
     device.on 'socket_data', @_emitSocketData
     device.on 'connection_message', @_emitConnectionMessage
-    device.on 'closed', => @_onDeviceClosed device
+    device.on 'closed', @_onDeviceClosed
 
-  _emitUserInput: (event) =>
+  _emitUserInput: (device, event) =>
     @emit event.type, Event.wrap event
 
-  _emitSocketData: (server, type, data) =>
+  _emitSocketData: (device, server, type, data) =>
     if type is 'data'
       data = irc.util.dataViewToArrayBuffer data
     @_ircSocketMap[server]?.emit type, data
 
-  _emitConnectionMessage: (type, args...) =>
+  _emitConnectionMessage: (device, type, args...) =>
     if type is 'irc_state'
-      @_makeClient() unless @isClient()
+      if @getState() isnt 'connecting'
+        device.close()
+        return
+      @_setServerDevice device
+      @_becomeClient()
     @emit type, args...
 
-  _onDeviceClosed: (closedDevice) ->
-    for device, i in @devices
-      @devices.splice i, 1 if device.id is closedDevice.id
-      break
+  _setServerDevice: (device) ->
+    @serverDevice?.close()
+    @serverDevice = device
 
+  _onDeviceClosed: (closedDevice) =>
     if @_deviceIsClient closedDevice
       @emit 'client_parted', closedDevice
 
-    else if @getState() is 'connected' and @_deviceIsServer closedDevice
+    if @_deviceIsServer(closedDevice) and @getState() is 'connected'
       @_log 'w', 'lost connection to server -', closedDevice.addr
       @_state = 'device_state'
-      @_type = 'server'
+      @_type = undefined
       @emit 'server_disconnected'
+
+    for device, i in @devices
+      @devices.splice i, 1 if device.id is closedDevice.id
+      break
 
   _deviceIsServer: (device) ->
     device.id is @serverDevice?.id
 
   _deviceIsClient: (device) ->
-    device.id isnt @serverDevice?.id and
-        device.id isnt @_thisDevice?.id
+    return false if device.equals @serverDevice or device.equals @_thisDevice
+    for clientDevice in @_devices
+      return true if device.equals clientDevice
+    return false
 
   setStateGenerator: (getState) ->
     @_getState = getState
@@ -132,6 +139,37 @@ class RemoteConnection extends EventEmitter
     for device in @devices
       device.send type, args
 
+  disconnectDevices: ->
+    for device in @devices
+      device.close()
+    @becomeIdle()
+
+  waitForPort: (callback) ->
+    if @getState() is 'found_port'
+      return callback true
+    if @getState() is 'no_port'
+      return callback false
+    @_thisDevice?.on 'found_port', =>
+      callback true
+    @_thisDevice?.on 'no_port', =>
+      callback false
+
+  becomeServer: ->
+    @_type = 'server'
+    @_state = 'device_state'
+
+  becomeIdle: ->
+    @_type = 'idle'
+    @_state = 'device_state'
+
+  _becomeClient: ->
+    @_type = 'client'
+    @_state = 'connected'
+    @_addDevice @serverDevice
+
+  disconnectFromServer: ->
+    @serverDevice?.close()
+
   ##
   # Connect to a remote server. The IRC connection of the remote server will
   # replace the local connection.
@@ -139,50 +177,23 @@ class RemoteConnection extends EventEmitter
   ##
   connectToServer: (connectInfo) ->
     @_state = 'connecting'
-    @serverDevice = new RemoteDevice connectInfo.addr, connectInfo.port
-    @_listenToDevice @serverDevice
-    @serverDevice.connect (success) =>
+    device = new RemoteDevice connectInfo.addr, connectInfo.port
+    @_listenToDevice device
+    device.connect (success) =>
       if success
         @_log 'successfully connected to server', connectInfo.addr, connectInfo.port
-        @serverDevice.sendAuthentication @_getAuthToken
+        device.sendAuthentication @_getAuthToken
       else
-        @emit 'invalid_server', connectInfo
         @_state = 'device_state'
-
-  close: ->
-    for device in @devices
-      device.close()
-    @_thisDevice.close()
+        @emit 'invalid_server', connectInfo
 
   isServer: ->
-    @_type is 'server' or @isOfficialServer()
+    @_type is 'server'
 
   isClient: ->
     @_type is 'client'
 
-  isOfficialServer: ->
-    @_type is 'official_server'
-
-  waitForPort: (callback) ->
-    if @getState() is 'found_port'
-      return callback true
-    if @getState() is 'no_port'
-      return callback false
-    @on 'found_port', =>
-      callback true
-    @on 'no_port', =>
-      callback false
-
-  makeOfficialServer: ->
-    wasClient = @isClient()
-    @_type = 'official_server'
-    if wasClient
-      @serverDevice.close()
-    @emit 'became_server'
-
-  _makeClient: ->
-    @_type = 'client'
-    @_state = 'connected'
-    @_addDevice @serverDevice
+  isIdle: ->
+    @_type is 'idle'
 
 exports.RemoteConnection = RemoteConnection

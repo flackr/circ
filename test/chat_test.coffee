@@ -89,7 +89,7 @@ describe 'An IRC client front end', ->
   describe "sync storage", ->
 
     doActivity = ->
-      type '/nick ournick'
+      type '/nick newNick'
       type '/server freenode 6667'
       type '/join #bash'
       type '/join #awesome'
@@ -98,7 +98,6 @@ describe 'An IRC client front end', ->
       type '/join #hiphop'
 
     beforeEach ->
-      chrome.storage.sync.clear()
       doActivity()
 
     it "chooses a new password when one doesn't currently exist", ->
@@ -111,7 +110,7 @@ describe 'An IRC client front end', ->
 
     it "restores the previously used nick", ->
       restart()
-      expect($ '#status').toHaveText 'ournick'
+      expect($ '#status').toHaveText 'newNick'
 
     it "generates random nick when no previously used nick is available", ->
       chrome.storage.sync.set { nick: undefined }
@@ -241,7 +240,8 @@ describe 'An IRC client front end', ->
 
       beforeEach ->
         jasmine.Clock.useMock()
-        currentIRC.onError 'socket error!'
+        currentIRC.onClose()
+
 
       it 'shows all servers and channels as disconnected', ->
         expect(room 0).toHaveClass 'disconnected'
@@ -404,9 +404,9 @@ describe 'An IRC client front end', ->
 
         it "becomes a client after receiving IRC state", ->
           type "/join-server 1.1.1.2 1336"
-          expect(client.remoteConnection.isServer()).toBe true
-          (device 1).emit 'connection_message', 'irc_state', []
-          expect(client.remoteConnection.isServer()).toBe false
+          expect(client.remoteConnection.isClient()).toBe false
+          (device 1).emit 'connection_message', device(1), 'irc_state', []
+          expect(client.remoteConnection.isClient()).toBe true
 
         it "doesn't add a client before authentication", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
@@ -415,18 +415,18 @@ describe 'An IRC client front end', ->
         it "add a client after it authenticates", ->
           RemoteDevice.onNewDevice new RemoteDevice 1
           expect(client.remoteConnection.devices[0]).not.toBeDefined()
-          device(1).emit 'authenticate', client.remoteConnection._getAuthToken '1.1.1.1'
+          device(1).emit 'authenticate', device(1), client.remoteConnection._getAuthToken '1.1.1.1'
           expect(client.remoteConnection.devices[0]).toBeDefined()
 
         it "disconnects from the current connection before using the server device's connection", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', 'irc_state', []
+          (device 1).emit 'connection_message', device(1), 'irc_state', []
           expect(rooms().length).toBe 1
           expect(client.connections['freenode']).not.toBeDefined()
 
         it "can load the IRC state from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', 'irc_state', state
+          (device 1).emit 'connection_message', device(1), 'irc_state', state
 
           expect(rooms().length).toBe 4
           expect(irc('freenode').state).toBe 'connected'
@@ -445,31 +445,31 @@ describe 'An IRC client front end', ->
           type "/join-server 1.1.1.2 1336"
           state.ircStates[0].nick = undefined
           state.nick = undefined
-          (device 0).emit 'connection_message', 'irc_state', state
+          (device 0).emit 'connection_message', device(0), 'irc_state', state
           expect(irc('freenode').preferredNick).toBeDefined()
 
         it "can listen to user input from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', 'irc_state', state
+          (device 1).emit 'connection_message', device(1), 'irc_state', state
           event = new Event 'command', 'nick', 'newnick'
           event.setContext 'freenode'
           spyOn client, 'setNick'
-          (device 1).emit 'user_input', event
+          (device 1).emit 'user_input', device(1), event
           expect(client.setNick).toHaveBeenCalledWith 'freenode', 'newnick'
 
         it "can listen to socket data from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', 'irc_state', state
+          (device 1).emit 'connection_message', device(1), 'irc_state', state
           spyOn irc('freenode'), 'onDrain'
-          (device 1).emit 'socket_data', 'freenode', 'drain'
+          (device 1).emit 'socket_data', device(1), 'freenode', 'drain'
           expect(irc('freenode').onDrain).toHaveBeenCalled()
 
-        it "becomes a server again after connection to the server is lost", ->
+        it "uses own connection again after connection to the server is lost", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', 'irc_state', []
+          (device 1).emit 'connection_message', device(1), 'irc_state', []
           spyOn client, 'closeAllConnections'
-          (device 1).emit 'closed'
-          expect(client.remoteConnection.isServer()).toBe true
+          (device 1).emit 'closed', device(1)
+          expect(client.remoteConnection.isIdle()).toBe true
           expect(client.closeAllConnections).toHaveBeenCalled()
 
         it "automatically connects if an existing server is present", ->
@@ -478,3 +478,15 @@ describe 'An IRC client front end', ->
           restart()
           authToken = client.remoteConnection._getAuthToken '1.1.1.1'
           expect(mocks.RemoteDevice.sendAuthentication).toHaveBeenCalledWith authToken
+
+        xit "becomes server if storage marks it has the server device", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.1', port: 1 } }
+          RemoteDevice.state = 'finding_port'
+          restart()
+          device(0).port = 1
+          RemoteDevice.state = 'found_port'
+          device(0).on 'found_port', => console.log 'HI'
+          device(0).emit 'found_port'
+          console.error 'D0', device(0)
+          console.log 'PREFAIL'
+          expect(client.remoteConnection.isServer()).toBe true

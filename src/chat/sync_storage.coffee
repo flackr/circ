@@ -41,10 +41,7 @@ class SyncStorage
     @_log "device server changed from #{serverChange.oldValue} to " +
         "#{serverChange.newValue}"
     if serverChange.newValue
-      return if @serverDevice is serverChange.newValue
       @serverDevice = serverChange.newValue
-      # TODO display a prompt asking if the user would like to use this other
-      # connection
       @_chat.determineConnection @serverDevice
     else if @serverDevice
       @_store 'server_device', @serverDevice
@@ -56,7 +53,7 @@ class SyncStorage
     @_paused = false
 
   nickChanged: (nick) ->
-    return if nick is @_nick
+    return if @_nick is nick
     @_nick = nick
     @_store 'nick', nick
 
@@ -105,8 +102,8 @@ class SyncStorage
 
   _store: (key, value) ->
     return if @_paused and not (key in SyncStorage.CONNECTION_ITEMS)
-    @_log 'w', 'storing', key, '=>', value
     storageObj = {}
+
     storageObj[key] = value
     chrome.storage.sync.set storageObj
 
@@ -207,7 +204,7 @@ class SyncStorage
 
   becomeServerDevice: (connectionInfo) ->
     @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }
-    @_log 'store our address as the official server device', connectionInfo.toString()
+    @_log 'store our address as the server device', connectionInfo.toString()
     @_store 'server_device', @serverDevice
 
 exports.SyncStorage = SyncStorage

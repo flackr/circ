@@ -42,23 +42,18 @@ class Chat extends EventEmitter
       @useOwnConnection()
 
     @remoteConnection.on 'invalid_server', (connectInfo) =>
-      # TODO log to a system window
-      @displayMessage 'notice', @getCurrentContext, 'Failed to connect to device ' +
-          connectInfo.toString()
       @useOwnConnection()
+      @displayMessage 'notice', @getCurrentContext, "Couldn't connect to " +
+          "server device #{connectInfo.toString()}"
 
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
-      @_log 'server connection established - loading state', state
+      @_log 'successfully using server device - loading state', state
       @syncStorage.loadState this, state
 
     @remoteConnection.on 'server_disconnected', =>
-      @useOwnConnection()
-
-    @remoteConnection.on 'became_server', =>
-      @displayMessage 'notice', @getCurrentContext(), 'Now accepting ' +
-          'connections from other devices'
+      @determineConnection()
 
     @remoteConnection.on 'client_joined', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
@@ -78,29 +73,78 @@ class Chat extends EventEmitter
     return unless @remoteConnection.getConnectionInfo().addr and
         @syncStorage.loadedServerDevice and @syncStorage.password
     @_log 'can make a connection - device:', @syncStorage.serverDevice,
-        ', is server?', @_isOfficialServer()
+        '- is server?', @_shouldBeServerDevice()
 
-    if @syncStorage.serverDevice and not @_isOfficialServer()
+    if @syncStorage.serverDevice and not @_shouldBeServerDevice()
       @useServerDeviceConnection()
     else
       @useOwnConnection()
 
+  useServerDeviceConnection: ->
+    usingServerDeviceConnection = @remoteConnection.getState() in ['connected', 'connecting']
+    sameConnection = @remoteConnection.serverDevice?.usesConnection @syncStorage.serverDevice
+    return if usingServerDeviceConnection and sameConnection
+    @_log 'automatically connecting to', @syncStorage.serverDevice
+    @remoteConnection.connectToServer @syncStorage.serverDevice
+
   useOwnConnection: ->
-    @_log 'using own connection'
+    usingServerDeviceConnection = @remoteConnection.getState() in ['connected', 'connecting']
+    if usingServerDeviceConnection
+      @remoteConnection.disconnectFromServer()
+      return
+
+    if @_shouldBeServerDevice()
+      @_tryToBecomeServerDevice()
+      return
+
+    return if @remoteConnection.isIdle()
+    @_stopBeingServerDevice()
+    @_resumeIRCConnection()
+
+  _tryToBecomeServerDevice: ->
+    if @remoteConnection.getState() is 'finding_port'
+      @remoteConnection.waitForPort => @determineConnection()
+      @_log 'should be server, but havent found port yet...'
+      return
+
+    if @remoteConnection.getState() is 'no_port'
+      @_stopBeingServerDevice() if @remoteConnection.isServer()
+    else if not @remoteConnection.isServer() or
+        @syncStorage.serverDevice.port isnt @remoteConnection.getConnectionInfo().port
+      @_becomeServerDevice()
+    else return
+    @_resumeIRCConnection()
+
+  _stopBeingServerDevice: ->
+    return unless @remoteConnection.isServer()
+    @_log 'stopped being a server device'
+    if @remoteConnection.isServer()
+      @remoteConnection.disconnectDevices()
+
+  _shouldBeServerDevice: ->
+    # TODO check something stored in local storage, not IP addr which can change
+    @syncStorage.serverDevice?.addr in
+        @remoteConnection.getConnectionInfo().possibleAddrs
+
+  _canBeServerDevice: ->
+    assert @remoteConnection.getState() isnt 'finding_port'
+
+    if @remoteConnection.isServer()
+      return true
+
+  _becomeServerDevice: ->
+    @_log 'becoming server device'
+    if @remoteConnection._type
+      @displayMessage 'notice', @getCurrentContext(), 'Now accepting ' +
+          'connections from other devices'
+    @remoteConnection.becomeServer()
+    @syncStorage.becomeServerDevice @remoteConnection.getConnectionInfo()
+
+  _resumeIRCConnection: ->
+    @_log 'resuming IRC conn'
     @closeAllConnections()
     @syncStorage.restoreSavedState this
     @syncStorage.resume()
-
-  useServerDeviceConnection: ->
-    if @remoteConnection.getState() in ['connected', 'connecting']
-      @remoteConnection.disconnectFromServer()
-    serverDevice = @syncStorage.serverDevice
-    @_log 'automatically connecting to', serverDevice.addr, serverDevice.port
-    @remoteConnection.connectToServer serverDevice
-
-  _isOfficialServer: ->
-    @syncStorage.serverDevice?.addr in
-        @remoteConnection.getConnectionInfo().possibleAddrs
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
@@ -224,6 +268,7 @@ class Chat extends EventEmitter
         e.context.server isnt @currentWindow.conn?.name
       e.context.channel = chat.SERVER_WINDOW
     chan = e.context.channel
+
     if conn?.irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
       from = e.args[0]
@@ -231,6 +276,7 @@ class Chat extends EventEmitter
       conn.windows[from].makePrivate()
       @channelDisplay.connect conn.name, from
       return conn.windows[from]
+
     if not chan or chan is chat.SERVER_WINDOW
       return conn.serverWindow
     if chan is chat.CURRENT_WINDOW

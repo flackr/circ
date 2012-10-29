@@ -19,6 +19,12 @@ class RemoteDevice extends EventEmitter
     else
       @port = RemoteDevice.PORT_NOT_FOUND
 
+  equals: (otherDevice) ->
+    return @id is otherDevice?.id
+
+  usesConnection: (connectionInfo) ->
+    return connectionInfo.addr is @addr and connectionInfo.port is @port
+
   getState: ->
     switch @port
       when RemoteDevice.FINDING_PORT then 'finding_port'
@@ -31,6 +37,12 @@ class RemoteDevice extends EventEmitter
     @_listenForData()
 
   @getOwnDevice: (callback) ->
+    unless chrome.socket.listen
+      device = new RemoteDevice '', RemoteDevice.PORT_NOT_FOUND
+      device.possibleAddrs = []
+      callback device
+      return
+
     chrome.socket?.getNetworkList (networkInfoList) =>
       possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
       if possibleAddrs.length > 0
@@ -63,17 +75,23 @@ class RemoteDevice extends EventEmitter
   ##
   _listenOnValidPort: (callback, port) =>
     port = RemoteDevice.BASE_PORT unless port >= 0
-    chrome.socket?.listen @_socketId, '0.0.0.0', port, (result) =>
-      if result < 0
-        if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
-          console.error "Couldn't listen to 0.0.0.0 on any attempted ports"
-          @port = RemoteDevice.PORT_NOT_FOUND
-          return
-        @_listenOnValidPort callback, port + Math.floor Math.random() * 100
-      else
-        @port = port
-        @emit 'found_port'
-        @_acceptNewConnection callback
+    chrome.socket.listen @_socketId, '0.0.0.0', port, (result) =>
+      @_onListen callback, port, result
+
+  _onListen: (callback, port, result) ->
+    if result < 0
+      @_onFailedToListen callback, port, result
+    else
+      @port = port
+      @emit 'found_port', this
+      @_acceptNewConnection callback
+
+  _onFailedToListen: (callback, port, result) ->
+    if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
+        console.error "Couldn't listen to 0.0.0.0 on any attempted ports"
+        @port = RemoteDevice.PORT_NOT_FOUND
+    else
+      @_listenOnValidPort callback, port + Math.floor Math.random() * 100
 
   _acceptNewConnection: (callback) ->
     @_log 'Now listening to 0.0.0.0 on port', @port
@@ -134,13 +152,13 @@ class RemoteDevice extends EventEmitter
   close: ->
     if @_socketId
       chrome.socket?.destroy @_socketId
-      @emit 'closed'
+      @emit 'closed', this
 
   _listenForData: ->
     chrome.socket?.read @_socketId, (readInfo) =>
       if readInfo.resultCode <= 0
         @_log 'w', 'bad read - closing socket', readInfo.resultCode
-        @emit 'closed'
+        @emit 'closed', this
         @close()
       else if readInfo.data.byteLength
         irc.util.fromSocketData readInfo.data, (partialMessage) =>
@@ -149,7 +167,7 @@ class RemoteDevice extends EventEmitter
           for json in completeMessages
             data = JSON.parse json
             @_log 'received', data.type, data.args...
-            @emit data.type, data.args...
+            @emit data.type, this, data.args...
         @_listenForData()
       else
         @_log 'w', 'onRead - got no data?!'
