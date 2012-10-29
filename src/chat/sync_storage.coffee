@@ -27,19 +27,19 @@ class SyncStorage
       @_onServerDeviceChange changeMap.server_device
 
   _onPasswordChange: (passwordChange) ->
-    @_log "password changed from " +
-        "#{passwordChange.oldValue} to #{passwordChange.newValue}"
+    @_log 'password changed from', passwordChange.oldValue,
+        'to', passwordChange.newValue
     return if passwordChange.newValue is @password
     if passwordChange.newValue
       @password = passwordChange.newValue
       @chat.setPassword @password
     else
-      @_log "password was cleared. Setting password back to #{@password}"
+      @_log 'password was cleared. Setting password back to', @password
       @_store 'password', @password
 
   _onServerDeviceChange: (serverChange) ->
-    @_log "device server changed from #{serverChange.oldValue} to " +
-        "#{serverChange.newValue}"
+    @_log 'device server changed from', serverChange.oldValue, 'to',
+        serverChange.newValue
     if serverChange.newValue
       @serverDevice = serverChange.newValue
       @_chat.determineConnection @serverDevice
@@ -102,6 +102,7 @@ class SyncStorage
 
   _store: (key, value) ->
     return if @_paused and not (key in SyncStorage.CONNECTION_ITEMS)
+    @_log 'storing', key, '=>', value
     storageObj = {}
 
     storageObj[key] = value
@@ -183,6 +184,15 @@ class SyncStorage
     for name, conn of @_chat.connections
       conn.irc.state = 'disconnected' unless name in connectedServers
 
+  ##
+  # Loads servers, channels and nick from the given IRC state.
+  # The state has the following format:
+  # { nick: string, channels: Array.<{sevrer, name}>,
+  #     servers: Array.<{name, port}>, irc_state: object,
+  #     server_device: { port: number, addr: string}, password: string }
+  # @param {Object} ircState An object that represents the current state of an IRC
+  #     client.
+  ##
   _setIRCState: (conn, ircState) ->
     @_chat.onConnected conn if ircState.state is 'connected'
     conn.irc.state = ircState.state if ircState.state
@@ -204,7 +214,6 @@ class SyncStorage
 
   becomeServerDevice: (connectionInfo) ->
     @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }
-    @_log 'store our address as the server device', connectionInfo.toString()
     @_store 'server_device', @serverDevice
 
 exports.SyncStorage = SyncStorage

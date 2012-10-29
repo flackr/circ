@@ -2,6 +2,11 @@ exports = window.chat ?= {}
 
 class Chat extends EventEmitter
 
+  # Number of ms to wait for a connection to be established to a server device
+  # before using our own IRC connection
+  @SERVER_DEVICE_CONNECTION_WAIT = 1000
+  @SERVER_DEVICE_RECONNECTION_INTERVAL = 500
+
   constructor: ->
     super
     @connections = {}
@@ -43,13 +48,15 @@ class Chat extends EventEmitter
 
     @remoteConnection.on 'invalid_server', (connectInfo) =>
       @useOwnConnection()
-      @displayMessage 'notice', @getCurrentContext, "Couldn't connect to " +
-          "server device #{connectInfo.toString()}"
+      @displayMessage 'notice', @getCurrentContext, "Unable to connect to " +
+          "server device #{connectInfo.addr} on port #{connectInfo.port}"
+      @_tryToReconnectToServerDevice()
 
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
       @_log 'successfully using server device - loading state', state
+      clearTimeout @_serverDeviceReconnectTimer
       @syncStorage.loadState this, state
 
     @remoteConnection.on 'server_disconnected', =>
@@ -62,6 +69,14 @@ class Chat extends EventEmitter
     @remoteConnection.on 'client_parted', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' disconnected from this device'
+
+
+  _tryToReconnectToServerDevice: (opt_timeout) ->
+    timeout = opt_timeout ? Chat.SERVER_DEVICE_RECONNECTION_INTERVAL
+    @_serverDeviceReconnectTimer = setTimeout (=>
+      if not (@remoteConnection.getState() in ['connecting', 'connected'])
+        @_tryToReconnectToServerDevice timeout *= 2
+        @determineConnection()), timeout
 
   ##
   # Determine if we should connect directly to IRC or connect through another
@@ -81,19 +96,25 @@ class Chat extends EventEmitter
       @useOwnConnection()
 
   useServerDeviceConnection: ->
+    clearTimeout @_useOwnConnectionTimeout
     usingServerDeviceConnection = @remoteConnection.getState() in ['connected', 'connecting']
     sameConnection = @remoteConnection.serverDevice?.usesConnection @syncStorage.serverDevice
     return if usingServerDeviceConnection and sameConnection
     @_log 'automatically connecting to', @syncStorage.serverDevice
+    if @remoteConnection.isInitializing()
+      @_useOwnConnectionTimeout = setTimeout (=>
+        @_resumeIRCConnection()), Chat.SERVER_DEVICE_CONNECTION_WAIT
     @remoteConnection.connectToServer @syncStorage.serverDevice
 
   useOwnConnection: ->
+    clearTimeout @_useOwnConnectionTimeout
     usingServerDeviceConnection = @remoteConnection.getState() in ['connected', 'connecting']
     if usingServerDeviceConnection
       @remoteConnection.disconnectFromServer()
       return
 
     if @_shouldBeServerDevice()
+      clearTimeout @_serverDeviceReconnectTimer
       @_tryToBecomeServerDevice()
       return
 
@@ -116,21 +137,17 @@ class Chat extends EventEmitter
     @_resumeIRCConnection()
 
   _stopBeingServerDevice: ->
-    return unless @remoteConnection.isServer()
-    @_log 'stopped being a server device'
     if @remoteConnection.isServer()
-      @remoteConnection.disconnectDevices()
+      @_log 'stopped being a server device'
+      if @remoteConnection.isServer()
+        @remoteConnection.disconnectDevices()
+    else
+      @remoteConnection.becomeIdle()
 
   _shouldBeServerDevice: ->
     # TODO check something stored in local storage, not IP addr which can change
     @syncStorage.serverDevice?.addr in
         @remoteConnection.getConnectionInfo().possibleAddrs
-
-  _canBeServerDevice: ->
-    assert @remoteConnection.getState() isnt 'finding_port'
-
-    if @remoteConnection.isServer()
-      return true
 
   _becomeServerDevice: ->
     @_log 'becoming server device'
@@ -155,16 +172,9 @@ class Chat extends EventEmitter
   setPassword: (password) ->
     @remoteConnection.setPassword password
 
-  ##
-  # Loads servers, channels and nick from the given IRC state.
-  # The state has the following format:
-  # { nicks: Array.<{server, name}>, channels: Array.<{sevrer, name}>,
-  #     servers: Array.<{name, port}> }
-  # @param {Object} state An object that represents the current state of an IRC
-  #     client.
-  ##
   closeAllConnections: ->
-     for server, conn of @connections
+    clearTimeout @_useOwnConnectionTimeout
+    for server, conn of @connections
       @closeConnection conn
 
   closeConnection: (conn) ->

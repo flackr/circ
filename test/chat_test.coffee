@@ -51,10 +51,11 @@ describe 'An IRC client front end', ->
     client.listenToIRCEvents scriptHandler
 
   beforeEach ->
-    mocks.dom.setUp()
     mocks.ChromeSocket.useMock()
     mocks.RemoteDevice.useMock()
     mocks.NickMentionedNotification.useMock()
+    jasmine.Clock.useMock()
+    mocks.dom.setUp()
     prompt = $('#input')
     commandInput = new UserInputHandler(prompt, $ window)
     chrome.storage.sync.set { nick: 'ournick' }
@@ -239,7 +240,6 @@ describe 'An IRC client front end', ->
     describe "then is disconnected by a socket error", ->
 
       beforeEach ->
-        jasmine.Clock.useMock()
         currentIRC.onClose()
 
 
@@ -262,7 +262,7 @@ describe 'An IRC client front end', ->
         jasmine.Clock.tick(2000)
         expect(currentIRC.connect).toHaveBeenCalled()
 
-        currentIRC.connect.reset()
+        currentIRC.connect.reset() # reset the connect function spy
         currentIRC.onError 'socket error!'
         jasmine.Clock.tick(7999)
         expect(currentIRC.connect).not.toHaveBeenCalled()
@@ -391,12 +391,15 @@ describe 'An IRC client front end', ->
           channels: [ { name: '#bash', server: 'freenode' }, { name: '#awesome', server: 'dalnet' } ]
           ircStates: [ { server: 'freenode', state: 'connected', nick: 'somenick', away: true, channels: getChannels() } ]
 
+        findPort = ->
+          device = client.remoteConnection._thisDevice
+          device.port = 1
+          RemoteDevice.state = 'found_port'
+          device.emit 'found_port'
+
         beforeEach ->
           state = getState()
           onAuth = spyOn mocks.RemoteDevice, 'sendAuthentication'
-
-        afterEach ->
-          mocks.RemoteDevice.reset()
 
         it "sends authentication when first connected to the server", ->
           type "/join-server 1.1.1.2 1336"
@@ -464,7 +467,7 @@ describe 'An IRC client front end', ->
           (device 1).emit 'socket_data', device(1), 'freenode', 'drain'
           expect(irc('freenode').onDrain).toHaveBeenCalled()
 
-        it "uses own connection again after connection to the server is lost", ->
+        it "uses own connection after connection to the server is lost", ->
           type "/join-server 1.1.1.2 1336"
           (device 1).emit 'connection_message', device(1), 'irc_state', []
           spyOn client, 'closeAllConnections'
@@ -472,21 +475,49 @@ describe 'An IRC client front end', ->
           expect(client.remoteConnection.isIdle()).toBe true
           expect(client.closeAllConnections).toHaveBeenCalled()
 
+        it "on startup, when server exists, uses own connection after waiting a brief time", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          delete state.ircState
+          chrome.storage.sync.set state
+          restart()
+          expect(rooms().length).toBe 1
+          jasmine.Clock.tick(2000)
+          expect(rooms().length).toBe 4
+
         it "automatically connects if an existing server is present", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
-          RemoteDevice.state = 'found_port'
           restart()
+          findPort()
           authToken = client.remoteConnection._getAuthToken '1.1.1.1'
           expect(mocks.RemoteDevice.sendAuthentication).toHaveBeenCalledWith authToken
 
-        xit "becomes server if storage marks it has the server device", ->
+        it "becomes server if storage marks it as the server device", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.1', port: 1 } }
-          RemoteDevice.state = 'finding_port'
           restart()
-          device(0).port = 1
-          RemoteDevice.state = 'found_port'
-          device(0).on 'found_port', => console.log 'HI'
-          device(0).emit 'found_port'
-          console.error 'D0', device(0)
-          console.log 'PREFAIL'
+          findPort()
           expect(client.remoteConnection.isServer()).toBe true
+
+        it "updates stored server device info when the server device's port changes", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.1', port: 2 } }
+          restart()
+          findPort()
+          expect(client.remoteConnection.isServer()).toBe true
+          expect(chrome.storage.sync._storageMap.server_device.port).toBe 1
+
+        it "remote connection becomes idle if can't connect to server device", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          restart()
+          expect(client.remoteConnection.getState()).toBe 'connecting'
+
+          mocks.RemoteDevice.willConnect = false
+          restart()
+          expect(client.remoteConnection.isIdle()).toBe true
+
+        it "remote connection keeps trying to connect to the server device", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          restart()
+          mocks.RemoteDevice.willConnect = false
+          restart()
+          mocks.RemoteDevice.willConnect = true
+          jasmine.Clock.tick(1000)
+          expect(client.remoteConnection.getState()).toBe 'connecting'

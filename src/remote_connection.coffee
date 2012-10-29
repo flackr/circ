@@ -79,6 +79,8 @@ class RemoteConnection extends EventEmitter
   _emitConnectionMessage: (device, type, args...) =>
     if type is 'irc_state'
       if @getState() isnt 'connecting'
+        @_log 'w', "got IRC state, but we're not connecting to a server",
+            device.toString(), args
         device.close()
         return
       @_setServerDevice device
@@ -108,7 +110,7 @@ class RemoteConnection extends EventEmitter
 
   _deviceIsClient: (device) ->
     return false if device.equals @serverDevice or device.equals @_thisDevice
-    for clientDevice in @_devices
+    for clientDevice in @devices
       return true if device.equals clientDevice
     return false
 
@@ -116,12 +118,12 @@ class RemoteConnection extends EventEmitter
     @_getState = getState
 
   createSocket: (server) ->
-    if @isServer()
-      socket = new net.ChromeSocket
-      @broadcastSocketData socket, server
-    else
+    if @isClient()
       socket = new net.RemoteSocket
       @_ircSocketMap[server] = socket
+    else
+      socket = new net.ChromeSocket
+      @broadcastSocketData socket, server
     socket
 
   broadcastUserInput: (userInput) ->
@@ -163,6 +165,7 @@ class RemoteConnection extends EventEmitter
     @_state = 'device_state'
 
   _becomeClient: ->
+    @_log 'this device is now a client of', @serverDevice.toString()
     @_type = 'client'
     @_state = 'connected'
     @_addDevice @serverDevice
@@ -178,12 +181,13 @@ class RemoteConnection extends EventEmitter
   connectToServer: (connectInfo) ->
     @_state = 'connecting'
     device = new RemoteDevice connectInfo.addr, connectInfo.port
+    @_connectingTo = device
     @_listenToDevice device
     device.connect (success) =>
       if success
-        @_log 'successfully connected to server', connectInfo.addr, connectInfo.port
+        @_log 'connected to server', connectInfo.addr, connectInfo.port
         device.sendAuthentication @_getAuthToken
-      else
+      else if @_connectingTo is device and @_state is 'connecting'
         @_state = 'device_state'
         @emit 'invalid_server', connectInfo
 
@@ -195,5 +199,9 @@ class RemoteConnection extends EventEmitter
 
   isIdle: ->
     @_type is 'idle'
+
+  isInitializing: ->
+    @_type is undefined
+
 
 exports.RemoteConnection = RemoteConnection

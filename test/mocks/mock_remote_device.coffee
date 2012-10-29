@@ -7,11 +7,8 @@ class RemoteDevice extends EventEmitter
       create: ->
       listen: ->
 
-  @state: 'finding_addr'
-
-  @devices: []
-
-  @reset: ->
+    @state = 'finding_addr'
+    @willConnect = true
     @devices = []
 
   @sendAuthentication: ->
@@ -38,7 +35,7 @@ class RemoteDevice extends EventEmitter
     RemoteDevice.onNewDevice = callback
 
   connect: (callback) ->
-    callback true
+    callback RemoteDevice.willConnect
 
   sendAuthentication: (getAuthToken) ->
     RemoteDevice.sendAuthentication getAuthToken '1.1.1.1'

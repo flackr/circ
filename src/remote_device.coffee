@@ -107,7 +107,8 @@ class RemoteDevice extends EventEmitter
     irc.util.toSocketData msg, (data) =>
       chrome.socket?.write @_socketId, data, (writeInfo) =>
         if writeInfo.resultCode < 0
-          @_log 'w', 'failed to send:', type, args, writeInfo.resultCode
+          @_log 'w', 'closing b/c failed to send:', type, args, writeInfo.resultCode
+          @close()
         else if writeInfo.bytesWritten != data.byteLength
           @_log 'w', 'failed to send (non-complete-write):', type, args, writeInfo.resultCode
         else
@@ -123,7 +124,6 @@ class RemoteDevice extends EventEmitter
       @_socketId = socketInfo.socketId
       callback false unless @_socketId
       chrome.socket?.connect @_socketId, @addr, @port, (result) =>
-        console.log 'Connected to server', @addr, 'on port', @port
         @_onConnect result, callback
 
   _onConnect: (result, callback) ->
