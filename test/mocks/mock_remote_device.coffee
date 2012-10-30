@@ -7,7 +7,7 @@ class RemoteDevice extends EventEmitter
       create: ->
       listen: ->
 
-    @state = 'finding_addr'
+    @state = 'finding_port'
     @willConnect = true
     @devices = []
 

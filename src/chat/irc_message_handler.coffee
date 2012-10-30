@@ -94,6 +94,9 @@ class IRCMessageHandler extends MessageHandler
     error: (msg) ->
       @_formatter.setContentMessage msg
 
+    system_notice: (msg) ->
+      @_formatter.setContentMessage msg
+
     notice: (msg) ->
       @_formatter.addStyle 'notice-group'
       @_formatter.setContentMessage msg

@@ -38,8 +38,9 @@ class SyncStorage
       @_store 'password', @password
 
   _onServerDeviceChange: (serverChange) ->
-    @_log 'device server changed from', serverChange.oldValue, 'to',
-        serverChange.newValue
+    @_log 'device server changed from', serverChange.oldValue?.addr,
+        serverChange.oldValue?.port, 'to', serverChange.newValue?.addr,
+        serverChange.newValue?.port
     if serverChange.newValue
       @serverDevice = serverChange.newValue
       @_chat.determineConnection @serverDevice

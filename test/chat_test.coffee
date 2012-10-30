@@ -545,3 +545,20 @@ describe 'An IRC client front end', ->
           expect(device(2).send.mostRecentCall.args[0]).toBe 'user_input'
           expect(client.remoteConnection.emit).toHaveBeenCalledWith 'command',
               jasmine.any(Event)
+
+        it "retains connections after /make-server", ->
+          findPort()
+          expect(rooms().length).toBe 2
+          type "/make-server"
+          expect(rooms().length).toBe 2
+
+        it "is able to connect to servers even if chrome.socket.listen isn't supported", ->
+          chrome.socket.listen = undefined
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          restart()
+          expect(client.remoteConnection.getState()).toBe 'connecting'
+
+        it "can't become a server if chrome.socket.listen isn't defined", ->
+          chrome.socket.listen = undefined
+          type "/make-server"
+          expect(client.remoteConnection.isIdle()).toBe true

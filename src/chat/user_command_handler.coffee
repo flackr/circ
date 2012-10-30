@@ -231,9 +231,10 @@ class UserCommandHandler extends MessageHandler
         @win.messageRenderer.displayAbout()
 
     @_addCommand 'join-server',
-      description: "use the IRC connection of another device. This allows you " +
-          "to be logged in with the same nick on multiple devices. By default, " +
-          "will connect to the device that called /make-server"
+      description: "use the IRC connection of another device, allowing you " +
+          "to be logged in with the same nick on multiple devices. " +
+          "Connects to the device that called /make-server if no arguments " +
+          "are given"
       params: ['opt_addr', 'opt_port']
       parseArgs: ->
         parsedPort = parseInt(@port)
@@ -260,7 +261,14 @@ class UserCommandHandler extends MessageHandler
           "connect. Connected devices use the IRC connection of this device"
       run: ->
         state = @chat.remoteConnection.getState()
-        if state is 'no_port'
+        if not chrome.socket?.listen
+          @displayMessage 'error', "this command cannot be used with your " +
+              "current version of Chrome because it does not support " +
+              "chrome.socket.listen"
+        else if state is 'no_addr'
+          @displayMessage 'error', "this device can not be used as a " +
+              "server at this time because it cannot find its own IP address"
+        else if state is 'no_port'
           @displayMessage 'error', "this device can not be used as a " +
               "server at this time because no valid port was found"
         else if state is 'finding_port'
@@ -277,35 +285,27 @@ class UserCommandHandler extends MessageHandler
         if @chat.remoteConnection.isServer()
           numClients = @chat.remoteConnection.devices.length
           if numClients > 0
-            @displayMessage 'notice', "this device is acting as a server for " +
+            @displayMessage 'notice', "acting as a server for " +
                 @chat.remoteConnection.devices.length + " other device" +
                 (if numClients is 1 then '' else 's')
 
-          else
-            @displayMessage 'notice', "this device is not connected to any other devices"
-
-        else
-          @displayMessage 'notice', "this device is connected to server device " +
+        else if @chat.remoteConnection.isClient()
+          @displayMessage 'notice', "connected to server device " +
               @chat.remoteConnection.serverDevice.addr + " on port " +
               @chat.remoteConnection.serverDevice.port
-        @displayMessage 'breakgroup'
 
-        state = @chat.remoteConnection.getState()
-        if state is 'finding_port'
-          @chat.remoteConnection.waitForPort => @run
-        else if state is 'no_port'
-          @displayMessage 'notice', "this device has not been able to find " +
-            "a valid port and cannot be used as a server at this time. " +
-            "This may be caused by your firewall settings"
         else
-          connectionInfo = @chat.remoteConnection.getConnectionInfo()
-          @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
-          @displayMessage 'breakgroup'
-          @displayMessage 'notice', "possible addresses to connect on:"
-          for addr in connectionInfo.possibleAddrs
-            @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
+          @displayMessage 'notice', "not connected to any other devices"
 
+        state = @chat.remoteConnection.getConnectionInfo().getState()
+        return unless state is 'found_port'
         @displayMessage 'breakgroup'
+        connectionInfo = @chat.remoteConnection.getConnectionInfo()
+        @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
+        @displayMessage 'breakgroup'
+        @displayMessage 'notice', "possible addresses to connect on:"
+        for addr in connectionInfo.possibleAddrs
+          @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

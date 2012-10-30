@@ -6,7 +6,7 @@ class RemoteDevice extends EventEmitter
   @BASE_PORT: 1329
   @MAX_CONNECTION_ATTEMPTS: 30
   @FINDING_PORT: -1
-  @PORT_NOT_FOUND: -2
+  @NO_PORT: -2
 
   constructor: (addr, port) ->
     super
@@ -17,7 +17,7 @@ class RemoteDevice extends EventEmitter
     else if addr
       @_initFromSocketId addr
     else
-      @port = RemoteDevice.PORT_NOT_FOUND
+      @port = RemoteDevice.FINDING_PORT
 
   equals: (otherDevice) ->
     return @id is otherDevice?.id
@@ -26,9 +26,10 @@ class RemoteDevice extends EventEmitter
     return connectionInfo.addr is @addr and connectionInfo.port is @port
 
   getState: ->
+    return 'no_addr' unless @addr
     switch @port
       when RemoteDevice.FINDING_PORT then 'finding_port'
-      when RemoteDevice.PORT_NOT_FOUND then 'no_port'
+      when RemoteDevice.NO_PORT then 'no_port'
       else 'found_port'
 
   _initFromAddress: (@addr, @port) ->
@@ -37,28 +38,41 @@ class RemoteDevice extends EventEmitter
     @_listenForData()
 
   @getOwnDevice: (callback) ->
-    unless chrome.socket.listen
-      device = new RemoteDevice '', RemoteDevice.PORT_NOT_FOUND
+    device = new RemoteDevice
+    unless chrome.socket?.getNetworkList
+      @_log 'e', 'chrome.socket.getNetworkList is not supported!'
       device.possibleAddrs = []
+      device.port = RemoteDevice.NO_PORT
       callback device
       return
 
-    chrome.socket?.getNetworkList (networkInfoList) =>
-      possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
-      if possibleAddrs.length > 0
-        addr = RemoteDevice._getValidAddr possibleAddrs
-        device = new RemoteDevice addr, RemoteDevice.FINDING_PORT
-      else
-        device = new RemoteDevice '', RemoteDevice.PORT_NOT_FOUND
-      device.possibleAddrs = possibleAddrs
+    device.port = RemoteDevice.NO_PORT unless chrome.socket?.listen
+    device.findPossibleAddrs =>
       callback device
 
-  @_getValidAddr: (addrs) ->
+  findPossibleAddrs: (callback) ->
+    chrome.socket.getNetworkList (networkInfoList) =>
+      @possibleAddrs = (networkInfo.address for networkInfo in networkInfoList)
+      @addr = @_getValidAddr @possibleAddrs
+      callback()
+
+  _getValidAddr: (addrs) ->
+    return undefined if not addrs or addrs.length is 0
     # TODO currently we return the first IPv4 address. Will this always work?
     shortest = addrs[0]
     for addr in addrs
       shortest = addr if addr.length < shortest.length
     shortest
+
+  ##
+  # Call chrome.socket.getNetworkList in an attempt to find a valid address.
+  ##
+  searchForAddress: (callback, timeout=500) ->
+    timeout = 60000 if timeout > 60000
+    setTimeout (=>
+      @findPossibleAddrs =>
+        if @addr then callback()
+        else @searchForAddress callback, timeout *= 1.2), timeout
 
   ##
   # Called when the device is your own device. Listens for connecting client
@@ -67,7 +81,7 @@ class RemoteDevice extends EventEmitter
   listenForNewDevices: (callback) ->
     chrome.socket?.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
-      @_listenOnValidPort callback
+      @_listenOnValidPort callback if chrome.socket?.listen
 
   ##
   # Attempt to listen on the default port, then increment the port by a random
@@ -88,8 +102,9 @@ class RemoteDevice extends EventEmitter
 
   _onFailedToListen: (callback, port, result) ->
     if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
-        console.error "Couldn't listen to 0.0.0.0 on any attempted ports"
-        @port = RemoteDevice.PORT_NOT_FOUND
+        @_log 'e', "Couldn't listen to 0.0.0.0 on any attempted ports"
+        @port = RemoteDevice.NO_PORT
+        @emit 'no_port'
     else
       @_listenOnValidPort callback, port + Math.floor Math.random() * 100
 
@@ -106,11 +121,10 @@ class RemoteDevice extends EventEmitter
     msg = msg.length + '$' + msg
     irc.util.toSocketData msg, (data) =>
       chrome.socket?.write @_socketId, data, (writeInfo) =>
-        if writeInfo.resultCode < 0
+        if writeInfo.resultCode < 0 or
+            writeInfo.bytesWritten != data.byteLength
           @_log 'w', 'closing b/c failed to send:', type, args, writeInfo.resultCode
           @close()
-        else if writeInfo.bytesWritten != data.byteLength
-          @_log 'w', 'failed to send (non-complete-write):', type, args, writeInfo.resultCode
         else
           @_log 'sent', type, args
 
@@ -135,7 +149,7 @@ class RemoteDevice extends EventEmitter
       callback true
 
   ##
-  # Called when a remote device to find the remote ip address.
+  # Called when acting as a server. Finds the client ip address.
   ##
   getAddr: (callback) ->
     chrome.socket?.getInfo @_socketId, (socketInfo) =>
@@ -143,7 +157,7 @@ class RemoteDevice extends EventEmitter
       callback()
 
   ##
-  # Called when a remote server device to authenticate the connection.
+  # Called when acting as a client. Authenticates the connection.
   ##
   sendAuthentication: (getAuthToken) ->
     chrome.socket?.getInfo @_socketId, (socketInfo) =>
@@ -157,7 +171,7 @@ class RemoteDevice extends EventEmitter
   _listenForData: ->
     chrome.socket?.read @_socketId, (readInfo) =>
       if readInfo.resultCode <= 0
-        @_log 'w', 'bad read - closing socket', readInfo.resultCode
+        @_log 'w', 'bad read - closing socket. code: ', readInfo.resultCode
         @emit 'closed', this
         @close()
       else if readInfo.data.byteLength

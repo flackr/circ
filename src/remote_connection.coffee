@@ -30,9 +30,10 @@ class RemoteConnection extends EventEmitter
 
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
-    if @_thisDevice.getState() is 'no_port'
+    if @_thisDevice.getState() is 'no_addr'
       @_log 'w', "Wasn't able to find address of own device"
-      @emit 'no_port'
+      @emit 'no_addr'
+      @_thisDevice.searchForAddress => @_onHasOwnDevice @_thisDevice
       return
     @emit 'found_addr'
     @_thisDevice.listenForNewDevices @_addUnauthenticatedDevice
@@ -67,6 +68,7 @@ class RemoteConnection extends EventEmitter
     device.on 'socket_data', @_emitSocketData
     device.on 'connection_message', @_emitConnectionMessage
     device.on 'closed', @_onDeviceClosed
+    device.on 'no_port', => @emit 'no_port'
 
   _emitUserInput: (device, event) =>
     if @isServer()
@@ -158,12 +160,11 @@ class RemoteConnection extends EventEmitter
   waitForPort: (callback) ->
     if @getState() is 'found_port'
       return callback true
-    if @getState() is 'no_port'
+    if @getState() is 'no_port' or @getState() is 'no_addr'
       return callback false
-    @_thisDevice?.on 'found_port', =>
-      callback true
-    @_thisDevice?.on 'no_port', =>
-      callback false
+    @_thisDevice?.once 'found_port', => callback true
+    @_thisDevice?.once 'no_port', => callback false
+    @once 'no_addr', => callback false
 
   becomeServer: ->
     @_type = 'server'

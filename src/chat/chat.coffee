@@ -3,9 +3,12 @@ exports = window.chat ?= {}
 class Chat extends EventEmitter
 
   # Number of ms to wait for a connection to be established to a server device
-  # before using our own IRC connection
+  # before using our own IRC connection.
   @SERVER_DEVICE_CONNECTION_WAIT = 1000
-  @SERVER_DEVICE_RECONNECTION_INTERVAL = 500
+
+  # Number of ms to wait before trying to reconnect to the server device.
+  @SERVER_DEVICE_RECONNECTION_WAIT = 500
+  @SERVER_DEVICE_RECONNECTION_MAX_WAIT = 60 * 1000
 
   constructor: ->
     super
@@ -43,20 +46,24 @@ class Chat extends EventEmitter
     @remoteConnection.on 'found_addr', =>
       @determineConnection()
 
+    @remoteConnection.on 'no_addr', =>
+      @useOwnConnection()
+
     @remoteConnection.on 'no_port', =>
       @useOwnConnection()
 
     @remoteConnection.on 'invalid_server', (connectInfo) =>
       @useOwnConnection()
-      @displayMessage 'notice', @getCurrentContext, "Unable to connect to " +
-          "server device #{connectInfo.addr} on port #{connectInfo.port}"
+      # TODO show as system message
+#      @displayMessage 'notice', @getCurrentContext, "Unable to connect to " +
+#          "server device #{connectInfo.addr} on port #{connectInfo.port}"
       @_tryToReconnectToServerDevice()
 
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
       @_log 'successfully using server device - loading state', state
-      clearTimeout @_serverDeviceReconnectTimer
+      @_stopServerReconnectAttempts()
       @syncStorage.loadState this, state
 
     @remoteConnection.on 'server_disconnected', =>
@@ -70,12 +77,18 @@ class Chat extends EventEmitter
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' disconnected from this device'
 
-  _tryToReconnectToServerDevice: (opt_timeout) ->
-    timeout = opt_timeout ? Chat.SERVER_DEVICE_RECONNECTION_INTERVAL
-    @_serverDeviceReconnectTimer = setTimeout (=>
+  _tryToReconnectToServerDevice: ->
+    @_serverDeviceReconnectBackoff ?= Chat.SERVER_DEVICE_RECONNECTION_WAIT
+    @_serverDeviceReconnectTimeout = setTimeout (=>
+      @_serverDeviceReconnectBackoff *= 1.2
+      if @_serverDeviceReconnectBackoff > Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
+        @_serverDeviceReconnectBackoff = Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
       if not (@remoteConnection.getState() in ['connecting', 'connected'])
-        @_tryToReconnectToServerDevice timeout *= 2
-        @determineConnection()), timeout
+        @determineConnection()), @_serverDeviceReconnectBackoff
+
+  _stopServerReconnectAttempts: ->
+    clearTimeout @_serverDeviceReconnectTimeout
+    @_serverDeviceReconnectBackoff = Chat.SERVER_DEVICE_RECONNECTION_WAIT
 
   ##
   # Determine if we should connect directly to IRC or connect through another
@@ -113,15 +126,17 @@ class Chat extends EventEmitter
       return
 
     if @_shouldBeServerDevice()
-      clearTimeout @_serverDeviceReconnectTimer
+      @_stopServerReconnectAttempts()
       @_tryToBecomeServerDevice()
       return
 
+    shouldResumeIRCConn = @_notUsingOwnIRCConnection()
     return if @remoteConnection.isIdle()
     @_stopBeingServerDevice()
-    @_resumeIRCConnection()
+    @_resumeIRCConnection() if shouldResumeIRCConn
 
   _tryToBecomeServerDevice: ->
+    shouldResumeIRCConn = @_notUsingOwnIRCConnection()
     if @remoteConnection.getState() is 'finding_port'
       @remoteConnection.waitForPort => @determineConnection()
       @_log 'should be server, but havent found port yet...'
@@ -133,13 +148,16 @@ class Chat extends EventEmitter
         @syncStorage.serverDevice.port isnt @remoteConnection.getConnectionInfo().port
       @_becomeServerDevice()
     else return
-    @_resumeIRCConnection()
+    @_resumeIRCConnection() if shouldResumeIRCConn
+
+  _notUsingOwnIRCConnection: ->
+    @remoteConnection.isInitializing() or
+        @remoteConnection.isClient()
 
   _stopBeingServerDevice: ->
     if @remoteConnection.isServer()
       @_log 'stopped being a server device'
-      if @remoteConnection.isServer()
-        @remoteConnection.disconnectDevices()
+      @remoteConnection.disconnectDevices()
     else
       @remoteConnection.becomeIdle()
 

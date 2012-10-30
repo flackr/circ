@@ -7,6 +7,7 @@ class MessageRenderer
   constructor: (@win) ->
 
   displayWelcome: ->
+    @message()
     @message '', "Welcome to CIRC, a packaged Chrome app.", "system"
     @_displayWikiUrl 'system'
     @message '', "Type /server <server> [port] to connect, then /nick " +
@@ -16,6 +17,7 @@ class MessageRenderer
         "list on the left.", "system"
 
   displayHelp: (commands) ->
+    @message()
     @message '', "Commands Available:", 'notice help'
     @_printCommands commands
     @message '', "Type /help <command> to see details about a specific command.",
@@ -23,12 +25,12 @@ class MessageRenderer
     @_displayWikiUrl 'notice help'
 
   displayAbout: ->
+    @message()
     @message '', "CIRC is a packaged Chrome app developed by Google Inc. " +
     "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
     @message '', "Version: #{irc.VERSION}", 'notice about'
     @message '', "Contributors:", 'notice about group'
     @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about group'
-    @message()
 
   _displayWikiUrl: (style) ->
     @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
