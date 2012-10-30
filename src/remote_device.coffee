@@ -109,7 +109,7 @@ class RemoteDevice extends EventEmitter
       @_listenOnValidPort callback, port + Math.floor Math.random() * 100
 
   _acceptNewConnection: (callback) ->
-    @_log 'Now listening to 0.0.0.0 on port', @port
+    @_log 'listening for new connections on port', @port
     chrome.socket?.accept @_socketId, (acceptInfo) =>
       return unless acceptInfo.socketId
       @_log 'Connected to a client device', @_socketId

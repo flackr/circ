@@ -546,6 +546,18 @@ describe 'An IRC client front end', ->
           expect(client.remoteConnection.emit).toHaveBeenCalledWith 'command',
               jasmine.any(Event)
 
+        it "only sends IRC state to the connecting device, not all devices", ->
+          findPort()
+          type '/make-server'
+          RemoteDevice.onNewDevice new RemoteDevice
+          authenticate device 1
+          RemoteDevice.onNewDevice new RemoteDevice
+          spyOn device(1), 'send'
+          spyOn device(2), 'send'
+          authenticate device 2
+          expect(device(2).send).toHaveBeenCalled()
+          expect(device(1).send).not.toHaveBeenCalled()
+
         it "retains connections after /make-server", ->
           findPort()
           expect(rooms().length).toBe 2

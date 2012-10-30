@@ -56,7 +56,7 @@ class RemoteConnection extends EventEmitter
     @_listenToDevice device
     @_addDevice device
     @emit 'client_joined', device
-    @_broadcast 'connection_message', 'irc_state', @_getState()
+    device.send 'connection_message', ['irc_state', @_getState()]
 
   _addDevice: (newDevice) ->
     for device in @devices
@@ -64,26 +64,26 @@ class RemoteConnection extends EventEmitter
     @devices.push newDevice
 
   _listenToDevice: (device) ->
-    device.on 'user_input', @_emitUserInput
-    device.on 'socket_data', @_emitSocketData
-    device.on 'connection_message', @_emitConnectionMessage
+    device.on 'user_input', @_onUserInput
+    device.on 'socket_data', @_onSocketData
+    device.on 'connection_message', @_onConnectionMessagea
     device.on 'closed', @_onDeviceClosed
     device.on 'no_port', => @emit 'no_port'
 
-  _emitUserInput: (device, event) =>
+  _onUserInput: (device, event) =>
     if @isServer()
       @_broadcast device, 'user_input', event
     @emit event.type, Event.wrap event
 
-  _emitSocketData: (device, server, type, data) =>
+  _onSocketData: (device, server, type, data) =>
     if type is 'data'
       data = irc.util.dataViewToArrayBuffer data
     @_ircSocketMap[server]?.emit type, data
 
-  _emitConnectionMessage: (device, type, args...) =>
+  _onConnectionMessagea: (device, type, args...) =>
     if type is 'irc_state'
       if @getState() isnt 'connecting'
-        @_log 'w', "got IRC state, but we're not connecting to a server",
+        @_log 'w', "got IRC state, but we're not connecting to a server -",
             device.toString(), args
         device.close()
         return
