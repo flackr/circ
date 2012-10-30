@@ -29,8 +29,7 @@ class IRC extends EventEmitter
   # user-facing
   connect: (@server=@server, @port=@port) ->
     return if @state not in ['disconnected', 'reconnecting']
-    clearTimeout @reconnect_timer if @reconnect_timer
-    @reconnect_timer = null
+    clearTimeout @reconnectTimeout
     @socket.connect(@server, @port)
     @state = 'connecting'
 
@@ -47,8 +46,7 @@ class IRC extends EventEmitter
   # user-facing
   giveup: ->
     return unless @state is 'reconnecting'
-    clearTimeout @reconnect_timer
-    @reconnect_timer = null
+    clearTimeout @reconnectTimeout
     @state = 'disconnected'
 
   join: (channel) ->
@@ -84,8 +82,8 @@ class IRC extends EventEmitter
 
   onClose: ->
     @socket.setTimeout 0, @onTimeout
-    @emit 'disconnect'
     if @state is 'connected'
+      @emit 'disconnect'
       @setReconnect()
 
   onEnd: ->
@@ -96,7 +94,7 @@ class IRC extends EventEmitter
   setReconnect: ->
     @state = 'reconnecting'
     backoff = 2000 * Math.pow 2, @exponentialBackoff
-    @reconnect_timer = setTimeout @reconnect, backoff
+    @reconnectTimeout = setTimeout @reconnect, backoff
     @exponentialBackoff++ unless @exponentialBackoff > 4
 
   reconnect: =>

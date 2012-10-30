@@ -303,7 +303,7 @@ class UserCommandHandler extends MessageHandler
         connectionInfo = @chat.remoteConnection.getConnectionInfo()
         @displayMessageWithStyle 'notice', "Port: #{connectionInfo.port}", 'no-pretty-format'
         @displayMessage 'breakgroup'
-        @displayMessage 'notice', "possible addresses to connect on:"
+        @displayMessage 'notice', "IP addresses:"
         for addr in connectionInfo.possibleAddrs
           @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
 
