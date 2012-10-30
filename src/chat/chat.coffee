@@ -70,7 +70,6 @@ class Chat extends EventEmitter
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' disconnected from this device'
 
-
   _tryToReconnectToServerDevice: (opt_timeout) ->
     timeout = opt_timeout ? Chat.SERVER_DEVICE_RECONNECTION_INTERVAL
     @_serverDeviceReconnectTimer = setTimeout (=>

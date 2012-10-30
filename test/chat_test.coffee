@@ -392,10 +392,14 @@ describe 'An IRC client front end', ->
           ircStates: [ { server: 'freenode', state: 'connected', nick: 'somenick', away: true, channels: getChannels() } ]
 
         findPort = ->
-          device = client.remoteConnection._thisDevice
-          device.port = 1
+          d = client.remoteConnection._thisDevice
+          d.port = 1
           RemoteDevice.state = 'found_port'
-          device.emit 'found_port'
+          d.emit 'found_port'
+
+        authenticate = (device) ->
+          authToken = client.remoteConnection._getAuthToken device.addr
+          device.emit 'authenticate', device, authToken
 
         beforeEach ->
           state = getState()
@@ -412,13 +416,13 @@ describe 'An IRC client front end', ->
           expect(client.remoteConnection.isClient()).toBe true
 
         it "doesn't add a client before authentication", ->
-          RemoteDevice.onNewDevice new RemoteDevice 1
+          RemoteDevice.onNewDevice new RemoteDevice
           expect(client.remoteConnection.devices[0]).not.toBeDefined()
 
         it "add a client after it authenticates", ->
-          RemoteDevice.onNewDevice new RemoteDevice 1
+          RemoteDevice.onNewDevice new RemoteDevice
           expect(client.remoteConnection.devices[0]).not.toBeDefined()
-          device(1).emit 'authenticate', device(1), client.remoteConnection._getAuthToken '1.1.1.1'
+          authenticate device 1
           expect(client.remoteConnection.devices[0]).toBeDefined()
 
         it "disconnects from the current connection before using the server device's connection", ->
@@ -504,7 +508,7 @@ describe 'An IRC client front end', ->
           expect(client.remoteConnection.isServer()).toBe true
           expect(chrome.storage.sync._storageMap.server_device.port).toBe 1
 
-        it "remote connection becomes idle if can't connect to server device", ->
+        it "becomes idle if can't connect to server device", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           restart()
           expect(client.remoteConnection.getState()).toBe 'connecting'
@@ -513,7 +517,7 @@ describe 'An IRC client front end', ->
           restart()
           expect(client.remoteConnection.isIdle()).toBe true
 
-        it "remote connection keeps trying to connect to the server device", ->
+        it "keeps trying to connect to the server device", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           restart()
           mocks.RemoteDevice.willConnect = false
@@ -521,3 +525,23 @@ describe 'An IRC client front end', ->
           mocks.RemoteDevice.willConnect = true
           jasmine.Clock.tick(1000)
           expect(client.remoteConnection.getState()).toBe 'connecting'
+
+        it "forwards user input to connected clients when acting as the server device", ->
+          findPort()
+          type '/make-server'
+          RemoteDevice.onNewDevice new RemoteDevice
+          authenticate device 1
+          RemoteDevice.onNewDevice new RemoteDevice
+          authenticate device 2
+          expect(client.remoteConnection.devices.length).toBe 2
+
+          spyOn device(1), 'send'
+          spyOn device(2), 'send'
+          spyOn client.remoteConnection, 'emit'
+          device(1).emit 'user_input', device(1), {
+              type: 'command', name: 'say', args: ['hi guys'],
+              context: { server: 'freenode', channel: '#bash' } }
+          expect(device(1).send).not.toHaveBeenCalled()
+          expect(device(2).send.mostRecentCall.args[0]).toBe 'user_input'
+          expect(client.remoteConnection.emit).toHaveBeenCalledWith 'command',
+              jasmine.any(Event)

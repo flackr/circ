@@ -69,6 +69,8 @@ class RemoteConnection extends EventEmitter
     device.on 'closed', @_onDeviceClosed
 
   _emitUserInput: (device, event) =>
+    if @isServer()
+      @_broadcast device, 'user_input', event
     @emit event.type, Event.wrap event
 
   _emitSocketData: (device, server, type, data) =>
@@ -137,9 +139,16 @@ class RemoteConnection extends EventEmitter
         data = new Uint8Array data
       @_broadcast 'socket_data', server, type, data
 
-  _broadcast: (type, args...) ->
+  _broadcast: (opt_blacklistedDevice, type, args...) ->
+    if typeof opt_blacklistedDevice is "string"
+      args = [type].concat(args)
+      type = opt_blacklistedDevice
+      blacklistedDevice = undefined
+    else
+      blacklistedDevice = opt_blacklistedDevice
+
     for device in @devices
-      device.send type, args
+      device.send type, args unless device.equals blacklistedDevice
 
   disconnectDevices: ->
     for device in @devices
