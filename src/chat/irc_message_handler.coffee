@@ -15,13 +15,11 @@ class IRCMessageHandler extends MessageHandler
   # @param {Array.<{context: {server: string, channel: string}, type: string,
   #     params: Array.<Object>>} chatLog
   ##
-  replayChatLog: (chatLog) ->
+  replayChatLog: (chatLog=@_chatLog) ->
     @_chatLog = []
     @_notificationsPaused = true
-    @_log 'replaying chat history:', chatLog
     for msg in chatLog
       win = @_chat.determineWindow msg
-      console.warn 'replaying msg', msg.type, msg.params, win, msg.context
       continue if win is chat.NO_WINDOW
       @setWindow win
       @handle msg.type, msg.params...

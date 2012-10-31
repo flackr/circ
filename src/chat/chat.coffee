@@ -181,8 +181,9 @@ class Chat extends EventEmitter
   _resumeIRCConnection: ->
     @_log 'resuming IRC conn'
     @closeAllConnections()
-    @syncStorage.restoreSavedState this
-    @syncStorage.resume()
+    @syncStorage.restoreSavedState this, =>
+      @messageHandler.replayChatLog()
+      @syncStorage.resume()
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
