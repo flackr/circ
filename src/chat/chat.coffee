@@ -172,7 +172,7 @@ class Chat extends EventEmitter
 
   _becomeServerDevice: ->
     @_log 'becoming server device'
-    if @remoteConnection._type
+    unless @remoteConnection.isInitializing()
       @displayMessage 'notice', @getCurrentContext(), 'Now accepting ' +
           'connections from other devices'
     @remoteConnection.becomeServer()

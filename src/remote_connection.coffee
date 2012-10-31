@@ -178,6 +178,8 @@ class RemoteConnection extends EventEmitter
     @once 'no_addr', => callback false
 
   becomeServer: ->
+    if @isClient()
+      @disconnectDevices()
     @_type = 'server'
     @_state = 'device_state'
 

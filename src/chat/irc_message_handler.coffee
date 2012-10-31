@@ -21,7 +21,8 @@ class IRCMessageHandler extends MessageHandler
     @_log 'replaying chat history:', chatLog
     for msg in chatLog
       win = @_chat.determineWindow msg
-      return if win is chat.NO_WINDOW
+      console.warn 'replaying msg', msg.type, msg.params, win, msg.context
+      continue if win is chat.NO_WINDOW
       @setWindow win
       @handle msg.type, msg.params...
     @_notificationsPaused = false
@@ -31,7 +32,7 @@ class IRCMessageHandler extends MessageHandler
   ##
   _logMessage: ->
     if @_chatLog.length > 1000
-      @_chatLog.splice @_chatLog.length - 25, 25
+      @_chatLog.splice 0, 25
     context =
       server: @_win.conn?.name
       channel: @_win.target
