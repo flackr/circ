@@ -132,11 +132,11 @@ class SyncStorage
       @_restorePassword()
       @_loadServerDevice()
 
-  restoreSavedState: (chat, callback) ->
+  restoreSavedState: (chat, opt_callback) ->
     @_chat = chat
     chrome.storage.sync.get SyncStorage.STATE_ITEMS, (savedState) =>
       @loadState chat, savedState
-      callback()
+      opt_callback?()
 
   loadState: (chat, state) ->
     @_state = state
