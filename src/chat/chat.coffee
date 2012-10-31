@@ -397,7 +397,7 @@ class Chat extends EventEmitter
     statusList.push "<span class='nick'>#{nick}</span>" if nick
     statusList.push "<span class='away'>away</span>" if away
     statusList.push "<span class='topic'>#{topic}</span>" if topic
-    $('#status').html(statusList.join '') if statusList.length > 0
+    $('#status').html(statusList.join '')
     @_updateDocumentTitle()
 
   _updateDocumentTitle: ->

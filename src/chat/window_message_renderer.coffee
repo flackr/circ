@@ -2,14 +2,14 @@ exports = (window.chat ?= {}).window ?= {}
 
 class MessageRenderer
 
-  @WIKI_URL = "https://github.com/noahsug/circ/wiki"
+  @PROJECT_URL = "noahsug.github.com/circ"
 
   constructor: (@win) ->
 
   displayWelcome: ->
     @message()
     @message '', "Welcome to CIRC, a packaged Chrome app.", "system"
-    @_displayWikiUrl 'system'
+    @message '', @_getWebsiteBlurb(), 'system'
     @message '', "Type /server <server> [port] to connect, then /nick " +
         "<my_nick> and /join <#channel>.", "system"
     @message '', "Type /help to see a full list of commands.", "system"
@@ -22,19 +22,19 @@ class MessageRenderer
     @_printCommands commands
     @message '', "Type /help <command> to see details about a specific command.",
         'notice help'
-    @_displayWikiUrl 'notice help'
+    @message '', @_getWebsiteBlurb(), 'notice help'
 
   displayAbout: ->
     @message()
     @message '', "CIRC is a packaged Chrome app developed by Google Inc. " +
-    "The source code and documentation is available on GitHub at www.github.com/noahsug/circ.", 'notice about'
+        @_getWebsiteBlurb(), 'notice about'
     @message '', "Version: #{irc.VERSION}", 'notice about'
     @message '', "Contributors:", 'notice about group'
     @message '', "    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about group'
 
-  _displayWikiUrl: (style) ->
-    @message '', "Visit #{MessageRenderer.WIKI_URL} to read " +
-        "documentation and give feedback.", style
+  _getWebsiteBlurb: ->
+    "Documentation, issues and source code live at " +
+        "#{MessageRenderer.PROJECT_URL}."
 
   _printCommands: (commands) ->
     maxWidth = 40
