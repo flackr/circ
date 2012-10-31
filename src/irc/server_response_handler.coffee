@@ -101,12 +101,10 @@ class ServerResponseHandler extends MessageHandler
 
     # ERR_NICKNAMEINUSE
     433: (from, nick, taken) ->
-      @irc.preferredNick = taken
-      @irc.preferredNick += '_'
-      # don't try to set your nick name to itself
-      @irc.preferredNick += '_' if @irc.preferredNick is nick
-      @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, @irc.preferredNick
-      @irc.send 'NICK', @irc.preferredNick
+      newNick = taken + '_'
+      newNick = undefined if @irc.nick is newNick
+      @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, newNick
+      @irc.send 'NICK', newNick if newNick
 
     TOPIC: (from, channel, topic) ->
       if @irc.channels[channel]?

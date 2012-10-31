@@ -114,7 +114,9 @@ class IRCMessageHandler extends MessageHandler
 
     nickinuse: (taken, wanted) ->
       @_formatter.addStyle 'notice'
-      msg = "Nickname #{taken} already in use. Trying to get nickname #{wanted}."
+      msg = "Nickname #{taken} already in use."
+      if wanted
+        msg += " Trying to get nickname #{wanted}."
       @_formatter.setMessage msg
 
     away: (msg) ->
