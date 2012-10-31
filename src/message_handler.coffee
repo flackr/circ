@@ -2,6 +2,7 @@ exports = window
 
 class MessageHandler
   constructor: () ->
+    @_log = getLogger this
     @_handlers ?= {}
     @_mergedHandlers = []
 

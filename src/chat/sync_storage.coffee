@@ -6,7 +6,7 @@ class SyncStorage
   @CONNECTION_ITEMS = ['password', 'server_device']
 
   constructor: ->
-    @_log = (type, msg...) => log this, type, msg...
+    @_log = getLogger this
     @_channels = []
     @_servers = []
     @_nick = undefined

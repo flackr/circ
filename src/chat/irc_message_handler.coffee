@@ -3,7 +3,39 @@ exports = window.chat ?= {}
 class IRCMessageHandler extends MessageHandler
   constructor: (@_chat) ->
     @_formatter = new window.chat.MessageFormatter
+    @_chatLog = []
     super
+
+  getChatLog: ->
+    @_chatLog
+
+  ##
+  # Replays the given chatlog so the user can see the conversation he/she
+  # missed.
+  # @param {Array.<{context: {server: string, channel: string}, type: string,
+  #     params: Array.<Object>>} chatLog
+  ##
+  replayChatLog: (chatLog) ->
+    @_chatLog = []
+    @_notificationsPaused = true
+    @_log 'replaying chat history:', chatLog
+    for msg in chatLog
+      win = @_chat.determineWindow msg
+      return if win is chat.NO_WINDOW
+      @setWindow win
+      @handle msg.type, msg.params...
+    @_notificationsPaused = false
+
+  ##
+  # Log the current message.
+  ##
+  _logMessage: ->
+    if @_chatLog.length > 1000
+      @_chatLog.splice @_chatLog.length - 25, 25
+    context =
+      server: @_win.conn?.name
+      channel: @_win.target
+    @_chatLog.push {context, @type, @params}
 
   setWindow: (@_win) ->
     @_formatter.setNick @_win.conn?.irc.nick
@@ -84,6 +116,7 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.setFromUs true
 
     privmsg: (from, msg) ->
+      @_logMessage()
       @_formatter.addStyle 'update'
       @_handleMention from, msg
       @_formatPrivateMessage from, msg
@@ -149,7 +182,7 @@ class IRCMessageHandler extends MessageHandler
     if nickMentioned and @_shouldNotifyMention()
       notification = new chat.NickMentionedNotification(@_win.target, from, msg)
       notification.show()
-    unless @_isFromWindowInFocus()
+    unless @_isFromWindowInFocus() or @_notificationsPaused
       @_chat.channelDisplay.activity @_win.conn.name, @_win.target
       if nickMentioned
         @_chat.channelDisplay.mention @_win.conn.name, @_win.target
@@ -163,6 +196,7 @@ class IRCMessageHandler extends MessageHandler
     return chat.NickMentionedNotification.shouldNotify nick, msg
 
   _shouldNotifyMention: () ->
+    return false if @_notificationsPaused
     not @_isFromWindowInFocus() or not window.document.hasFocus()
 
   _isFromWindowInFocus: ->

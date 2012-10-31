@@ -10,6 +10,8 @@ class RemoteConnection extends EventEmitter
     @_ircSocketMap = {}
     @_thisDevice = {}
     @_state = 'device_state'
+    @_getIRCState = ->
+    @_getChatLog = ->
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
   setPassword: (password) ->
@@ -24,6 +26,12 @@ class RemoteConnection extends EventEmitter
       @_thisDevice.getState()
     else
       @_state
+
+  setIRCStateFetcher: (getState) ->
+    @_getIRCState = getState
+
+  setChatLogFetcher: (getChatLog) ->
+    @_getChatLog = getChatLog
 
   _getAuthToken: (value) =>
     hex_md5 @_password + value
@@ -56,7 +64,8 @@ class RemoteConnection extends EventEmitter
     @_listenToDevice device
     @_addDevice device
     @emit 'client_joined', device
-    device.send 'connection_message', ['irc_state', @_getState()]
+    device.send 'connection_message', ['irc_state', @_getIRCState()]
+    device.send 'connection_message', ['chat_log', @_getChatLog()]
 
   _addDevice: (newDevice) ->
     for device in @devices
@@ -66,7 +75,7 @@ class RemoteConnection extends EventEmitter
   _listenToDevice: (device) ->
     device.on 'user_input', @_onUserInput
     device.on 'socket_data', @_onSocketData
-    device.on 'connection_message', @_onConnectionMessagea
+    device.on 'connection_message', @_onConnectionMessage
     device.on 'closed', @_onDeviceClosed
     device.on 'no_port', => @emit 'no_port'
 
@@ -80,16 +89,21 @@ class RemoteConnection extends EventEmitter
       data = irc.util.dataViewToArrayBuffer data
     @_ircSocketMap[server]?.emit type, data
 
-  _onConnectionMessagea: (device, type, args...) =>
+  _onConnectionMessage: (device, type, args...) =>
     if type is 'irc_state'
-      if @getState() isnt 'connecting'
-        @_log 'w', "got IRC state, but we're not connecting to a server -",
-            device.toString(), args
-        device.close()
-        return
-      @_setServerDevice device
-      @_becomeClient()
+      isValid = @_onIRCState device, args
+      return unless isValid
     @emit type, args...
+
+  _onIRCState: (device, args) ->
+    if @getState() isnt 'connecting'
+      @_log 'w', "got IRC state, but we're not connecting to a server -",
+          device.toString(), args
+      device.close()
+      return false
+    @_setServerDevice device
+    @_becomeClient()
+    true
 
   _setServerDevice: (device) ->
     @serverDevice?.close()
@@ -117,9 +131,6 @@ class RemoteConnection extends EventEmitter
     for clientDevice in @devices
       return true if device.equals clientDevice
     return false
-
-  setStateGenerator: (getState) ->
-    @_getState = getState
 
   createSocket: (server) ->
     if @isClient()

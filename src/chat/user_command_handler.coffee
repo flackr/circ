@@ -288,6 +288,9 @@ class UserCommandHandler extends MessageHandler
             @displayMessage 'notice', "acting as a server for " +
                 @chat.remoteConnection.devices.length + " other device" +
                 (if numClients is 1 then '' else 's')
+          else
+            @displayMessage 'notice', "Acting as a server device. No clients " +
+                "have connected."
 
         else if @chat.remoteConnection.isClient()
           @displayMessage 'notice', "connected to server device " +

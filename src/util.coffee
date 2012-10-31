@@ -11,18 +11,19 @@ exports.removeFromArray = (array, toRemove) ->
   return false if i < 0
   return array.splice i, 1
 
-getLogger = (type) ->
+getLoggerForType = (type) ->
   switch type
     when 'w' then (msg...) => console.warn msg...
     when 'e' then (msg...) => console.error msg...
     else (msg...) => console.log msg...
 
-exports.log = (caller, opt_type, msg...) ->
-  if opt_type in ['l', 'w', 'e']
-    type = opt_type
-  else
-    msg = [opt_type].concat msg
-  getLogger(type) "#{caller.constructor.name}:", msg...
+exports.getLogger = (caller) ->
+  (opt_type, msg...) ->
+    if opt_type in ['l', 'w', 'e']
+      type = opt_type
+    else
+      msg = [opt_type].concat msg
+    getLoggerForType(type) "#{caller.constructor.name}:", msg...
 
 ##
 # Capitalizes the given string.

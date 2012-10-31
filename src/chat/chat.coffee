@@ -66,12 +66,16 @@ class Chat extends EventEmitter
       @_stopServerReconnectAttempts()
       @syncStorage.loadState this, state
 
+    @remoteConnection.on 'chat_log', (chatLog) =>
+      @messageHandler.replayChatLog chatLog
+
     @remoteConnection.on 'server_disconnected', =>
       @determineConnection()
 
     @remoteConnection.on 'client_joined', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' connected to this device'
+      @remoteConnection
 
     @remoteConnection.on 'client_parted', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
@@ -182,8 +186,10 @@ class Chat extends EventEmitter
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage
-    @remoteConnection.setStateGenerator =>
+    @remoteConnection.setIRCStateFetcher =>
       @syncStorage.getState this
+    @remoteConnection.setChatLogFetcher =>
+      @messageHandler.getChatLog()
     @syncStorage.loadConnectionInfo this
 
   setPassword: (password) ->
@@ -288,17 +294,21 @@ class Chat extends EventEmitter
     @messageHandler.setCustomMessageStyle(e.style)
     @messageHandler.handle e.name, e.args...
 
+  ##
+  # Determine the window for which the event belongs.
+  # @param {Event} e The event whose context we're looking at.
+  ##
   determineWindow: (e) ->
     conn = @connections[e.context.server]
     return @emptyWindow unless conn
     if e.context.channel is chat.CURRENT_WINDOW and
         e.context.server isnt @currentWindow.conn?.name
       e.context.channel = chat.SERVER_WINDOW
-    chan = e.context.channel
 
+    chan = e.context.channel
     if conn?.irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
-      from = e.args[0]
+      from = e.args?[0]
       conn.windows[from] ?= @_createWindowForChannel conn, from
       conn.windows[from].makePrivate()
       @channelDisplay.connect conn.name, from

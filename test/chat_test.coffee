@@ -32,6 +32,7 @@ describe 'An IRC client front end', ->
     commandInput._handleKeydown { which: 13, preventDefault: -> }
 
   restart = ->
+    RemoteDevice.devices = []
     mocks.dom.tearDown()
     mocks.dom.setUp()
     init()
@@ -574,3 +575,30 @@ describe 'An IRC client front end', ->
           chrome.socket.listen = undefined
           type "/make-server"
           expect(client.remoteConnection.isIdle()).toBe true
+
+        it "sends chat history when a client connects", ->
+          findPort()
+          type "/make-server"
+          RemoteDevice.onNewDevice new RemoteDevice
+          spyOn device(1), 'send'
+          authenticate device 1
+          expect(device(1).send).toHaveBeenCalledWith 'connection_message',
+              ['chat_log', jasmine.any(Array)]
+
+        it "replays received chat history after connecting to a server device", ->
+          type 'hi there'
+          type 'i am recording some chat history'
+          chatHistory = client.messageHandler.getChatLog()
+
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          restart()
+
+          device(1).emit 'connection_message', device(1), 'irc_state', state
+          win = client.winList.get('freenode', '#bash')
+          spyOn win, 'message'
+          device(1).emit 'connection_message', device(1), 'chat_log', chatHistory
+
+          expect(client.remoteConnection.isClient()).toBe true
+
+          expect(win.message).toHaveBeenCalledWith 'ournick', 'hi there',
+              jasmine.any(String)

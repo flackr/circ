@@ -19,7 +19,6 @@ class Event
     @style = @style.concat style
 
   @wrap: (obj) ->
-    # TODO note: can just set prototype to Event.prototype
     return obj if obj instanceof Event
     event = new Event obj.type, obj.name, obj.args...
     event.setContext obj.context.server, obj.context.channel
