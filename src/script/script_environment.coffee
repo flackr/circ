@@ -15,8 +15,10 @@ addEventListener 'message', (e) =>
     args = [name].concat(args)
     name = type
     type = opt_context
-    opt_context = {}
-  event = {opt_context, type, name, args}
+    context = {}
+  else
+    context = opt_context
+  event = {context, type, name, args}
   window.parent.postMessage(event, '*')
 
 @propagate = (event, propagation='all') ->
