@@ -5,11 +5,11 @@ class MessageRenderer
   @PROJECT_URL = "noahsug.github.com/circ"
 
   constructor: (@win) ->
-    @_resetActivityLine = false
-    @_activityLineLocation = undefined
+    @_resetActivityMarker = false
+    @_activityMarkerLocation = undefined
 
   onFocus: ->
-    @_resetActivityLine = true
+    @_resetActivityMarker = @win.$messages.children().length > 0
 
   displayWelcome: ->
     @message()
@@ -72,7 +72,7 @@ class MessageRenderer
     @_addMessage from, msg, style
     if wasScrolledDown
       @win.scrollToBottom()
-    @_displayActivityLine() if @_shouldDisplayActivityLine()
+    @_displayActivityMarker() if @_shouldDisplayActivityMarker()
 
   _addMessage: (from, msg, style) ->
     html = $('#templates .message').clone()
@@ -82,16 +82,15 @@ class MessageRenderer
     $('.source', html).addClass('empty') unless from
     @win.$messages.append html
 
-  _shouldDisplayActivityLine: ->
-    return false if @win.isFocused() or not @_resetActivityLine
-    return @win.$messages.children().length > 0
+  _shouldDisplayActivityMarker: ->
+    return not @win.isFocused() and @_resetActivityMarker
 
-  _displayActivityLine: ->
-    @_resetActivityLine = false
-    if @_activityLineLocation
-      @_activityLineLocation.removeClass 'line'
-    @_activityLineLocation = @win.$messages.children().last()
-    @_activityLineLocation.addClass 'line'
+  _displayActivityMarker: ->
+    @_resetActivityMarker = false
+    if @_activityMarkerLocation
+      @_activityMarkerLocation.removeClass 'activity-marker'
+    @_activityMarkerLocation = @win.$messages.children().last()
+    @_activityMarkerLocation.addClass 'activity-marker'
 
 escapeHTML = (html) ->
   escaped = {

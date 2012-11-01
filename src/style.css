@@ -166,8 +166,8 @@ ul {
   -webkit-user-select: initial;
 }
 
-.message.line .source,
-.message.line .content {
+.message.activity-marker .source,
+.message.activity-marker .content {
   border-top: 1px solid rgb(224, 179, 179);
 }
 
