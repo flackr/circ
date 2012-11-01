@@ -1,6 +1,6 @@
 exports = window.chat ?= {}
 
-class Window
+class Window extends EventEmitter
   ##
   # The screen will auto scroll as long as the user didn't scroll up more then
   # this many pixels.
@@ -8,10 +8,26 @@ class Window
   @SCROLLED_DOWN_BUFFER = 8
 
   constructor: (server, opt_channel) ->
+    super
     @name = server + if opt_channel then " #{opt_channel}" else ''
     @wasScrolledDown = true
     @messageRenderer = new chat.window.MessageRenderer this
     @_addUI()
+    @_isVisible = false
+    @_isFocused = false
+    window.onfocus = @_onFocus
+    window.onblur = @_onBlur
+
+  _onFocus: =>
+    return unless @_isVisible
+    @_isFocused = true
+    @messageRenderer.onFocus()
+
+  _onBlur: =>
+    @_isFocused = false
+
+  isFocused: ->
+    @_isFocused and @_isVisible
 
   _addUI: ->
     @_addMessageUI()
@@ -54,6 +70,7 @@ class Window
     @$roomsAndNicks.addClass 'no-nicks'
     @$messages.detach()
     @$nicks.detach()
+    @_isVisible = false
 
   remove: ->
     @detach()
@@ -67,6 +84,7 @@ class Window
     if @wasScrolledDown
       @scroll = @$messagesContainer[0].scrollHeight
     @$messagesContainer.scrollTop @scroll
+    @_isVisible = true
 
   isScrolledDown: ->
     scrollPosition = @$messagesContainer.scrollTop() + @$messagesContainer.height()

@@ -5,6 +5,11 @@ class MessageRenderer
   @PROJECT_URL = "noahsug.github.com/circ"
 
   constructor: (@win) ->
+    @_resetActivityLine = false
+    @_activityLineLocation = undefined
+
+  onFocus: ->
+    @_resetActivityLine = true
 
   displayWelcome: ->
     @message()
@@ -67,6 +72,7 @@ class MessageRenderer
     @_addMessage from, msg, style
     if wasScrolledDown
       @win.scrollToBottom()
+    @_displayActivityLine() if @_shouldDisplayActivityLine()
 
   _addMessage: (from, msg, style) ->
     html = $('#templates .message').clone()
@@ -75,6 +81,17 @@ class MessageRenderer
     $('.content', html).html msg
     $('.source', html).addClass('empty') unless from
     @win.$messages.append html
+
+  _shouldDisplayActivityLine: ->
+    return false if @win.isFocused() or not @_resetActivityLine
+    return @win.$messages.children().length > 0
+
+  _displayActivityLine: ->
+    @_resetActivityLine = false
+    if @_activityLineLocation
+      @_activityLineLocation.removeClass 'line'
+    @_activityLineLocation = @win.$messages.children().last()
+    @_activityLineLocation.addClass 'line'
 
 escapeHTML = (html) ->
   escaped = {

@@ -38,7 +38,7 @@ ul {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-flex: 0;
-  width: 185px;
+  width: 140px;
   padding: 4px 0px;
   border-right: 1px solid rgba(0, 0, 0, .15);
   overflow-y: auto;
@@ -151,15 +151,9 @@ ul {
   padding-top: 2px;
 }
 
-#messages-and-input > div {
-  padding-left: 14px;
-  padding-right: 14px;
-}
-
 #messages-container {
   overflow-y: auto;
   -webkit-box-flex: 1;
-  padding: 0px 15px 0px 20px;
   border-bottom: 1px solid #CCC;
 }
 
@@ -172,12 +166,18 @@ ul {
   -webkit-user-select: initial;
 }
 
+.message.line .source,
+.message.line .content {
+  border-top: 1px solid rgb(224, 179, 179);
+}
+
 .message .source {
   font-weight: bold;
   padding-right: 20px;
   white-space: nowrap;
   display: table-cell;
   text-align: right;
+  padding-left: 14px;
 }
 
 .message .source.empty {
@@ -186,24 +186,53 @@ ul {
 
 .message .content {
   display: table-cell;
-  padding-top: 8px;
+  padding: 4px 14px 4px 0px;
   white-space: pre-wrap;
+  width: 100%;
 }
 
-.message:last-child .content {
+#messages-container .messages .message:last-child .content {
   padding-bottom: 8px;
 }
 
-.message.privmsg + .message.privmsg .content {
-  padding-top: 2px;
+#messages-container .messages .message:first-child .content {
+  padding-top: 8px;
 }
 
+.message:not(.privmsg) + .message.privmsg .content {
+  padding-top: 4px;
+  padding-bottom: 1px;
+}
+.message.privmsg + .message.privmsg .content {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.message.privmsg .content {
+  padding-bottom: 4px;
+}
+
+.message:not(.group) + .message.group .content {
+  padding-top: 4px;
+  padding-bottom: 1px;
+}
 .message.group + .message.group .content {
   padding-top: 0px;
+  padding-bottom: 0px;
+}
+.message.group .content {
+  padding-bottom: 4px;
 }
 
+.message:not(.notice-group) + .message.notice-group .content {
+  padding-top: 4px;
+  padding-bottom: 1px;
+}
 .message.notice-group + .message.notice-group .content {
   padding-top: 0px;
+  padding-bottom: 0px;
+}
+.message.notice-group .content {
+  padding-bottom: 4px;
 }
 
 .longword { word-break: break-all; }
@@ -213,8 +242,8 @@ ul {
   -webkit-box-flex: 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  padding-bottom: 12px;
   background-color: #ECECEC;
+  padding: 0px 14px 12px 14px;
 }
 
 #status {

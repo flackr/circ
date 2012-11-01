@@ -119,6 +119,8 @@ class Chat extends EventEmitter
     @_log 'automatically connecting to', @syncStorage.serverDevice
     if @remoteConnection.isInitializing()
       @_useOwnConnectionTimeout = setTimeout (=>
+        return unless @remoteConnection.isInitializing()
+        @remoteConnection.becomeIdle()
         @_resumeIRCConnection()), Chat.SERVER_DEVICE_CONNECTION_WAIT
     @remoteConnection.connectToServer @syncStorage.serverDevice
 
