@@ -23,7 +23,7 @@ class UserInputHandler extends EventEmitter
     @_switchWindowsOnAltNumber e
     @_showPreviousCommandsOnArrowKeys e
     @_autoCompleteOnTab e
-    e.defaultPrevented
+    !e.isDefaultPrevented()
 
   _focusInputOnKeyPress: (e) ->
     unless e.metaKey or e.ctrlKey
@@ -52,6 +52,10 @@ class UserInputHandler extends EventEmitter
       e.preventDefault()
       if @text
         @input.val @_autoComplete.getTextWithCompletion @text, @_getCursorPosition()
+        @_setCursorPosition @_autoComplete.getUpdatedCursorPosition()
+
+  _setCursorPosition: (pos) ->
+    @input[0].setSelectionRange pos, pos
 
   _getCursorPosition: ->
     @input[0].selectionStart

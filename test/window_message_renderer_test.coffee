@@ -12,6 +12,7 @@ describe "A window message renderer", ->
       $messages: surface
       isScrolledDown: ->
       scrollToBottom: ->
+      isFocused: -> true
     }
     renderer = new chat.window.MessageRenderer win
     spyOn(renderer, '_addMessage').andCallThrough()

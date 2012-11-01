@@ -7,6 +7,7 @@ describe 'A user input handler', ->
     e =
       which: code
       altKey: altHeld
+      isDefaultPrevented: ->
       preventDefault: ->
     windowKeyDown e
     inputKeyDown e
@@ -54,6 +55,7 @@ describe 'A user input handler', ->
 
   beforeEach ->
     handler = new UserInputHandler input, window
+    handler._setCursorPosition = ->
     context.currentWindow.conn.irc.channels['#bash'] = {names}
     handler.setContext context
     spyOn handler, 'emit'

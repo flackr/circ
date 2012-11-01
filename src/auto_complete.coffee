@@ -45,9 +45,14 @@ class AutoComplete
     @_previousCursor = @_cursor
     unless @_completionFinder.hasStarted
       @_extractStub()
-    textWithCompletion = @_preCompletion + @_getCompletion() + @_postCompletion
+    completion = @_getCompletion()
+    textWithCompletion = @_preCompletion + completion + @_postCompletion
+    @_updatedCursorPosition = @_preCompletion.length + completion.length
     @_previousText = textWithCompletion
     textWithCompletion
+
+  getUpdatedCursorPosition: ->
+    @_updatedCursorPosition ? 0
 
   ##
   # Returns the completion for the current stub with the completion suffix and/
