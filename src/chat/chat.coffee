@@ -4,11 +4,11 @@ class Chat extends EventEmitter
 
   # Number of ms to wait for a connection to be established to a server device
   # before using our own IRC connection.
-  @SERVER_DEVICE_CONNECTION_WAIT = 1000
+  @SERVER_DEVICE_CONNECTION_WAIT = 350
 
   # Number of ms to wait before trying to reconnect to the server device.
   @SERVER_DEVICE_RECONNECTION_WAIT = 500
-  @SERVER_DEVICE_RECONNECTION_MAX_WAIT = 60 * 1000
+  @SERVER_DEVICE_RECONNECTION_MAX_WAIT = 5 * 1000
 
   constructor: ->
     super
