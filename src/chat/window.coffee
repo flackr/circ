@@ -82,13 +82,16 @@ class Window extends EventEmitter
     @$messagesContainer.append @$messages
     @$nicksContainer.append @$nicks
     if @wasScrolledDown
-      @scroll = @$messagesContainer[0].scrollHeight
+      @scroll = @_getScrollHeight()
     @$messagesContainer.scrollTop @scroll
     @_isVisible = true
 
   isScrolledDown: ->
     scrollPosition = @$messagesContainer.scrollTop() + @$messagesContainer.height()
-    scrollPosition >= @$messagesContainer[0].scrollHeight - Window.SCROLLED_DOWN_BUFFER
+    scrollPosition >= @_getScrollHeight() - Window.SCROLLED_DOWN_BUFFER
+
+  _getScrollHeight: ->
+    @$messagesContainer[0].scrollHeight
 
   message: (from, msg, style...) ->
     wasScrolledDown = @isScrolledDown()
@@ -97,6 +100,6 @@ class Window extends EventEmitter
       @scrollToBottom()
 
   scrollToBottom: ->
-    @$messagesContainer.scrollTop(@$messagesContainer[0].scrollHeight)
+    @$messagesContainer.scrollTop @_getScrollHeight()
 
 exports.Window = Window

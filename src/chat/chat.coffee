@@ -58,19 +58,22 @@ class Chat extends EventEmitter
     @remoteConnection.on 'invalid_server', (connectInfo) =>
       @useOwnConnection()
       # TODO show as system message
-#      @displayMessage 'notice', @getCurrentContext, "Unable to connect to " +
+#      @displayMessage 'notice', @getCurrentContext(), "Unable to connect to " +
 #          "server device #{connectInfo.addr} on port #{connectInfo.port}"
       @_tryToReconnectToServerDevice()
 
     @remoteConnection.on 'irc_state', (state) =>
       @syncStorage.pause()
       @closeAllConnections()
-      @_log 'successfully using server device - loading state', state
       @_stopServerReconnectAttempts()
       @syncStorage.loadState this, state
 
     @remoteConnection.on 'chat_log', (chatLog) =>
       @messageHandler.replayChatLog chatLog
+      connInfo = @remoteConnection.serverDevice
+      return unless connInfo
+      @displayMessage 'notice', @getCurrentContext(), "Connected through " +
+          "server device #{connInfo.toString()}"
 
     @remoteConnection.on 'server_disconnected', =>
       @determineConnection()
@@ -78,11 +81,12 @@ class Chat extends EventEmitter
     @remoteConnection.on 'client_joined', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' connected to this device'
-      @remoteConnection
+      @updateStatus()
 
     @remoteConnection.on 'client_parted', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
           ' disconnected from this device'
+      @updateStatus()
 
   _tryToReconnectToServerDevice: ->
     @_serverDeviceReconnectBackoff ?= Chat.SERVER_DEVICE_RECONNECTION_WAIT
@@ -422,6 +426,11 @@ class Chat extends EventEmitter
     if @remoteConnection.isClient()
       titleList.push '- Connected through ' +
           @remoteConnection.serverDevice.addr
+    else if @remoteConnection.isServer()
+      connectedDevices = @remoteConnection.devices.length
+      titleList.push "- Server for #{connectedDevices} " +
+          "other #{pluralize 'device', connectedDevices}"
+
     document.title = titleList.join ' '
 
   switchToWindowByIndex: (winNum) ->

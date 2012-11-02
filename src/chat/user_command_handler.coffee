@@ -286,8 +286,8 @@ class UserCommandHandler extends MessageHandler
           numClients = @chat.remoteConnection.devices.length
           if numClients > 0
             @displayMessage 'notice', "acting as a server for " +
-                @chat.remoteConnection.devices.length + " other device" +
-                (if numClients is 1 then '' else 's')
+                @chat.remoteConnection.devices.length + " other " +
+                pluralize 'device', @chat.remoteConnection.devices.length
           else
             @displayMessage 'notice', "Acting as a server device. No clients " +
                 "have connected."

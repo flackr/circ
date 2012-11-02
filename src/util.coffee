@@ -25,6 +25,13 @@ exports.getLogger = (caller) ->
       msg = [opt_type].concat msg
     getLoggerForType(type) "#{caller.constructor.name}:", msg...
 
+exports.pluralize = (word, number) ->
+  return word if not word or number is 1
+  if word[word.length-1] is 's'
+    word + 'es'
+  else
+    word + 's'
+
 ##
 # Capitalizes the given string.
 # @param {string} sentence
