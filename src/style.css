@@ -143,11 +143,42 @@ ul {
   background-color: #F2EFD3;
 }
 
+#notice {
+  background-color: #406698;
+  box-shadow: 0px 1px 4px #888;
+  color: #FFF;
+  position: absolute;
+  width: 100%;
+  -webkit-transition: 100ms;
+  top: -35px;
+}
+
+#notice .content {
+  display: inline;
+  padding-left: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-x: hidden;
+  position: absolute;
+  top: 50%;
+  margin-top: -.5em;
+}
+
+#notice button {
+  float: right;
+  height: 22px;
+  width: 60px;
+  font-family: "Roboto";
+  padding: 0px;
+  margin: 4px 14px;
+}
+
 #messages-and-input {
   -webkit-box-flex: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   box-shadow: 0px 0px 8px #CCC;
+  position: relative;
 }
 
 #messages-container {
