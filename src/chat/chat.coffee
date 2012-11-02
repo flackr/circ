@@ -56,13 +56,15 @@ class Chat extends EventEmitter
       @remoteConnection.finalizeConnection()
 
     @remoteConnection.on 'invalid_server', (connectInfo) =>
+      @_log 'w', 'RECONNECTION ATTEMPT:', @_reconnectionAttempt
+      unless @_reconnectionAttempt
+        @_displayFailedToConnect()
+      @_reconnectionAttempt = false
       @useOwnConnection()
-      # TODO show as system message
-#      @displayMessage 'notice', @getCurrentContext(), "Unable to connect to " +
-#          "server device #{connectInfo.addr} on port #{connectInfo.port}"
       @_tryToReconnectToServerDevice()
 
     @remoteConnection.on 'irc_state', (state) =>
+      @_reconnectionAttempt = false
       @syncStorage.pause()
       @closeAllConnections()
       @_stopServerReconnectAttempts()
@@ -76,7 +78,9 @@ class Chat extends EventEmitter
           "server device #{connInfo.toString()}"
 
     @remoteConnection.on 'server_disconnected', =>
+      @_serverDisconnected = true
       @determineConnection()
+      @_serverDisconnected = false
 
     @remoteConnection.on 'client_joined', (client) =>
       @displayMessage 'notice', @getCurrentContext(), client.addr +
@@ -88,14 +92,24 @@ class Chat extends EventEmitter
           ' disconnected from this device'
       @updateStatus()
 
+  _displayFailedToConnect: ->
+    connectInfo = @syncStorage.serverDevice
+    return unless connectInfo
+    @displayMessage 'notice', @getCurrentContext(), "Unable to connect to " +
+        "server device #{connectInfo.addr} on port #{connectInfo.port}"
+
   _tryToReconnectToServerDevice: ->
     @_serverDeviceReconnectBackoff ?= Chat.SERVER_DEVICE_RECONNECTION_WAIT
-    @_serverDeviceReconnectTimeout = setTimeout (=>
-      @_serverDeviceReconnectBackoff *= 1.2
-      if @_serverDeviceReconnectBackoff > Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
-        @_serverDeviceReconnectBackoff = Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
-      if not (@remoteConnection.getState() in ['connecting', 'connected'])
-        @determineConnection()), @_serverDeviceReconnectBackoff
+    @_serverDeviceReconnectTimeout = setTimeout @_reconnect,
+        @_serverDeviceReconnectBackoff
+
+  _reconnect: =>
+    @_reconnectionAttempt = true
+    @_serverDeviceReconnectBackoff *= 1.2
+    if @_serverDeviceReconnectBackoff > Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
+      @_serverDeviceReconnectBackoff = Chat.SERVER_DEVICE_RECONNECTION_MAX_WAIT
+    if not (@remoteConnection.getState() in ['connecting', 'connected'])
+      @determineConnection()
 
   _stopServerReconnectAttempts: ->
     clearTimeout @_serverDeviceReconnectTimeout
@@ -111,9 +125,9 @@ class Chat extends EventEmitter
     return unless @remoteConnection.getConnectionInfo().addr and
         @syncStorage.loadedServerDevice and @syncStorage.password
     @_log 'can make a connection - device:', @syncStorage.serverDevice,
-        '- is server?', @_shouldBeServerDevice()
+        '- is server?', @shouldBeServerDevice()
 
-    if @syncStorage.serverDevice and not @_shouldBeServerDevice()
+    if @syncStorage.serverDevice and not @shouldBeServerDevice()
       @useServerDeviceConnection()
     else
       @useOwnConnection()
@@ -125,11 +139,16 @@ class Chat extends EventEmitter
     return if usingServerDeviceConnection and sameConnection
     @_log 'automatically connecting to', @syncStorage.serverDevice
     if @remoteConnection.isInitializing()
-      @_useOwnConnectionTimeout = setTimeout (=>
-        return unless @remoteConnection.isInitializing()
-        @remoteConnection.becomeIdle()
-        @_resumeIRCConnection()), Chat.SERVER_DEVICE_CONNECTION_WAIT
+      @_useOwnConnectionTimeout = setTimeout(
+          @_useOwnConnectionWhileWaitingForServer,
+          Chat.SERVER_DEVICE_CONNECTION_WAIT)
     @remoteConnection.connectToServer @syncStorage.serverDevice
+
+  _useOwnConnectionWhileWaitingForServer: =>
+    return unless @remoteConnection.isInitializing()
+    @remoteConnection.becomeIdle()
+    @_resumeIRCConnection =>
+      @_displayFailedToConnect()
 
   useOwnConnection: ->
     clearTimeout @_useOwnConnectionTimeout
@@ -138,7 +157,7 @@ class Chat extends EventEmitter
       @remoteConnection.disconnectFromServer()
       return
 
-    if @_shouldBeServerDevice()
+    if @shouldBeServerDevice()
       @_stopServerReconnectAttempts()
       @_tryToBecomeServerDevice()
       return
@@ -174,7 +193,7 @@ class Chat extends EventEmitter
     else
       @remoteConnection.becomeIdle()
 
-  _shouldBeServerDevice: ->
+  shouldBeServerDevice: ->
     # TODO check something stored in local storage, not IP addr which can change
     @syncStorage.serverDevice?.addr in
         @remoteConnection.getConnectionInfo().possibleAddrs
@@ -187,12 +206,19 @@ class Chat extends EventEmitter
     @remoteConnection.becomeServer()
     @syncStorage.becomeServerDevice @remoteConnection.getConnectionInfo()
 
-  _resumeIRCConnection: ->
+  _resumeIRCConnection: (opt_callback) ->
     @_log 'resuming IRC conn'
     @closeAllConnections()
+    shouldDisplayLostConnectionMessage = @_serverDisconnected
     @syncStorage.restoreSavedState this, =>
       @messageHandler.replayChatLog()
       @syncStorage.resume()
+      @_displayLostConnectionMessage() if shouldDisplayLostConnectionMessage
+      opt_callback?()
+
+  _displayLostConnectionMessage: ->
+    @displayMessage 'notice', @getCurrentContext(), "Lost connection to " +
+        "server device. Attempting to reconnect..."
 
   _initializeSyncStorage: ->
     @syncStorage = new chat.SyncStorage

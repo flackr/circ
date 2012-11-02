@@ -149,7 +149,7 @@ ul {
   color: #FFF;
   position: absolute;
   width: 100%;
-  -webkit-transition: 100ms;
+  -webkit-transition: 150ms;
   top: -35px;
 }
 
@@ -167,7 +167,7 @@ ul {
 #notice button {
   float: right;
   height: 22px;
-  width: 60px;
+  width: 50px;
   font-family: "Roboto";
   padding: 0px;
   margin: 4px 14px;

@@ -261,7 +261,10 @@ class UserCommandHandler extends MessageHandler
           "connect. Connected devices use the IRC connection of this device"
       run: ->
         state = @chat.remoteConnection.getState()
-        if not chrome.socket?.listen
+        if @chat.shouldBeServerDevice()
+          @displayMessage 'error', "this device is already acting as a " +
+              "server"
+        else if not chrome.socket?.listen
           @displayMessage 'error', "this command cannot be used with your " +
               "current version of Chrome because it does not support " +
               "chrome.socket.listen"
