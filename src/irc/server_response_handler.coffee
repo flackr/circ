@@ -102,7 +102,7 @@ class ServerResponseHandler extends MessageHandler
     # ERR_NICKNAMEINUSE
     433: (from, nick, taken) ->
       newNick = taken + '_'
-      newNick = undefined if @irc.nick is newNick
+      newNick = undefined if nick is newNick
       @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, newNick
       @irc.send 'NICK', newNick if newNick
 
