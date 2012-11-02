@@ -26,7 +26,7 @@ ul {
 }
 
 #main {
-  background-color: #F9F9F9;
+  background-color: #FFF;
   display: -webkit-box;
   -webkit-box-orient: horizontal;
   width: 100%;
@@ -126,7 +126,7 @@ ul {
 }
 
 #nicks-container {
-  border-top: 1px solid #F9F9F9;
+  border-top: 1px solid #FFF;
   -webkit-box-flex: 1;
 }
 
@@ -148,7 +148,6 @@ ul {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   box-shadow: 0px 0px 8px #CCC;
-  padding-top: 2px;
 }
 
 #messages-container {
@@ -196,7 +195,7 @@ ul {
 }
 
 #messages-container .messages .message:first-child .content {
-  padding-top: 8px;
+  padding-top: 10px;
 }
 
 .message:not(.privmsg) + .message.privmsg .content {
