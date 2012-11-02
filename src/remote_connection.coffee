@@ -5,6 +5,7 @@ class RemoteConnection extends EventEmitter
   constructor: ->
     super
     @serverDevice = undefined
+    @_potentialServerDevice = undefined
     @_type = undefined
     @devices = []
     @_ircSocketMap = {}
@@ -124,7 +125,7 @@ class RemoteConnection extends EventEmitter
       break
 
   _deviceIsServer: (device) ->
-    device.id is @serverDevice?.id
+    device?.equals @serverDevice
 
   _deviceIsClient: (device) ->
     return false if device.equals @serverDevice or device.equals @_thisDevice
@@ -208,11 +209,17 @@ class RemoteConnection extends EventEmitter
     @_listenToDevice device
     device.connect (success) =>
       if success
+        unless @_deviceIsServer @_potentialServerDevice
+          @_potentialServerDevice?.close()
+        @_potentialServerDevice = device
         @_log 'connected to server', connectInfo.addr, connectInfo.port
-        device.sendAuthentication @_getAuthToken
+        @emit 'server_found', connectInfo
       else if @_connectingTo is device and @_state is 'connecting'
         @_state = 'device_state'
         @emit 'invalid_server', connectInfo
+
+  finalizeConnection: ->
+    @_potentialServerDevice.sendAuthentication @_getAuthToken
 
   isServer: ->
     @_type is 'server'

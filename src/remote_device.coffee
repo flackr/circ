@@ -158,6 +158,7 @@ class RemoteDevice extends EventEmitter
 
   ##
   # Called when acting as a client. Authenticates the connection.
+  # @param {Function} getAuthToken The algorithm to generate auth tokens.
   ##
   sendAuthentication: (getAuthToken) ->
     chrome.socket?.getInfo @_socketId, (socketInfo) =>

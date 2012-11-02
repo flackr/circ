@@ -52,6 +52,9 @@ class Chat extends EventEmitter
     @remoteConnection.on 'no_port', =>
       @useOwnConnection()
 
+    @remoteConnection.on 'server_found', (connectInfo) =>
+      @remoteConnection.finalizeConnection()
+
     @remoteConnection.on 'invalid_server', (connectInfo) =>
       @useOwnConnection()
       # TODO show as system message
