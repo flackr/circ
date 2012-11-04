@@ -464,6 +464,11 @@ class Chat extends EventEmitter
     win = @winList.get winNum - 1
     @switchToWindow win if win?
 
+  windowExists: (win) ->
+    if win.isServerWindow()
+      return @connections[win.conn?.name]?
+    return @connections[win.conn?.name]?.windows[win.target]
+
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
     @currentWindow.detach() if @currentWindow
