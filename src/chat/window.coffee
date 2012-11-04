@@ -13,14 +13,20 @@ class Window extends EventEmitter
     @wasScrolledDown = true
     @messageRenderer = new chat.window.MessageRenderer this
     @_addUI()
+    @notifications = []
     @_isVisible = false
     @_isFocused = false
     window.onfocus = @_onFocus
     window.onblur = @_onBlur
 
+  clearNotifications: ->
+    for notification in @notifications
+      notification.cancel()
+
   _onFocus: =>
     return unless @_isVisible
     @_isFocused = true
+    @clearNotifications()
     @messageRenderer.onFocus()
 
   _onBlur: =>

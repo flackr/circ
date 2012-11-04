@@ -188,10 +188,10 @@ class IRCMessageHandler extends MessageHandler
   _createNotification: (from, msg) ->
     notification = new chat.NickMentionedNotification @_win.target, from, msg
     notification.show()
+    @_win.notifications.push notification
     notification.on 'clicked', =>
-      if @_chat.windowExists @_win
-        @_chat.switchToWindow @_win
-        window.focus()
+      removeFromArray @_win.notifications, notification
+      @_chat.switchToWindow @_win
 
   _nickWasMentioned: (from, msg) ->
     nick = @_win.conn?.irc.nick

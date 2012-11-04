@@ -410,6 +410,7 @@ class Chat extends EventEmitter
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
     @syncStorage.parted win.conn.name, win.target
+    win.clearNotifications()
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
     else
@@ -464,15 +465,11 @@ class Chat extends EventEmitter
     win = @winList.get winNum - 1
     @switchToWindow win if win?
 
-  windowExists: (win) ->
-    if win.isServerWindow()
-      return @connections[win.conn?.name]?
-    return @connections[win.conn?.name]?.windows[win.target]
-
   switchToWindow: (win) ->
     throw new Error("switching to non-existant window") if not win?
     @currentWindow.detach() if @currentWindow
     @currentWindow = win
+    win.clearNotifications()
     win.attach()
     @_selectWindowInChannelDisplay win
     @updateStatus()
@@ -490,7 +487,7 @@ class Chat extends EventEmitter
     @emit event.type, event
 
   getCurrentContext: ->
-    {server: @currentWindow.conn?.name, channel: chat.CURRENT_WINDOW }
+    { server: @currentWindow.conn?.name, channel: chat.CURRENT_WINDOW }
 
 exports.SERVER_WINDOW = '@server_window'
 exports.CURRENT_WINDOW = '@current_window'
