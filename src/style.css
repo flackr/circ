@@ -26,7 +26,6 @@ ul {
 }
 
 #main {
-  background-color: #FFF;
   display: -webkit-box;
   -webkit-box-orient: horizontal;
   width: 100%;

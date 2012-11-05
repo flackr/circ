@@ -13,6 +13,9 @@ class RemoteDevice extends EventEmitter
 
   @sendAuthentication: ->
 
+  @onConnect: (callback) ->
+    callback RemoteDevice.willConnect
+
   equals: (o) ->
     o?.id is @id
 
@@ -35,7 +38,7 @@ class RemoteDevice extends EventEmitter
     RemoteDevice.onNewDevice = callback
 
   connect: (callback) ->
-    callback RemoteDevice.willConnect
+    RemoteDevice.onConnect callback
 
   sendAuthentication: (getAuthToken) ->
     RemoteDevice.sendAuthentication getAuthToken '1.1.1.1'

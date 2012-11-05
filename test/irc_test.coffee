@@ -284,7 +284,7 @@ describe 'An IRC client backend', ->
               VERSION\s
               CIRC:
               \d\.\d\.\d\:
-              Unknown
+              Chrome
               \u0001\s*
             ///
             expect(socket.received.mostRecentCall.args).toMatch versionResponse

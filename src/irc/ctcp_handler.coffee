@@ -24,7 +24,7 @@ class CTCPHandler
     switch @type
       when 'VERSION'
         name = 'CIRC'
-        environment = 'Unknown'
+        environment = 'Chrome'
         [' ' + [name, irc.VERSION, environment].join ':']
       when 'SOURCE'
         [''] # TODO add details when client is available over FTP

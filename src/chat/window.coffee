@@ -16,8 +16,8 @@ class Window extends EventEmitter
     @notifications = []
     @_isVisible = false
     @_isFocused = false
-    window.onfocus = @_onFocus
-    window.onblur = @_onBlur
+    $(window).focus @_onFocus
+    $(window).blur @_onBlur
 
   clearNotifications: ->
     for notification in @notifications
@@ -84,13 +84,14 @@ class Window extends EventEmitter
     @$nicks.remove()
 
   attach: ->
+    @_isVisible = true
+    @_onFocus()
     @$roomsAndNicks.removeClass 'no-nicks' if @target?
     @$messagesContainer.append @$messages
     @$nicksContainer.append @$nicks
     if @wasScrolledDown
       @scroll = @_getScrollHeight()
     @$messagesContainer.scrollTop @scroll
-    @_isVisible = true
 
   isScrolledDown: ->
     scrollPosition = @$messagesContainer.scrollTop() + @$messagesContainer.height()

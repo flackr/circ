@@ -168,7 +168,10 @@ class SyncStorage
     @_channels = channels
     for channel in channels
       return unless conn = @_chat.connections[channel.server]
-      @_chat.join conn, channel.name
+      if channel.type is 'private'
+        @_chat.createPrivateMessageWindow conn, channel.name
+      else
+        @_chat.join conn, channel.name
 
   _restoreNick: ->
     return unless (nick = @_state.nick) and typeof nick is 'string'

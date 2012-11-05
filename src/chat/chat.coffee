@@ -171,10 +171,10 @@ class Chat extends EventEmitter
     return chat.NO_WINDOW
 
   createPrivateMessageWindow: (conn, from) ->
+    @syncStorage.channelJoined conn.name, from, 'private'
     conn.windows[from] = @_createWindowForChannel conn, from
     conn.windows[from].makePrivate()
     @channelDisplay.connect conn.name, from
-    @syncStorage.channelJoined conn.name, from, 'private'
 
   onConnected: (conn) ->
     @displayMessage 'connect', {server: conn.name}
@@ -287,7 +287,6 @@ class Chat extends EventEmitter
     throw new Error("switching to non-existant window") if not win?
     @currentWindow.detach() if @currentWindow
     @currentWindow = win
-    win.clearNotifications()
     win.attach()
     @_selectWindowInChannelDisplay win
     @updateStatus()

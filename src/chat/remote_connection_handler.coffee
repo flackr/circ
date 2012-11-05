@@ -7,7 +7,7 @@ class RemoteConnectionHandler
 
   # Number of ms to wait for a connection to be established to a server device
   # before using our own IRC connection.
-  @SERVER_DEVICE_CONNECTION_WAIT = 350
+  @SERVER_DEVICE_CONNECTION_WAIT = 500
 
   # Number of ms to wait before trying to reconnect to the server device.
   @SERVER_DEVICE_RECONNECTION_WAIT = 500
@@ -50,13 +50,12 @@ class RemoteConnectionHandler
     @_remoteConnection.on 'no_port', =>
       @_useOwnConnection()
 
-    @_remoteConnection.on 'server_found', (connectInfo) =>
+    @_remoteConnection.on 'server_found', =>
       @_remoteConnection.finalizeConnection()
 
     @_remoteConnection.on 'invalid_server', (connectInfo) =>
-      @_log 'w', 'RECONNECTION ATTEMPT:', @_reconnectionAttempt
       unless @_reconnectionAttempt
-        @_displayFailedToConnect()
+        @_displayFailedToConnect connectInfo
       @_reconnectionAttempt = false
       @_useOwnConnection()
       @_tryToReconnectToServerDevice()
@@ -90,7 +89,7 @@ class RemoteConnectionHandler
           ' disconnected from this device'
       @_chat.updateStatus()
 
-  _displayFailedToConnect: ->
+  _displayFailedToConnect: (connectInfo) ->
     connectInfo = @_storage.serverDevice
     return unless connectInfo
     @_chat.displayMessage 'notice', @_chat.getCurrentContext(), "Unable to connect to " +
@@ -130,6 +129,7 @@ class RemoteConnectionHandler
     @_remoteConnection.connectToServer @_storage.serverDevice
 
   _tryToReconnectToServerDevice: ->
+    clearTimeout @_serverDeviceReconnectTimeout
     @_serverDeviceReconnectBackoff ?=
         RemoteConnectionHandler.SERVER_DEVICE_RECONNECTION_WAIT
     @_serverDeviceReconnectTimeout = setTimeout @_reconnect,
@@ -153,12 +153,13 @@ class RemoteConnectionHandler
   _useOwnConnectionWhileWaitingForServer: =>
     return unless @_remoteConnection.isInitializing()
     @_remoteConnection.becomeIdle()
+    connectInfo = @_chat.syncStorage.serverDevice
     @_resumeIRCConnection =>
-      @_displayFailedToConnect()
+      @_displayFailedToConnect connectInfo
 
   _useOwnConnection: ->
     clearTimeout @_useOwnConnectionTimeout
-    usingServerDeviceConnection = @_remoteConnection.getState() in ['connected', 'connecting']
+    usingServerDeviceConnection = @_remoteConnection.getState() in ['connected']
     if usingServerDeviceConnection
       @_remoteConnection.disconnectFromServer()
       return

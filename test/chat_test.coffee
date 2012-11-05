@@ -145,6 +145,14 @@ describe 'An IRC client front end', ->
       expect(irc 'freenode').not.toBeDefined()
       expect(rooms().length).toBe 2
 
+    it "displays restored private channels as connected", ->
+      irc('freenode').handle '1', {}, 'ournick' # rpl_welcome
+      irc('freenode').handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
+      restart()
+      expect(rooms().length).toBe 6
+      expect(textOfRoom 3).toBe 'someguy'
+      expect(room 3).not.toHaveClass 'disconnected'
+
   describe "that is connecting", ->
 
     beforeEach ->
@@ -602,3 +610,19 @@ describe 'An IRC client front end', ->
 
           expect(win.message).toHaveBeenCalledWith 'ournick', 'hi there',
               jasmine.any(String)
+
+        it "connects to a server even when the server connection takes a long time", ->
+          connect = undefined
+          RemoteDevice.onConnect = (callback) ->
+             connect = callback
+
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          delete state.ircState
+          chrome.storage.sync.set state
+          restart()
+
+          jasmine.Clock.tick(2000) # now using own connection
+          RemoteDevice.sendAuthentication.reset() # reset spy
+          connect true # server finally connects
+          expect(RemoteDevice.sendAuthentication).toHaveBeenCalled()
+          expect(client.remoteConnection.getState()).toBe 'connecting'
