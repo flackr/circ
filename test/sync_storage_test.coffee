@@ -4,7 +4,9 @@ describe 'IRC sync storage', ->
 
   beforeEach ->
     chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus',
-        'setNick', 'setPassword', 'determineConnection']
+        'setNick', 'setPassword']
+    chat.remoteConnectionHandler = jasmine.createSpyObj 'remoteConnectionHandler',
+        ['determineConnection']
     chat.remoteConnection = { isSupported: -> true }
     chat.remoteConnection.connectToServer = jasmine.createSpy 'connectToServer'
     chat.connections = { freenode: 'f', dalnet: 'd' }
@@ -108,4 +110,5 @@ describe 'IRC sync storage', ->
     sync.set { server_device: { addr: '1.1.1.1', port: 1 } }
     ss.loadConnectionInfo chat
     chrome.storage.update { server_device: { newValue: connectInfo } }, 'sync'
-    expect(chat.determineConnection).toHaveBeenCalledWith connectInfo
+    expect(chat.remoteConnectionHandler.determineConnection).
+        toHaveBeenCalledWith connectInfo

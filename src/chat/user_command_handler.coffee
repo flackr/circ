@@ -261,7 +261,7 @@ class UserCommandHandler extends MessageHandler
           "connect. Connected devices use the IRC connection of this device"
       run: ->
         state = @chat.remoteConnection.getState()
-        if @chat.shouldBeServerDevice()
+        if @chat.remoteConnectionHandler.shouldBeServerDevice()
           @displayMessage 'error', "this device is already acting as a " +
               "server"
         else if not chrome.socket?.listen
@@ -278,7 +278,7 @@ class UserCommandHandler extends MessageHandler
           @chat.remoteConnection.waitForPort => @run
         else
           @chat.syncStorage.becomeServerDevice @chat.remoteConnection.getConnectionInfo()
-          @chat.determineConnection()
+          @chat.remoteConnectionHandler.determineConnection()
 
     @_addCommand 'network-info',
       description: "displays network information including " +

@@ -43,7 +43,7 @@ class SyncStorage
         serverChange.newValue?.port
     if serverChange.newValue
       @serverDevice = serverChange.newValue
-      @_chat.determineConnection @serverDevice
+      @_chat.remoteConnectionHandler.determineConnection @serverDevice
     else if @serverDevice
       @_store 'server_device', @serverDevice
 
@@ -153,7 +153,7 @@ class SyncStorage
       @_store 'password', @password
     else @_log 'password loaded from storage:', @password
     @_chat.setPassword @password
-    @_chat.determineConnection()
+    @_chat.remoteConnectionHandler.determineConnection()
 
   _restoreServers: ->
     return unless servers = @_state.servers
@@ -212,7 +212,7 @@ class SyncStorage
     @serverDevice = @_state.server_device
     @_log 'no remote server found', @_state unless @serverDevice
     @_log 'loaded server device', @serverDevice if @serverDevice
-    @_chat.determineConnection()
+    @_chat.remoteConnectionHandler.determineConnection()
 
   becomeServerDevice: (connectionInfo) ->
     @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }
