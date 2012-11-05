@@ -58,9 +58,11 @@ class SyncStorage
     @_nick = nick
     @_store 'nick', nick
 
-  channelJoined: (server, name) ->
+  channelJoined: (server, name, type='normal') ->
     return if @_isDuplicateChannel server, name
-    @_channels.push { server, name }
+    channelObj = { server, name }
+    channelObj.type = type unless type is 'normal'
+    @_channels.push channelObj
     @_store 'channels', @_channels
 
   _isDuplicateChannel: (server, name) ->

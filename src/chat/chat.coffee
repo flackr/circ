@@ -158,9 +158,8 @@ class Chat extends EventEmitter
     if conn?.irc.isOwnNick chan
       return chat.NO_WINDOW unless e.name is 'privmsg'
       from = e.args?[0]
-      conn.windows[from] ?= @_createWindowForChannel conn, from
-      conn.windows[from].makePrivate()
-      @channelDisplay.connect conn.name, from
+      unless conn.windows[from]
+        @createPrivateMessageWindow conn, from
       return conn.windows[from]
 
     if not chan or chan is chat.SERVER_WINDOW
@@ -170,6 +169,12 @@ class Chat extends EventEmitter
     if conn.windows[chan]
       return conn.windows[chan]
     return chat.NO_WINDOW
+
+  createPrivateMessageWindow: (conn, from) ->
+    conn.windows[from] = @_createWindowForChannel conn, from
+    conn.windows[from].makePrivate()
+    @channelDisplay.connect conn.name, from
+    @syncStorage.channelJoined conn.name, from, 'private'
 
   onConnected: (conn) ->
     @displayMessage 'connect', {server: conn.name}
