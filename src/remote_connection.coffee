@@ -1,5 +1,9 @@
 exports = window
 
+##
+# Handles sending and receiving data from connected devices running different
+# instances of CIRC.
+##
 class RemoteConnection extends EventEmitter
 
   constructor: ->
@@ -18,6 +22,9 @@ class RemoteConnection extends EventEmitter
   setPassword: (password) ->
     @_password = password
 
+  _getAuthToken: (value) =>
+    hex_md5 @_password + value
+
   getConnectionInfo: ->
     @_thisDevice
 
@@ -33,9 +40,6 @@ class RemoteConnection extends EventEmitter
 
   setChatLogFetcher: (getChatLog) ->
     @_getChatLog = getChatLog
-
-  _getAuthToken: (value) =>
-    hex_md5 @_password + value
 
   _onHasOwnDevice: (device) =>
     @_thisDevice = device
@@ -133,6 +137,12 @@ class RemoteConnection extends EventEmitter
       return true if device.equals clientDevice
     return false
 
+  ##
+  # Create a socket for the given server. A fake socket is used when using
+  # another devices IRC connection.
+  # @param {string} server The name of the IRC server that the socket is
+  #     connected to.
+  ##
   createSocket: (server) ->
     if @isClient()
       socket = new net.RemoteSocket

@@ -1,6 +1,8 @@
 exports = window.chat ?= {}
 
-# TODO show servers as well as channels
+##
+# A list of servers and channels to which the user is connected.
+##
 class ChannelList extends EventEmitter
   constructor: ->
     super

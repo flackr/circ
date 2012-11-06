@@ -1,5 +1,8 @@
 exports = window.irc ?= {}
 
+##
+# Handles messages from an IRC server.
+##
 class ServerResponseHandler extends MessageHandler
 
   constructor: (@irc) ->

@@ -1,5 +1,8 @@
 exports = window.chat ?= {}
 
+##
+# Wrapper around chrome.storage.sync.
+##
 class SyncStorage
 
   @STATE_ITEMS = ['nick', 'servers', 'channels']

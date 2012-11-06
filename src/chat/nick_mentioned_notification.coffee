@@ -1,5 +1,9 @@
 exports = window.chat ?= {}
 
+##
+# A notification used when the user's nick is mentioned.
+# Provides functions for determining if a nick was mentioned.
+##
 class NickMentionedNotification extends window.chat.Notification
   constructor: (channel, from, msg) ->
     msg = msg[..72] + '...' if msg.length > 75

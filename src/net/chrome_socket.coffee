@@ -1,5 +1,8 @@
 exports = window.net ?= {}
 
+##
+# A socket connected to an IRC server. Uses chrome.socket.
+##
 class ChromeSocket extends net.AbstractTCPSocket
   connect: (host, port) ->
     @_active()

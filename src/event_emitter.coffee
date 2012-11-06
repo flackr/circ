@@ -1,5 +1,8 @@
 exports = window
 
+##
+# Manages the sending and receiving of events.
+##
 class EventEmitter
   constructor: ->
     @_log = getLogger this

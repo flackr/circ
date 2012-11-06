@@ -1,5 +1,8 @@
 exports = window
 
+##
+# Utility class for determining the time between events.
+##
 class Timer
 
   # Maps events to their timing information.

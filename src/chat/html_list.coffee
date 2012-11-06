@@ -1,5 +1,8 @@
 exports = window.chat ?= {}
 
+##
+# A list of elements that can be manipulated.
+##
 class HTMLList extends EventEmitter
   constructor: (@$list, @$template) ->
     @nodes = {}

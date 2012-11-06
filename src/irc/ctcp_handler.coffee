@@ -1,5 +1,8 @@
 exports = window.irc ?= {}
 
+##
+# Handles CTCP requests such as VERSION, PING, etc.
+##
 class CTCPHandler
   constructor: ->
     @_delimeter = '\u0001'

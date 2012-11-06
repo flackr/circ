@@ -1,5 +1,9 @@
 exports = window.chat ?= {}
 
+##
+# Handles user commands, including providing help messages and determining if a
+# command can be run in the current context.
+##
 class UserCommandHandler extends MessageHandler
   constructor: (@chat) ->
     @_handlers = {}

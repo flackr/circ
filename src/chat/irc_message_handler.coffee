@@ -1,5 +1,8 @@
 exports = window.chat ?= {}
 
+##
+# Handles messages to be displayed in a window.
+##
 class IRCMessageHandler extends MessageHandler
   constructor: (@_chat) ->
     @_formatter = new window.chat.MessageFormatter

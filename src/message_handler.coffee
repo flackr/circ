@@ -1,5 +1,8 @@
 exports = window
 
+##
+# Generic message handling class.
+##
 class MessageHandler
   constructor: () ->
     @_log = getLogger this

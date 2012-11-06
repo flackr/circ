@@ -1,5 +1,9 @@
 exports = window
 
+##
+# Represents a device running CIRC and handles communication to/from that
+# device.
+##
 class RemoteDevice extends EventEmitter
 
   # Begin at this port and increment by one until an open port is found.

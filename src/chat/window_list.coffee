@@ -1,5 +1,9 @@
 exports = window.chat ?= {}
 
+##
+# An ordered list of windows with channels sorted by server then alphebetically
+# by name.
+##
 class WindowList
   constructor: ->
     @_servers = []

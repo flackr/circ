@@ -1,5 +1,9 @@
 exports = (window.chat ?= {}).window ?= {}
 
+##
+# Handles outputing text to the window and provides functions to display
+# some specific messages like help and about.
+##
 class MessageRenderer
 
   @PROJECT_URL = "noahsug.github.com/circ"

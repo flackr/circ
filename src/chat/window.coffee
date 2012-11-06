@@ -1,6 +1,10 @@
 exports = window.chat ?= {}
 
+##
+# A window for a specific IRC channel.
+##
 class Window extends EventEmitter
+
   ##
   # The screen will auto scroll as long as the user didn't scroll up more then
   # this many pixels.

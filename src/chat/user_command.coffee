@@ -1,11 +1,24 @@
 exports = window.chat ?= {}
 
+##
+# Represents a user command, like /kick or /say.
+##
 class UserCommand
   constructor: (name, @description) ->
     @name = name
     @describe @description
     @_validArgs = false
 
+  ##
+  # Describe the command using the following format:
+  # * description - a description of what the command does; used with /help
+  # * params - what parameters the command takes, 'opt_<name>' for optional,
+  #       '<name>...' for variable
+  # * parseArgs - a function that parses the args and checks for validity
+  # * requires - what the command requires to run (e.g. a connections to an IRC server)
+  # * usage - manually set a usage message, one will be generated if not specified
+  # * run - the function to call when the command is run
+  ##
   describe: (description) ->
     @_description ?= description.description
     @_params ?= description.params

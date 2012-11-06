@@ -1,5 +1,9 @@
 exports = window
 
+##
+# Manages keyboard and hotkey input from the user, including autocomplete and
+# traversing through previous commands.
+##
 class UserInputHandler extends EventEmitter
   @ENTER_KEY = 13
   @UP = 38
@@ -68,6 +72,9 @@ class UserInputHandler extends EventEmitter
         @_sendUserCommand()
     true
 
+  ##
+  # Wrap the input in an event and emit it.
+  ##
   _sendUserCommand: =>
     @_inputStack.addInput @text
     words = @text.split(/\s/)

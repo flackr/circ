@@ -1,7 +1,11 @@
 exports = window
 
-
+##
+# Takes a string and replaces a word with its completion based on the cursor position.
+# Currently only supports completion of nicks in the current window.
+##
 class AutoComplete
+
   ##
   # Inserted after a nick which is at the start of the input is auto-completed.
   # @const
@@ -13,7 +17,7 @@ class AutoComplete
 
   ##
   # Set the context from which the list of nicks can be generated.
-  # @param {Object} context
+  # @param {{currentWindow: {target: string, conn: Object}}} context
   ##
   setContext: (context) ->
     @_context = context
@@ -55,7 +59,7 @@ class AutoComplete
     @_updatedCursorPosition ? 0
 
   ##
-  # Returns the completion for the current stub with the completion suffix and/
+  # Returns the completion for the current stub with the completion suffix and
   # or space after.
   ##
   _getCompletion: ->

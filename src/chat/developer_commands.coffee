@@ -1,5 +1,11 @@
 exports = window.chat ?= {}
 
+##
+# Special commands used to make testing easier. These commands are not
+# displayed in /help.
+#
+# TODO: Remote these commands when pushing a public build.
+##
 class DeveloperCommands extends MessageHandler
   constructor: (@_chat) ->
     super

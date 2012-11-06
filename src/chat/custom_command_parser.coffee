@@ -1,5 +1,8 @@
 exports = window.chat ?= {}
 
+##
+# Parses raw commands from the user. Used with the /do command.
+##
 class CustomCommandParser
 
   parse: (channel, args...) ->

@@ -1,5 +1,8 @@
 exports = window.irc ?= {}
 
+##
+# Represents a connection to an IRC server.
+##
 class IRC extends EventEmitter
   constructor: (opt_socket) ->
     super

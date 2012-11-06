@@ -1,13 +1,13 @@
 exports = window.chat ?= {}
 
+##
+# A wrapper around a webkit notification. Used to display desktop notifications.
+##
 class Notification extends EventEmitter
 
   # The default image to display on notifications
   @defaultImage: 'http://sourceforge.net/p/acupofjavachat/icon'
 
-  ##
-  # A wrapper around a webkit notification. Used to display desktop notifications.
-  ##
   constructor: (@_title, @_message, @_image=Notification.defaultImage) ->
     super
     @_createNotification()
