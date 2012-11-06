@@ -5,6 +5,10 @@ body {
   margin: 0;
 }
 
+hidden {
+  display: none;
+}
+
 #templates {
   display: none;
 }
@@ -166,10 +170,21 @@ ul {
 #notice button {
   float: right;
   height: 22px;
-  width: 50px;
   font-family: "Roboto";
-  padding: 0px;
-  margin: 4px 14px;
+  padding: 0px 4px;
+  margin: 4px;
+  border: none;
+  background-color: #ECECEC;
+  color: #505053;
+  cursor: pointer;
+}
+
+#notice button:first-child {
+  margin-right: 8x;
+  font-size: 12;
+  border-radius: 42px;
+  width: 21px;
+  height: 21px;
 }
 
 #messages-and-input {

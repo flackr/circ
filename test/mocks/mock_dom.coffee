@@ -45,6 +45,12 @@ class DOM
     </div>
 
     <div id='messages-and-input'>
+      <div id='notice'>
+        <div class='content'></div>
+        <button class='close'>X</button>
+        <button class='option2 hidden'></button>
+        <button class='option1 hidden'></button>
+      </div>
       <div id='messages-container'></div>
       <div id='status-and-input'>
         <div id='status' class='content-item'></div>
