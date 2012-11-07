@@ -32,11 +32,10 @@ class Notice
     @_show()
 
   _parseRepresentation: (representation) ->
-    options = representation.match /\[.+?\]/g
-    if options
-      @_setOptionText @$option1, options[0]
-      @_setOptionText @$option2, options[1]
     @_setMessageText representation
+    options = representation.match /\[.+?\]/g
+    @_setOptionText @$option1, options?[0]
+    @_setOptionText @$option2, options?[1]
 
   _setMessageText: (representation) ->
     representation = representation.split('[')[0]
