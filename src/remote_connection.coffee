@@ -154,7 +154,7 @@ class RemoteConnection extends EventEmitter
 
   broadcastUserInput: (userInput) ->
     userInput.on 'command', (event) =>
-      unless event.name in ['network-info', 'join-server']
+      unless event.name in ['network-info', 'join-server', 'make-server', 'about']
         @_broadcast 'user_input', event
 
   broadcastSocketData: (socket, server) ->
