@@ -11,11 +11,14 @@ class Chat extends EventEmitter
     devCommands = new chat.DeveloperCommands this
     @userCommands.merge devCommands
 
-    @_initializeRemoteConnection()
     @_initializeUI()
+    @_initializeRemoteConnection()
     @_initializeSyncStorage()
 
     @updateStatus()
+
+  tearDown: ->
+    @emit 'tear_down'
 
   _initializeUI: ->
     @winList = new chat.WindowList
@@ -269,10 +272,10 @@ class Chat extends EventEmitter
   _updateDocumentTitle: ->
     titleList = []
     titleList.push "CIRC #{irc.VERSION}"
-    if @remoteConnection.isClient()
+    if @remoteConnection?.isClient()
       titleList.push '- Connected through ' +
           @remoteConnection.serverDevice.addr
-    else if @remoteConnection.isServer()
+    else if @remoteConnection?.isServer()
       connectedDevices = @remoteConnection.devices.length
       titleList.push "- Server for #{connectedDevices} " +
           "other #{pluralize 'device', connectedDevices}"

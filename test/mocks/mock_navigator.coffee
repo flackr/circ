@@ -4,13 +4,17 @@ class Navigator
 
   useMock: ->
     window.navigator = exports.navigator
-    @goOnline()
-
-  goOnline: ->
     @onLine = true
 
+  goOnline: ->
+    wasOffline = not @onLine
+    @onLine = true
+    $(window).trigger 'online' if wasOffline
+
   goOffline: ->
+    wasOnline = @onLine
     @onLine = false
+    $(window).trigger 'offline' if wasOnline
 
   onLine: true
 

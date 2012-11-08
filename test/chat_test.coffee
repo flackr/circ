@@ -31,9 +31,13 @@ describe 'An IRC client front end', ->
     prompt.val(text)
     commandInput._handleKeydown { which: 13, preventDefault: -> }
 
+  noticeIsVisible = ->
+    $("#notice")[0].style.top is "0px"
+
   restart = ->
     RemoteDevice.devices = []
     mocks.dom.tearDown()
+    client.tearDown()
     mocks.dom.setUp()
     init()
 
@@ -66,6 +70,7 @@ describe 'An IRC client front end', ->
   afterEach ->
     mocks.dom.tearDown()
     chrome.storage.sync.clear()
+    client.tearDown()
 
   it "displays the preferred nick in the status bar", ->
     expect($ '#status').toHaveText 'ournick'
@@ -88,6 +93,11 @@ describe 'An IRC client front end', ->
     type '/op bob'
     type '/msg someguy'
     type '/mode sally +o'
+
+  it "displays a prompt internet connectivity is lost", ->
+    expect(noticeIsVisible()).toBe false
+    mocks.navigator.goOffline()
+    expect(noticeIsVisible()).toBe true
 
   describe "sync storage", ->
 
@@ -411,6 +421,13 @@ describe 'An IRC client front end', ->
           authToken = client.remoteConnection._getAuthToken device.addr
           device.emit 'authenticate', device, authToken
 
+        becomeClient = (opt_state) ->
+          state = opt_state if opt_state
+          (device 1).emit 'connection_message', device(1), 'irc_state', state
+
+        receiveChatHistory = (chatHistory) ->
+          device(1).emit 'connection_message', device(1), 'chat_log', chatHistory
+
         beforeEach ->
           state = getState()
           onAuth = spyOn mocks.RemoteDevice, 'sendAuthentication'
@@ -422,7 +439,7 @@ describe 'An IRC client front end', ->
         it "becomes a client after receiving IRC state", ->
           type "/join-server 1.1.1.2 1336"
           expect(client.remoteConnection.isClient()).toBe false
-          (device 1).emit 'connection_message', device(1), 'irc_state', []
+          becomeClient []
           expect(client.remoteConnection.isClient()).toBe true
 
         it "doesn't add a client before authentication", ->
@@ -437,13 +454,13 @@ describe 'An IRC client front end', ->
 
         it "disconnects from the current connection before using the server device's connection", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', device(1), 'irc_state', []
+          becomeClient []
           expect(rooms().length).toBe 1
           expect(client.connections['freenode']).not.toBeDefined()
 
         it "can load the IRC state from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', device(1), 'irc_state', state
+          becomeClient()
 
           expect(rooms().length).toBe 4
           expect(irc('freenode').state).toBe 'connected'
@@ -462,12 +479,12 @@ describe 'An IRC client front end', ->
           type "/join-server 1.1.1.2 1336"
           state.ircStates[0].nick = undefined
           state.nick = undefined
-          (device 0).emit 'connection_message', device(0), 'irc_state', state
+          becomeClient()
           expect(irc('freenode').preferredNick).toBeDefined()
 
         it "can listen to user input from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', device(1), 'irc_state', state
+          becomeClient()
           event = new Event 'command', 'nick', 'newnick'
           event.setContext 'freenode'
           spyOn client, 'setNick'
@@ -476,14 +493,14 @@ describe 'An IRC client front end', ->
 
         it "can listen to socket data from the server device", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', device(1), 'irc_state', state
+          becomeClient()
           spyOn irc('freenode'), 'onDrain'
           (device 1).emit 'socket_data', device(1), 'freenode', 'drain'
           expect(irc('freenode').onDrain).toHaveBeenCalled()
 
         it "uses own connection after connection to the server is lost", ->
           type "/join-server 1.1.1.2 1336"
-          (device 1).emit 'connection_message', device(1), 'irc_state', []
+          becomeClient []
           spyOn client, 'closeAllConnections'
           (device 1).emit 'closed', device(1)
           expect(client.remoteConnection.isIdle()).toBe true
@@ -602,10 +619,10 @@ describe 'An IRC client front end', ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           restart()
 
-          device(1).emit 'connection_message', device(1), 'irc_state', state
+          becomeClient()
           win = client.winList.get('freenode', '#bash')
           spyOn win, 'message'
-          device(1).emit 'connection_message', device(1), 'chat_log', chatHistory
+          receiveChatHistory chatHistory
 
           expect(client.remoteConnection.isClient()).toBe true
 
@@ -644,4 +661,29 @@ describe 'An IRC client front end', ->
           connect true # server finally connects
 
           expect(RemoteDevice.sendAuthentication).not.toHaveBeenCalled()
-          expect($("#notice")[0].style.top).toBe "0px"
+          expect(noticeIsVisible()).toBe true
+
+        it "closes sockets when internect connection lost", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          delete state.ircState
+          chrome.storage.sync.set state
+          restart()
+
+          becomeClient()
+          spyOn device(1), 'close'
+          mocks.navigator.goOffline()
+          expect(noticeIsVisible()).toBe true
+          expect(device(1).close).toHaveBeenCalled()
+
+        it "establishes connection when internet is renabled", ->
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          delete state.ircState
+          chrome.storage.sync.set state
+          restart()
+
+          becomeClient()
+          mocks.navigator.goOffline()
+          expect(client.remoteConnection.getState()).not.toBe 'connecting'
+          expect(noticeIsVisible()).toBe true
+          mocks.navigator.goOnline()
+          expect(client.remoteConnection.getState()).toBe 'connecting'

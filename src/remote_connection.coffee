@@ -217,8 +217,9 @@ class RemoteConnection extends EventEmitter
   ##
   connectToServer: (connectInfo) ->
     if @_connectingTo
-      @_connectingTo.close()
-      delete @_connectingTo
+      deviceToClose = @_connectingTo
+      @_connectingTo = undefined
+      deviceToClose.close()
 
     @_state = 'connecting'
     device = new RemoteDevice connectInfo.addr, connectInfo.port

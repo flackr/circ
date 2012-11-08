@@ -11,13 +11,16 @@ class RemoteDevice extends EventEmitter
     @willConnect = true
     @devices = []
 
-  @sendAuthentication: ->
+    @onConnect = (callback) ->
+      callback RemoteDevice.willConnect
 
-  @onConnect: (callback) ->
-    callback RemoteDevice.willConnect
+    @sendAuthentication = ->
 
   equals: (o) ->
     o?.id is @id
+
+  usesConnection: (connectionInfo) ->
+    return connectionInfo.addr is @addr and connectionInfo.port is @port
 
   getState: ->
     RemoteDevice.state

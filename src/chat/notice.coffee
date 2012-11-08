@@ -36,8 +36,8 @@ class Notice
 
   _hide: ->
     @$notice[0].style.top = "-35px"
-    @$option1.unbind 'click'
-    @$option2.unbind 'click'
+    @$option1.off 'click'
+    @$option2.off 'click'
 
   _show: ->
     @$notice[0].style.top = "0px"

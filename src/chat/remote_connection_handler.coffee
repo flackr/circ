@@ -22,6 +22,21 @@ class RemoteConnectionHandler
     @_log = getLogger this
     @_timer = new Timer()
     @_chat = chat
+    @_addConnectionChangeListeners()
+    chat.on 'tear_down', @_tearDown
+    if not isOnline()
+      @_chat.notice.prompt "No internet connection found. You will be unable to connect to IRC."
+
+  _tearDown: =>
+    @_removeConnectionChangeListeners()
+
+  _addConnectionChangeListeners: ->
+    $(window).on 'online', @_onOnline
+    $(window).on 'offline', @_onOffline
+
+  _removeConnectionChangeListeners: ->
+    $(window).off 'online', @_onOnline
+    $(window).off 'offline', @_onOffline
 
   ##
   # Set the storage handler which is used to store IRC states and which device
@@ -43,6 +58,15 @@ class RemoteConnectionHandler
   setRemoteConnection: (remoteConnection) ->
     @_remoteConnection = remoteConnection
     @_listenToRemoteConnectionEvents()
+
+  _onOnline: =>
+    @_chat.notice.close()
+    @_timer.start 'started_connection'
+    @determineConnection()
+
+  _onOffline: =>
+    @_chat.notice.prompt "You lost connection to the internet. You will be unable to connect to IRC."
+    @_chat.remoteConnection.disconnectDevices()
 
   _listenToRemoteConnectionEvents: ->
     @_chat.userCommands.listenTo @_remoteConnection
@@ -66,9 +90,12 @@ class RemoteConnectionHandler
         @_remoteConnection.finalizeConnection()
 
     @_remoteConnection.on 'invalid_server', (connectInfo) =>
-      unless @_reconnectionAttempt
+      if @_chat.remoteConnection.isInitializing()
+        @_onConnected = => @_displayFailedToConnect()
+      else if not @_reconnectionAttempt
         @_displayFailedToConnect connectInfo
       @_reconnectionAttempt = false
+
       @_useOwnConnection()
       @_tryToReconnectToServerDevice()
 
@@ -88,9 +115,8 @@ class RemoteConnectionHandler
           "server device #{connInfo.toString()}"
 
     @_remoteConnection.on 'server_disconnected', =>
-      @_serverDisconnected = true
+      @_onConnected = => @_displayLostConnectionMessage()
       @determineConnection()
-      @_serverDisconnected = false
 
     @_remoteConnection.on 'client_joined', (client) =>
       @_chat.displayMessage 'notice', @_chat.getCurrentContext(), client.addr +
@@ -109,6 +135,7 @@ class RemoteConnectionHandler
     message = "Device discovered. Would you like to connect and use its IRC " +
         "connection? [connect]"
     @_chat.notice.prompt message, =>
+      @_reconnectionAttempt = false
       @_chat.remoteConnection.finalizeConnection()
 
   _displayFailedToConnect: (connectInfo) ->
@@ -178,8 +205,9 @@ class RemoteConnectionHandler
     return unless @_remoteConnection.isInitializing()
     @_remoteConnection.becomeIdle()
     connectInfo = @_chat.syncStorage.serverDevice
-    @_resumeIRCConnection =>
+    @_onConnected = =>
       @_displayFailedToConnect connectInfo
+    @_resumeIRCConnection()
 
   _useOwnConnection: ->
     clearTimeout @_useOwnConnectionTimeout
@@ -238,15 +266,14 @@ class RemoteConnectionHandler
     @_remoteConnection.becomeServer()
     @_storage.becomeServerDevice @_remoteConnection.getConnectionInfo()
 
-  _resumeIRCConnection: (opt_callback) ->
+  _resumeIRCConnection: ->
     @_timer.start 'started_connection'
     @_log 'resuming IRC conn'
     @_chat.closeAllConnections()
-    shouldDisplayLostConnectionMessage = @_serverDisconnected
     @_storage.restoreSavedState @_chat, =>
       @_chat.messageHandler.replayChatLog()
       @_storage.resume()
-      @_displayLostConnectionMessage() if shouldDisplayLostConnectionMessage
-      opt_callback?()
+      @_onConnected() if @_onConnected
+      @_onConnected = undefined
 
 exports.RemoteConnectionHandler = RemoteConnectionHandler

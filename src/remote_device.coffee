@@ -170,6 +170,10 @@ class RemoteDevice extends EventEmitter
 
   close: ->
     if @_socketId
+      try
+        chrome.socket?.disconnect @_socketId
+      catch error
+        @_log 'w', 'failed to disconnect socket:', error
       chrome.socket?.destroy @_socketId
       @emit 'closed', this
 
