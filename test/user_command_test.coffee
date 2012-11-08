@@ -43,6 +43,7 @@ describe 'A user command', ->
         channels: {}
 
   beforeEach ->
+    mocks.navigator.useMock()
     onRun.reset()
     win = getWindow()
     eatCommand = new chat.UserCommand 'eat', eatCommandDescription

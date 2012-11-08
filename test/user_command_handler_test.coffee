@@ -2,7 +2,9 @@ describe 'A user command handler', ->
   win = onMode = onJoin = onMe = handler = undefined
 
   onMessage = jasmine.createSpy 'onMessage'
-  context = { determineWindow: -> win }
+  context =
+    determineWindow: -> win
+    syncStorage: { }
 
   getWindow = ->
     message: onMessage
@@ -15,6 +17,7 @@ describe 'A user command handler', ->
         channels: {}
 
   beforeEach ->
+    mocks.navigator.useMock()
     onMessage.reset()
     win = getWindow()
     handler = new chat.UserCommandHandler context
@@ -67,3 +70,13 @@ describe 'A user command handler', ->
     onOp = spyOn handler._handlers.op, 'run'
     handler.handle 'op', {}, 'othernick'
     expect(onOp).toHaveBeenCalled()
+
+  it "only runs /join-server when online", ->
+    onJoinServer = spyOn handler._handlers['join-server'], 'run'
+    handler.handle 'join-server', {}
+    expect(onJoinServer).toHaveBeenCalled()
+
+    mocks.navigator.goOffline()
+    handler._handlers['join-server'].run.reset()
+    handler.handle 'join-server', {}
+    expect(onJoinServer).not.toHaveBeenCalled()

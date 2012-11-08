@@ -93,7 +93,8 @@ class UserCommand
 
   _meetsRequirement: (requirement) ->
     switch requirement
-      when 'connection' then !!@conn
+      when 'online' then isOnline()
+      when 'connection' then !!@conn and isOnline()
       when 'channel' then !!@chan
       else @conn?.irc.state is requirement
 

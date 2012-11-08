@@ -90,6 +90,7 @@ class UserCommandHandler extends MessageHandler
       description: 'connects to the server, port 6667 is used by default, ' +
           "reconnects to the current server if no server is specified"
       params: ['opt_server', 'opt_port']
+      requires: ['online']
       parseArgs: ->
         @port ?= parseInt(@server) || 6667
         @port = parseInt(@port)
@@ -239,6 +240,7 @@ class UserCommandHandler extends MessageHandler
           "to be logged in with the same nick on multiple devices. " +
           "Connects to the device that called /make-server if no arguments " +
           "are given"
+      requires: ['online']
       params: ['opt_addr', 'opt_port']
       parseArgs: ->
         parsedPort = parseInt(@port)
@@ -264,6 +266,7 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'make-server',
       description: "makes this device a server to which other devices can " +
           "connect. Connected devices use the IRC connection of this device"
+      requires: ['online']
       run: ->
         state = @chat.remoteConnection.getState()
         if @chat.remoteConnectionHandler.shouldBeServerDevice()

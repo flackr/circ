@@ -126,6 +126,8 @@ class RemoteConnectionHandler
   # device's IRC connection.
   ##
   determineConnection: ->
+    return unless isOnline()
+
     @_log 'determining connection...', @_remoteConnection.getConnectionInfo().addr,
         @_storage.loadedServerDevice, @_storage.password
     return unless @_remoteConnection.getConnectionInfo().addr and

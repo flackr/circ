@@ -52,6 +52,7 @@ describe 'An IRC client front end', ->
     client.listenToIRCEvents scriptHandler
 
   beforeEach ->
+    mocks.navigator.useMock()
     mocks.ChromeSocket.useMock()
     mocks.RemoteDevice.useMock()
     mocks.NickMentionedNotification.useMock()
