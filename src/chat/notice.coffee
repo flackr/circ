@@ -31,6 +31,17 @@ class Notice
     @$option2.click => @_hide(); @_callbacks[1]?()
     @_show()
 
+  close: ->
+    @_hide()
+
+  _hide: ->
+    @$notice[0].style.top = "-35px"
+    @$option1.unbind 'click'
+    @$option2.unbind 'click'
+
+  _show: ->
+    @$notice[0].style.top = "0px"
+
   _parseRepresentation: (representation) ->
     @_setMessageText representation
     options = representation.match /\[.+?\]/g
@@ -48,13 +59,5 @@ class Notice
       button.text text
     else if not button.hasClass 'hidden'
       button.addClass 'hidden'
-
-  _hide: ->
-    @$notice[0].style.top = "-35px"
-    @$option1.unbind 'click'
-    @$option2.unbind 'click'
-
-  _show: ->
-    @$notice[0].style.top = "0px"
 
 exports.Notice = Notice

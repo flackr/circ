@@ -24,6 +24,11 @@ describe "A notice", ->
     notice.prompt "Device detected"
     expect(isVisible()).toBe true
 
+  it "can be manually closed with close()", ->
+    notice.prompt "Device detected"
+    notice.close()
+    expect(isVisible()).toBe false
+
   it "is closed when the close button is clicked", ->
     notice.prompt "Device detected"
     $("#notice .close").click()

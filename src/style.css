@@ -5,7 +5,7 @@ body {
   margin: 0;
 }
 
-hidden {
+.hidden {
   display: none;
 }
 
@@ -179,7 +179,7 @@ ul {
   cursor: pointer;
 }
 
-#notice button:first-child {
+#notice button.close {
   margin-right: 8x;
   font-size: 12;
   border-radius: 42px;

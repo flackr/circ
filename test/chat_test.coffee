@@ -621,8 +621,26 @@ describe 'An IRC client front end', ->
           chrome.storage.sync.set state
           restart()
 
-          jasmine.Clock.tick(2000) # now using own connection
+          jasmine.Clock.tick(900) # now using own connection
           RemoteDevice.sendAuthentication.reset() # reset spy
           connect true # server finally connects
           expect(RemoteDevice.sendAuthentication).toHaveBeenCalled()
           expect(client.remoteConnection.getState()).toBe 'connecting'
+
+        it "displays a prompt when connecting to the server device would be abrupt", ->
+          connect = undefined
+          RemoteDevice.onConnect = (callback) ->
+             connect = callback
+
+          chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
+          delete state.ircState
+          chrome.storage.sync.set state
+          restart()
+
+          RemoteDevice.sendAuthentication.reset()
+          client.remoteConnectionHandler._timer.elapsed = -> 5000
+          jasmine.Clock.tick(5000) # been using own connection for a while now
+          connect true # server finally connects
+
+          expect(RemoteDevice.sendAuthentication).not.toHaveBeenCalled()
+          expect($("#notice")[0].style.top).toBe "0px"

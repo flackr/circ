@@ -124,6 +124,9 @@ class RemoteConnection extends EventEmitter
       @_type = undefined
       @emit 'server_disconnected'
 
+    else if closedDevice.equals(@_connectingTo) and @getState() isnt 'connected'
+      @emit 'invalid_server'
+
     for device, i in @devices
       @devices.splice i, 1 if device.id is closedDevice.id
       break

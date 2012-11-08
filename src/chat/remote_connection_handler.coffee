@@ -7,7 +7,12 @@ class RemoteConnectionHandler
 
   # Number of ms to wait for a connection to be established to a server device
   # before using our own IRC connection.
-  @SERVER_DEVICE_CONNECTION_WAIT = 500
+  @SERVER_DEVICE_CONNECTION_WAIT = 650
+
+  # If this many milliseconds go by after the user has connected to their own
+  # IRC connection, we will notify them before switching to a remote server
+  # connection.
+  @NOTIFY_BEFORE_CONNECTING = 1500
 
   # Number of ms to wait before trying to reconnect to the server device.
   @SERVER_DEVICE_RECONNECTION_WAIT = 500
@@ -15,6 +20,7 @@ class RemoteConnectionHandler
 
   constructor: (chat) ->
     @_log = getLogger this
+    @_timer = new Timer()
     @_chat = chat
 
   ##
@@ -50,8 +56,14 @@ class RemoteConnectionHandler
     @_remoteConnection.on 'no_port', =>
       @_useOwnConnection()
 
-    @_remoteConnection.on 'server_found', =>
-      @_remoteConnection.finalizeConnection()
+     @_remoteConnection.on 'server_found', =>
+      @_chat.notice.close()
+      abruptSwitch = @_timer.elapsed('started_connection') >
+          chat.RemoteConnectionHandler.NOTIFY_BEFORE_CONNECTING
+      if abruptSwitch
+        @_notifyConnectionAvailable()
+      else
+        @_remoteConnection.finalizeConnection()
 
     @_remoteConnection.on 'invalid_server', (connectInfo) =>
       unless @_reconnectionAttempt
@@ -61,6 +73,7 @@ class RemoteConnectionHandler
       @_tryToReconnectToServerDevice()
 
     @_remoteConnection.on 'irc_state', (state) =>
+      @_timer.start 'started_connection'
       @_reconnectionAttempt = false
       @_storage.pause()
       @_chat.closeAllConnections()
@@ -88,6 +101,15 @@ class RemoteConnectionHandler
       @_chat.displayMessage 'notice', @_chat.getCurrentContext(), client.addr +
           ' disconnected from this device'
       @_chat.updateStatus()
+
+  isManuallyConnecting: ->
+    @_timer.start 'started_connection'
+
+  _notifyConnectionAvailable: ->
+    message = "Device discovered. Would you like to connect and use its IRC " +
+        "connection? [connect]"
+    @_chat.notice.prompt message, =>
+      @_chat.remoteConnection.finalizeConnection()
 
   _displayFailedToConnect: (connectInfo) ->
     connectInfo = @_storage.serverDevice
@@ -165,6 +187,7 @@ class RemoteConnectionHandler
       return
 
     if @shouldBeServerDevice()
+      @_chat.notice.close()
       @_stopServerReconnectAttempts()
       @_tryToBecomeServerDevice()
       return
@@ -214,6 +237,7 @@ class RemoteConnectionHandler
     @_storage.becomeServerDevice @_remoteConnection.getConnectionInfo()
 
   _resumeIRCConnection: (opt_callback) ->
+    @_timer.start 'started_connection'
     @_log 'resuming IRC conn'
     @_chat.closeAllConnections()
     shouldDisplayLostConnectionMessage = @_serverDisconnected

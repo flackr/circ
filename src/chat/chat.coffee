@@ -19,6 +19,7 @@ class Chat extends EventEmitter
 
   _initializeUI: ->
     @winList = new chat.WindowList
+    @notice = new chat.Notice
     @channelDisplay = new chat.ChannelList()
     @channelDisplay.on 'clicked', (server, chan) =>
       win = @winList.get server, chan

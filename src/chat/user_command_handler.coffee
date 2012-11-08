@@ -255,6 +255,7 @@ class UserCommandHandler extends MessageHandler
                 "have them connect to this device or call /make-server on " +
                 "another device to make it the server"
           else
+            @chat.remoteConnectionHandler.isManuallyConnecting()
             @chat.remoteConnection.connectToServer { port: @port, addr: @addr }
         else
           @displayMessage 'error', "No server exists. Use /make-server " +
