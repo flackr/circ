@@ -28,6 +28,7 @@ class RemoteDevice extends EventEmitter
   constructor: (@addr, @port) ->
     super
     @id = @addr ? RemoteDevice.devices.length
+    @addr ?= '1.1.1.' + (RemoteDevice.devices.length + 1)
     RemoteDevice.devices.push this
 
   @getOwnDevice: (callback) ->
@@ -35,20 +36,14 @@ class RemoteDevice extends EventEmitter
     device.possibleAddrs = ['1.1.1.1']
     callback device
 
-  send: ->
+  send: (type) ->
+    @sendType = type
 
   listenForNewDevices: (callback) ->
     RemoteDevice.onNewDevice = callback
 
   connect: (callback) ->
     RemoteDevice.onConnect callback
-
-  sendAuthentication: (getAuthToken) ->
-    RemoteDevice.sendAuthentication getAuthToken '1.1.1.1'
-
-  getAddr: (callback) ->
-    @addr = '1.1.1.' + (RemoteDevice.devices.length + 1)
-    callback @addr
 
   close: ->
 

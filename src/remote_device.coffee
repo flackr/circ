@@ -117,8 +117,17 @@ class RemoteDevice extends EventEmitter
     chrome.socket?.accept @_socketId, (acceptInfo) =>
       return unless acceptInfo.socketId
       @_log 'Connected to a client device', @_socketId
-      callback new RemoteDevice acceptInfo.socketId
+      device = new RemoteDevice acceptInfo.socketId
+      device.getAddr => callback device
       @_acceptNewConnection callback
+
+  ##
+  # Called when acting as a server. Finds the client ip address.
+  ##
+  getAddr: (callback) ->
+    chrome.socket?.getInfo @_socketId, (socketInfo) =>
+      @addr = socketInfo.peerAddress
+      callback()
 
   send: (type, args) ->
     msg = JSON.stringify { type, args }
@@ -152,29 +161,11 @@ class RemoteDevice extends EventEmitter
       @_listenForData()
       callback true
 
-  ##
-  # Called when acting as a server. Finds the client ip address.
-  ##
-  getAddr: (callback) ->
-    chrome.socket?.getInfo @_socketId, (socketInfo) =>
-      @addr = socketInfo.peerAddress
-      callback()
-
-  ##
-  # Called when acting as a client. Authenticates the connection.
-  # @param {Function} getAuthToken The algorithm to generate auth tokens.
-  ##
-  sendAuthentication: (getAuthToken) ->
-    chrome.socket?.getInfo @_socketId, (socketInfo) =>
-      @send 'authenticate', [getAuthToken socketInfo.localAddress]
-
   close: ->
     if @_socketId
-      try
-        chrome.socket?.disconnect @_socketId
-      catch error
-        @_log 'w', 'failed to disconnect socket:', error
+      chrome.socket?.disconnect @_socketId
       chrome.socket?.destroy @_socketId
+      @_socketId = undefined
       @emit 'closed', this
 
   _listenForData: ->

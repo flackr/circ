@@ -418,8 +418,11 @@ describe 'An IRC client front end', ->
           d.emit 'found_port'
 
         authenticate = (device) ->
-          authToken = client.remoteConnection._getAuthToken device.addr
+          authToken = client.remoteConnection._getAuthToken device.password
           device.emit 'authenticate', device, authToken
+
+        receivePassword = (device, password) ->
+          device.emit 'authentication_offer', device, password
 
         becomeClient = (opt_state) ->
           state = opt_state if opt_state
@@ -430,11 +433,22 @@ describe 'An IRC client front end', ->
 
         beforeEach ->
           state = getState()
-          onAuth = spyOn mocks.RemoteDevice, 'sendAuthentication'
+          spyOn(mocks.RemoteDevice, 'onConnect').andCallThrough()
 
-        it "sends authentication when first connected to the server", ->
+        it "connects to a server device with /join-server", ->
           type "/join-server 1.1.1.2 1336"
-          expect(onAuth).toHaveBeenCalledWith jasmine.any(String)
+          expect(mocks.RemoteDevice.onConnect).toHaveBeenCalled()
+
+        it "emits 'server_found' when server sends a password", ->
+          type "/join-server 1.1.1.2 1336"
+          spyOn client.remoteConnection, 'emit'
+          receivePassword device(1), 'pw'
+          expect(client.remoteConnection.emit).toHaveBeenCalledWith 'server_found', device(1)
+
+        it "sends authentication after server sends a password and finalizeConnection() is called", ->
+          type "/join-server 1.1.1.2 1336"
+          receivePassword device(1), 'pw'
+          expect(device(1).sendType).toBe 'authenticate'
 
         it "becomes a client after receiving IRC state", ->
           type "/join-server 1.1.1.2 1336"
@@ -518,9 +532,7 @@ describe 'An IRC client front end', ->
         it "automatically connects if an existing server is present", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           restart()
-          findPort()
-          authToken = client.remoteConnection._getAuthToken '1.1.1.1'
-          expect(mocks.RemoteDevice.sendAuthentication).toHaveBeenCalledWith authToken
+          expect(mocks.RemoteDevice.onConnect).toHaveBeenCalled()
 
         it "becomes server if storage marks it as the server device", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.1', port: 1 } }
@@ -629,40 +641,32 @@ describe 'An IRC client front end', ->
           expect(win.rawMessage).toHaveBeenCalled()
 
         it "connects to a server even when the server connection takes a long time", ->
-          connect = undefined
-          RemoteDevice.onConnect = (callback) ->
-             connect = callback
-
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           delete state.ircState
           chrome.storage.sync.set state
           restart()
 
           jasmine.Clock.tick(900) # now using own connection
-          RemoteDevice.sendAuthentication.reset() # reset spy
-          connect true # server finally connects
-          expect(RemoteDevice.sendAuthentication).toHaveBeenCalled()
+          spyOn(client.remoteConnection, 'finalizeConnection').andCallThrough()
+          receivePassword device(1), 'pw'
+          expect(client.remoteConnection.finalizeConnection).toHaveBeenCalled()
           expect(client.remoteConnection.getState()).toBe 'connecting'
 
         it "displays a prompt when connecting to the server device would be abrupt", ->
-          connect = undefined
-          RemoteDevice.onConnect = (callback) ->
-             connect = callback
-
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           delete state.ircState
           chrome.storage.sync.set state
           restart()
 
-          RemoteDevice.sendAuthentication.reset()
           client.remoteConnectionHandler._timer.elapsed = -> 5000
           jasmine.Clock.tick(5000) # been using own connection for a while now
-          connect true # server finally connects
+          spyOn client.remoteConnection, 'finalizeConnection'
+          receivePassword device(1), 'pw'
 
-          expect(RemoteDevice.sendAuthentication).not.toHaveBeenCalled()
+          expect(client.remoteConnection.finalizeConnection).not.toHaveBeenCalled()
           expect(noticeIsVisible()).toBe true
 
-        it "closes sockets when internect connection lost", ->
+        it "closes sockets when internect connection is lost", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           delete state.ircState
           chrome.storage.sync.set state

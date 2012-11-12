@@ -115,7 +115,9 @@ class RemoteConnectionHandler
           "server device #{connInfo.toString()}"
 
     @_remoteConnection.on 'server_disconnected', =>
-      @_onConnected = => @_displayLostConnectionMessage()
+      @_timer.start 'started_connection'
+      unless @manuallyDisconnected
+        @_onConnected = => @_displayLostConnectionMessage()
       @determineConnection()
 
     @_remoteConnection.on 'client_joined', (client) =>
@@ -212,7 +214,9 @@ class RemoteConnectionHandler
     clearTimeout @_useOwnConnectionTimeout
     usingServerDeviceConnection = @_remoteConnection.getState() in ['connected']
     if usingServerDeviceConnection
+      @manuallyDisconnected = true
       @_remoteConnection.disconnectFromServer()
+      @manuallyDisconnected = false
       return
 
     if @shouldBeServerDevice()

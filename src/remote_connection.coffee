@@ -53,15 +53,15 @@ class RemoteConnection extends EventEmitter
 
   _addUnauthenticatedDevice: (device) =>
     @_log 'adding unauthenticated device', device.id
-    device.getAddr =>
-      @_log 'found unauthenticated device addr', device.addr
-      device.on 'authenticate', @_authenticateDevice
+    device.password = irc.util.randomName()
+    device.send 'authentication_offer', [device.password]
+    device.on 'authenticate', @_authenticateDevice
 
   _authenticateDevice: (device, authToken) =>
-    if authToken is @_getAuthToken device.addr
+    if authToken is @_getAuthToken device.password
       @_addClientDevice device
     else
-      @_log 'w', 'AUTH FAILED', @_getAuthToken(device.addr), 'should be', authToken
+      @_log 'w', 'AUTH FAILED', authToken, 'should be', @_getAuthToken device.password
       device.close()
 
   _addClientDevice: (device) ->
@@ -231,15 +231,18 @@ class RemoteConnection extends EventEmitter
 
   _onConnectedToServer: (device) ->
     @_log 'connected to server', device.toString()
-    @emit 'server_found', device
+    device.on 'authentication_offer', (device, password) =>
+      device.password = password
+      @emit 'server_found', device
 
   _onFailedToConnectToServer: (device) ->
     @_state = 'device_state'
     @emit 'invalid_server', device
 
   finalizeConnection: ->
+    return unless @_connectingTo
     @_state = 'connecting'
-    @_connectingTo.sendAuthentication @_getAuthToken
+    @_connectingTo.send 'authenticate', [@_getAuthToken @_connectingTo.password]
 
   isServer: ->
     @_type is 'server'
