@@ -11,7 +11,7 @@ describe 'IRC sync storage', ->
     chat.remoteConnection.connectToServer = jasmine.createSpy 'connectToServer'
     chat.connections = { freenode: 'f', dalnet: 'd' }
 
-    ss = new window.chat.SyncStorage
+    ss = new window.chat.Storage
     ss.resume()
     sync.clear()
 

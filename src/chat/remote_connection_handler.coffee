@@ -41,7 +41,7 @@ class RemoteConnectionHandler
   ##
   # Set the storage handler which is used to store IRC states and which device
   # is acting as the server
-  # @param {SyncStorage} storage
+  # @param {Storage} storage
   ##
   setStorageHandler: (storage) ->
     @_storage = storage
@@ -203,7 +203,7 @@ class RemoteConnectionHandler
   _useOwnConnectionWhileWaitingForServer: =>
     return unless @_remoteConnection.isInitializing()
     @_remoteConnection.becomeIdle()
-    connectInfo = @_chat.syncStorage.serverDevice
+    connectInfo = @_chat.storage.serverDevice
     @_onConnected = =>
       @_displayFailedToConnect connectInfo
     @_resumeIRCConnection()

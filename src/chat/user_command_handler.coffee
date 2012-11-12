@@ -245,7 +245,7 @@ class UserCommandHandler extends MessageHandler
       parseArgs: ->
         parsedPort = parseInt(@port)
         return false if (@port || @addr) and not (parsedPort || @addr)
-        connectInfo = @chat.syncStorage.serverDevice
+        connectInfo = @chat.storage.serverDevice
         @port = parsedPort || connectInfo?.port
         @addr ?= connectInfo?.addr
         true
@@ -285,7 +285,7 @@ class UserCommandHandler extends MessageHandler
         else if state is 'finding_port'
           @chat.remoteConnection.waitForPort => @run
         else
-          @chat.syncStorage.becomeServerDevice @chat.remoteConnection.getConnectionInfo()
+          @chat.storage.becomeServerDevice @chat.remoteConnection.getConnectionInfo()
           @chat.remoteConnectionHandler.determineConnection()
 
     @_addCommand 'network-info',

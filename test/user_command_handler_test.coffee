@@ -4,7 +4,7 @@ describe 'A user command handler', ->
   onMessage = jasmine.createSpy 'onMessage'
   context =
     determineWindow: -> win
-    syncStorage: { }
+    storage: { }
 
   getWindow = ->
     message: onMessage

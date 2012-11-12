@@ -13,7 +13,7 @@ class Chat extends EventEmitter
 
     @_initializeUI()
     @_initializeRemoteConnection()
-    @_initializeSyncStorage()
+    @_initializeStorage()
 
     @updateStatus()
 
@@ -40,10 +40,10 @@ class Chat extends EventEmitter
     @remoteConnectionHandler = new chat.RemoteConnectionHandler this
     @remoteConnectionHandler.setRemoteConnection @remoteConnection
 
-  _initializeSyncStorage: ->
-    @syncStorage = new chat.SyncStorage
-    @remoteConnectionHandler.setStorageHandler @syncStorage
-    @syncStorage.loadConnectionInfo this
+  _initializeStorage: ->
+    @storage = new chat.Storage
+    @remoteConnectionHandler.setStorageHandler @storage
+    @storage.loadConnectionInfo this
 
   setPassword: (password) ->
     @remoteConnection.setPassword password
@@ -97,7 +97,7 @@ class Chat extends EventEmitter
     @_replaceEmptyWindowIfExists win
     win.message '', "Connecting to #{conn.name}..."
     @channelDisplay.addServer conn.name
-    @syncStorage.serverJoined conn.name, port
+    @storage.serverJoined conn.name, port
     @switchToWindow win
 
   _replaceEmptyWindowIfExists: (win) ->
@@ -118,7 +118,7 @@ class Chat extends EventEmitter
       server = opt_server
     conn = @connections[server]
     @previousNick = nick
-    @syncStorage.nickChanged nick
+    @storage.nickChanged nick
     @updateStatus()
     conn?.irc.doCommand 'NICK', nick
     conn?.irc.setPreferredNick nick
@@ -172,7 +172,7 @@ class Chat extends EventEmitter
     return chat.NO_WINDOW
 
   createPrivateMessageWindow: (conn, from) ->
-    @syncStorage.channelJoined conn.name, from, 'private'
+    @storage.channelJoined conn.name, from, 'private'
     conn.windows[from] = @_createWindowForChannel conn, from
     conn.windows[from].makePrivate()
     @channelDisplay.connect conn.name, from
@@ -203,7 +203,7 @@ class Chat extends EventEmitter
       win = @_makeWin conn, chan
       i = @winList.localIndexOf win
       @channelDisplay.insertChannel i, conn.name, chan
-      @syncStorage.channelJoined conn.name, chan
+      @storage.channelJoined conn.name, chan
     win
 
   onNames: (e, nicks) ->
@@ -228,7 +228,7 @@ class Chat extends EventEmitter
 
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
-    @syncStorage.parted win.conn.name, win.target
+    @storage.parted win.conn.name, win.target
     win.clearNotifications()
     if win.target?
       delete @connections[win.conn.name].windows[win.target]

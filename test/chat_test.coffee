@@ -99,7 +99,7 @@ describe 'An IRC client front end', ->
     mocks.navigator.goOffline()
     expect(noticeIsVisible()).toBe true
 
-  describe "sync storage", ->
+  describe "storage", ->
 
     doActivity = ->
       type '/nick newNick'

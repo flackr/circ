@@ -1,9 +1,9 @@
 exports = window.chat ?= {}
 
 ##
-# Wrapper around chrome.storage.sync.
+# Manages storage.
 ##
-class SyncStorage
+class Storage
 
   @STATE_ITEMS = ['nick', 'servers', 'channels']
   @CONNECTION_ITEMS = ['password', 'server_device']
@@ -107,7 +107,7 @@ class SyncStorage
     @_store 'servers', @_servers
 
   _store: (key, value) ->
-    return if @_paused and not (key in SyncStorage.CONNECTION_ITEMS)
+    return if @_paused and not (key in Storage.CONNECTION_ITEMS)
     @_log 'storing', key, '=>', value
     storageObj = {}
 
@@ -132,14 +132,14 @@ class SyncStorage
 
   loadConnectionInfo: (chat) ->
     @_chat = chat
-    chrome.storage.sync.get SyncStorage.CONNECTION_ITEMS, (state) =>
+    chrome.storage.sync.get Storage.CONNECTION_ITEMS, (state) =>
       @_state = state
       @_restorePassword()
       @_loadServerDevice()
 
   restoreSavedState: (chat, opt_callback) ->
     @_chat = chat
-    chrome.storage.sync.get SyncStorage.STATE_ITEMS, (savedState) =>
+    chrome.storage.sync.get Storage.STATE_ITEMS, (savedState) =>
       @loadState chat, savedState
       opt_callback?()
 
@@ -226,4 +226,4 @@ class SyncStorage
     @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }
     @_store 'server_device', @serverDevice
 
-exports.SyncStorage = SyncStorage
+exports.Storage = Storage

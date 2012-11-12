@@ -50,7 +50,7 @@ class DeveloperCommands extends MessageHandler
 
     zps: (event) ->
       password = event.args[0] ? 'bacon'
-      @_chat.syncStorage._store 'password', password
+      @_chat.storage._store 'password', password
       @_chat.setPassword password
 
     zo: ->
