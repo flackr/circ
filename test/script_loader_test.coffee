@@ -34,12 +34,12 @@ describe 'A script loader', ->
     $('iframe').remove()
 
   it 'creates an invisible iframe on createScript()', ->
-    script = sl.createScript sourceCode
+    script = sl._createScript sourceCode
     expect($('iframe').length).toEqual numFrames + 1
     expect($('iframe')[0].style.display).toBe 'none'
 
   it 'calls eval() on the script source code', ->
-    script = sl.createScript sourceCode
+    script = sl._createScript sourceCode
     waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data
@@ -47,8 +47,13 @@ describe 'A script loader', ->
       expect(data.script).toBeUndefined()
 
   it 'has the script run in a sandbox', ->
-    script = sl.createScript maliciousSourceCode
+    script = sl._createScript maliciousSourceCode
     waitsForScriptToLoad()
     runs ->
       data = onMessage.mostRecentCall.args[0].data
       expect(data.chromeAPI).toBeUndefined()
+
+  it 'can auto-load prepackaged scripts', ->
+    calls = 0
+    sl.loadPrepackagedScripts -> calls++
+    expect($('iframe').length).toEqual numFrames + calls
