@@ -93,12 +93,9 @@ class Chat extends EventEmitter
 
   _createWindowForServer: (server, port) ->
     conn = @connections[server]
-    win = new chat.Window conn.name
+    win = @_makeWin conn
     @_replaceEmptyWindowIfExists win
     win.message '', "Connecting to #{conn.name}..."
-    win.conn = conn
-    conn.serverWindow = win
-    @winList.add win
     @channelDisplay.addServer conn.name
     @syncStorage.serverJoined conn.name, port
     @switchToWindow win
@@ -203,7 +200,7 @@ class Chat extends EventEmitter
   _createWindowForChannel: (conn, chan) ->
     win = conn.windows[chan]
     if not win
-      win = @makeWin conn, chan
+      win = @_makeWin conn, chan
       i = @winList.localIndexOf win
       @channelDisplay.insertChannel i, conn.name, chan
       @syncStorage.channelJoined conn.name, chan
@@ -249,12 +246,16 @@ class Chat extends EventEmitter
     else
       @switchToWindow @currentWindow
 
-  makeWin: (conn, chan) ->
-    throw new Error("we already have a window for that") if conn.windows[chan]
-    win = conn.windows[chan] = new chat.Window(conn.name, chan)
+  _makeWin: (conn, opt_chan) ->
+    win = new chat.Window conn.name, opt_chan
     win.conn = conn
-    win.setTarget chan
+    if opt_chan
+      conn.windows[opt_chan] = win
+      win.setTarget opt_chan
+    else
+      conn.serverWindow = win
     @winList.add win
+    @messageHandler.logMessagesFromWindow win
     win
 
   updateStatus: ->
@@ -308,7 +309,7 @@ class Chat extends EventEmitter
     @emit event.type, event
 
   getCurrentContext: ->
-    { server: @currentWindow.conn?.name, channel: chat.CURRENT_WINDOW }
+    new Context @currentWindow.conn?.name, chat.CURRENT_WINDOW
 
 exports.SERVER_WINDOW = '@server_window'
 exports.CURRENT_WINDOW = '@current_window'

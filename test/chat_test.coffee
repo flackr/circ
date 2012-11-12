@@ -607,9 +607,10 @@ describe 'An IRC client front end', ->
           type "/make-server"
           RemoteDevice.onNewDevice new RemoteDevice
           spyOn device(1), 'send'
+          type 'hi there'
           authenticate device 1
           expect(device(1).send).toHaveBeenCalledWith 'connection_message',
-              ['chat_log', jasmine.any(Array)]
+              ['chat_log', jasmine.any(Object)]
 
         it "replays received chat history after connecting to a server device", ->
           type 'hi there'
@@ -621,13 +622,11 @@ describe 'An IRC client front end', ->
 
           becomeClient()
           win = client.winList.get('freenode', '#bash')
-          spyOn win, 'message'
+          spyOn win, 'rawMessage'
           receiveChatHistory chatHistory
 
           expect(client.remoteConnection.isClient()).toBe true
-
-          expect(win.message).toHaveBeenCalledWith 'ournick', 'hi there',
-              jasmine.any(String)
+          expect(win.rawMessage).toHaveBeenCalled()
 
         it "connects to a server even when the server connection takes a long time", ->
           connect = undefined

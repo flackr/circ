@@ -79,12 +79,13 @@ class MessageRenderer
     @_displayActivityMarker() if @_shouldDisplayActivityMarker()
 
   _addMessage: (from, msg, style) ->
-    html = $('#templates .message').clone()
-    html.addClass style
-    $('.source', html).html from
-    $('.content', html).html msg
-    $('.source', html).addClass('empty') unless from
-    @win.$messages.append html
+    message = $('#templates .message').clone()
+    message.addClass style
+    $('.source', message).html from
+    $('.content', message).html msg
+    $('.source', message).addClass('empty') unless from
+    @win.emit 'message', @win.getContext(), style, message[0].outerHTML
+    @win.$messages.append message
 
   _shouldDisplayActivityMarker: ->
     return not @win.isFocused() and @_resetActivityMarker

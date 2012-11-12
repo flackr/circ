@@ -91,7 +91,7 @@ class RemoteConnectionHandler
 
     @_remoteConnection.on 'invalid_server', (connectInfo) =>
       if @_chat.remoteConnection.isInitializing()
-        @_onConnected = => @_displayFailedToConnect()
+        @_onConnected = => @_displayFailedToConnect connectInfo
       else if not @_reconnectionAttempt
         @_displayFailedToConnect connectInfo
       @_reconnectionAttempt = false
@@ -139,7 +139,6 @@ class RemoteConnectionHandler
       @_chat.remoteConnection.finalizeConnection()
 
   _displayFailedToConnect: (connectInfo) ->
-    connectInfo = @_storage.serverDevice
     return unless connectInfo
     @_chat.displayMessage 'notice', @_chat.getCurrentContext(), "Unable to connect to " +
         "server device #{connectInfo.addr} on port #{connectInfo.port}"

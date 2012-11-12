@@ -4,40 +4,29 @@ exports = window.chat ?= {}
 # Handles messages to be displayed in a window.
 ##
 class IRCMessageHandler extends MessageHandler
+
   constructor: (@_chat) ->
     @_formatter = new window.chat.MessageFormatter
-    @_chatLog = []
+    @_chatLog = new chat.ChatLog
+    @_chatLog.whitelist 'privmsg' # only log private messages
     super
 
   getChatLog: ->
-    @_chatLog
+    @_chatLog.getData()
+
+  logMessagesFromWindow: (win) ->
+    win.on 'message', @_chatLog.add
 
   ##
-  # Replays the given chatlog so the user can see the conversation he/she
+  # Replays the given chatlog so the user can see the conversation they
   # missed.
-  # @param {Array.<{context: {server: string, channel: string}, type: string,
-  #     params: Array.<Object>>} chatLog
   ##
-  replayChatLog: (chatLog=@_chatLog) ->
-    @_chatLog = []
-    @_notificationsPaused = true
-    for msg in chatLog
-      win = @_chat.determineWindow msg
-      continue if win is chat.NO_WINDOW
-      @setWindow win
-      @handle msg.type, msg.params...
-    @_notificationsPaused = false
-
-  ##
-  # Log the current message.
-  ##
-  _logMessage: ->
-    if @_chatLog.length > 1000
-      @_chatLog.splice 0, 25
-    context =
-      server: @_win.conn?.name
-      channel: @_win.target
-    @_chatLog.push {context, @type, @params}
+  replayChatLog: (opt_chatLogData) ->
+    @_chatLog.loadData opt_chatLogData if opt_chatLogData
+    for context in @_chatLog.getContextList()
+      win = @_chat.winList.get context.server, context.channel
+      continue unless win
+      win.rawMessage @_chatLog.get context
 
   setWindow: (@_win) ->
     @_formatter.setNick @_win.conn?.irc.nick
@@ -118,7 +107,6 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.setFromUs true
 
     privmsg: (from, msg) ->
-      @_logMessage()
       @_formatter.addStyle 'update'
       @_handleMention from, msg
       @_formatPrivateMessage from, msg
@@ -183,7 +171,7 @@ class IRCMessageHandler extends MessageHandler
     @_formatter.addStyle 'mention' if nickMentioned and not @_win.isPrivate()
     if nickMentioned and @_shouldNotifyMention()
       @_createNotification from, msg
-    unless @_isFromWindowInFocus() or @_notificationsPaused
+    unless @_isFromWindowInFocus()
       @_chat.channelDisplay.activity @_win.conn?.name, @_win.target
       if nickMentioned
         @_chat.channelDisplay.mention @_win.conn?.name, @_win.target
@@ -205,7 +193,6 @@ class IRCMessageHandler extends MessageHandler
     return chat.NickMentionedNotification.shouldNotify nick, msg
 
   _shouldNotifyMention: () ->
-    return false if @_notificationsPaused
     not @_isFromWindowInFocus() or not window.document.hasFocus()
 
   _isFromWindowInFocus: ->

@@ -12,6 +12,8 @@ describe "A window message renderer", ->
       $messages: surface
       isScrolledDown: ->
       scrollToBottom: ->
+      getContext: -> {}
+      emit: ->
       isFocused: -> true
     }
     renderer = new chat.window.MessageRenderer win

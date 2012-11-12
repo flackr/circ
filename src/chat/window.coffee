@@ -27,6 +27,10 @@ class Window extends EventEmitter
     for notification in @notifications
       notification.cancel()
 
+  getContext: ->
+    @_context ?= new Context @conn?.name, @target
+    @_context
+
   _onFocus: =>
     return unless @_isVisible
     @_isFocused = true
@@ -107,8 +111,16 @@ class Window extends EventEmitter
   message: (from, msg, style...) ->
     wasScrolledDown = @isScrolledDown()
     @messageRenderer.message from, msg, style...
-    if wasScrolledDown
-      @scrollToBottom()
+    @scrollToBottom() if wasScrolledDown
+
+  ##
+  # Append raw html to the message list.
+  # This is useful for adding previous chat history.
+  ##
+  rawMessage: (html) ->
+    wasScrolledDown = @isScrolledDown()
+    @$messages.html @$messages.html() + html
+    @scrollToBottom() if wasScrolledDown
 
   scrollToBottom: ->
     @$messagesContainer.scrollTop @_getScrollHeight()
