@@ -3,7 +3,7 @@
 
 CIRC uses the chrome.socket API to connect directly to IRC servers without needing a proxy. It has a ton of other killer features as well such as syncing your IRC state accross all your devices and allowing you to use a single IRC connection on multiple devices simultaneously.
 
-Check out the documentation here: http://noahsug.github.com/circ
+Check out the documentation here: https://github.com/noahsug/circ/wiki
 
 ## Running
 
