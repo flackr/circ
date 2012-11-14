@@ -4,22 +4,14 @@ exports = window.net ?= {}
 # A socket connected to an IRC server. Uses chrome.socket.
 ##
 class ChromeSocket extends net.AbstractTCPSocket
-  connect: (host, port) ->
+  connect: (addr, port) ->
     @_active()
-    go = (err, addr) =>
-      return @emit 'error', "DNS couldn't resolve: #{err}" if err
-      @_active()
-      chrome.socket.create 'tcp', {}, (si) =>
-        @socketId = si.socketId
-        if @socketId > 0
-          chrome.socket.connect @socketId, addr, port, @_onConnect
-        else
-          return @emit 'error', "couldn't create socket"
-
-    if /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/.test host
-      go null, host
-    else
-      ChromeSocket.resolve host, go
+    chrome.socket.create 'tcp', {}, (si) =>
+      @socketId = si.socketId
+      if @socketId > 0
+        chrome.socket.connect @socketId, addr, port, @_onConnect
+      else
+        return @emit 'error', "couldn't create socket"
 
   _onConnect: (rc) =>
     if rc < 0
@@ -55,12 +47,5 @@ class ChromeSocket extends net.AbstractTCPSocket
   close: ->
     chrome.socket.disconnect @socketId if @socketId?
     @emit 'close'
-
-  @resolve: (host, cb) ->
-    chrome.experimental.dns.resolve host, (res) ->
-      if res.resultCode is 0
-        cb(null, res.address)
-      else
-        cb(res.resultCode)
 
 exports.ChromeSocket = ChromeSocket
