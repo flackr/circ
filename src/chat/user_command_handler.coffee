@@ -272,7 +272,7 @@ class UserCommandHandler extends MessageHandler
         if @chat.remoteConnectionHandler.shouldBeServerDevice()
           @displayMessage 'error', "this device is already acting as a " +
               "server"
-        else if not chrome.socket?.listen
+        else if not api.listenSupported()
           @displayMessage 'error', "this command cannot be used with your " +
               "current version of Chrome because it does not support " +
               "chrome.socket.listen"

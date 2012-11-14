@@ -50,7 +50,7 @@ class RemoteDevice extends EventEmitter
       callback device
       return
 
-    device.port = RemoteDevice.NO_PORT unless chrome.socket?.listen
+    device.port = RemoteDevice.NO_PORT unless api.listenSupported()
     device.findPossibleAddrs =>
       callback device
 
@@ -85,7 +85,7 @@ class RemoteDevice extends EventEmitter
   listenForNewDevices: (callback) ->
     chrome.socket?.create 'tcp', {}, (socketInfo) =>
       @_socketId = socketInfo.socketId
-      @_listenOnValidPort callback if chrome.socket?.listen
+      @_listenOnValidPort callback if api.listenSupported()
 
   ##
   # Attempt to listen on the default port, then increment the port by a random
@@ -102,7 +102,7 @@ class RemoteDevice extends EventEmitter
     else
       @port = port
       @emit 'found_port', this
-      @_acceptNewConnection callback
+      @_acceptNewConnection callback if api.acceptSupported()
 
   _onFailedToListen: (callback, port, result) ->
     if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
@@ -114,7 +114,7 @@ class RemoteDevice extends EventEmitter
 
   _acceptNewConnection: (callback) ->
     @_log 'listening for new connections on port', @port
-    chrome.socket?.accept @_socketId, (acceptInfo) =>
+    chrome.socket.accept @_socketId, (acceptInfo) =>
       return unless acceptInfo.socketId
       @_log 'Connected to a client device', @_socketId
       device = new RemoteDevice acceptInfo.socketId

@@ -1,5 +1,13 @@
 exports = window
 
+## determine API support
+exports.api =
+  listenSupported: ->
+    chrome.socket?.listen and chrome.experimental
+
+  acceptSupported: ->
+    chrome.socket?.accept and chrome.experimental
+
 exports.isOnline = ->
   window.navigator.onLine
 
