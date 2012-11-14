@@ -26,6 +26,7 @@ class Window extends EventEmitter
   clearNotifications: ->
     for notification in @notifications
       notification.cancel()
+      notification.delete()
 
   getContext: ->
     @_context ?= new Context @conn?.name, @target
@@ -90,6 +91,7 @@ class Window extends EventEmitter
     @detach()
     @$messages.remove()
     @$nicks.remove()
+    
 
   attach: ->
     @_isVisible = true

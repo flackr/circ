@@ -23,6 +23,10 @@ class Notification extends EventEmitter
       @cancel()
       @emit 'clicked'
 
+  delete: ->
+    @notification.onclick = null
+    delete @notification
+
   ##
   # Display the notification.
   ##
