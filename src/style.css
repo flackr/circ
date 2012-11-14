@@ -334,3 +334,29 @@ ul {
   padding: 0px 8px;
   outline: 0;
 }
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment {
+  display: block;
+  height: 0;
+}
+::-webkit-scrollbar-track-piece {
+  background-color: rgba(0,0,0,0.1);
+}
+::-webkit-scrollbar-thumb:vertical {
+  height: 50px;
+  background-color: #999;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:vertical:hover {
+  background-color: #888;
+}
+::-webkit-scrollbar-thumb:horizontal {
+  width: 50px;
+  background-color: #999;
+  border-radius: 8px;
+}
