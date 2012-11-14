@@ -1,0 +1,34 @@
+{
+  "name": "CIRC",
+  "description": "An IRC client for Chrome",
+  "version": "0.4.5",
+  "manifest_version": 2,
+  "icons": {
+    "16": "static/icon/icon16.png",
+    "48": "static/icon/icon48.png",
+    "128": "static/icon/icon128.png"
+  },
+
+  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC6PeQTq1pwDNiqFlcp7UsUUUJQBsjUBcSiboI/+WSmsE93IF5xyd3e6erYAPW7DRBdrCJVDqPW0kv0APgTaCGOhVTBjvYO/1IbBBX86j+1pE58f4slTybPxklVQw04gXEkxe2fLBFriVf1bH20b+X9tagRS+6oqz2glinagc7FVwIDAQAB",
+
+  "permissions": [
+    {"socket": [
+      "tcp-connect",
+      "tcp-listen"
+    ]},
+    "notifications",
+    "storage",
+    "fileSystem",
+    "unlimitedStorage"
+  ],
+
+  "app": {
+    "background": {
+      "scripts": ["bin/background.js"]
+    }
+  },
+
+  "sandbox": {
+    "pages": [ "bin/script_frame.html" ]
+  }
+}

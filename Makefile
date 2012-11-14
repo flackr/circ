@@ -31,6 +31,9 @@ package: package-scripts build
 	cp -r static package
 	cp manifest.json package
 
+pub: package
+	cp manifest_public.json package/manifest.json
+
 clean:
 	-rm -rf bin
 
