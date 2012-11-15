@@ -5,4 +5,4 @@ CIRC uses the chrome.socket API to connect directly to IRC servers without needi
 
 Get it on the Chrome Web Store: https://chrome.google.com/webstore/detail/circ/kgiicflppioaphimaahahimadngieohn/internal
 
-Check out the documentation here: https://github.com/noahsug/circ/wiki
+Check out the documentation: https://github.com/noahsug/circ/wiki
