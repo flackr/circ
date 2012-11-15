@@ -34,6 +34,18 @@ ul {
   -webkit-box-orient: horizontal;
   width: 100%;
   height: 100%;
+  position: absolute;
+  border-top: 1px solid rgba(0,0,0,0.15);
+}
+
+#main-top-border {
+  position: absolute;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(0,0,0,0.05);
+  pointer-events: none;
 }
 
 #rooms-and-nicks {
