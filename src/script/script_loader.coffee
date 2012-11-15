@@ -2,8 +2,6 @@ exports = window.script ?= {}
 
 class ScriptLoader
 
-  @AUTOLOAD_PATH = 'scripts'
-
   constructor: ->
     @_scripts = {}
     addEventListener 'message', @_sendSourceCode
