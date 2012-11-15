@@ -70,8 +70,8 @@ class MessageRenderer
 
   message: (from='', msg='', style...) ->
     wasScrolledDown = @win.isScrolledDown()
-    from = escapeHTML from
-    msg = display msg
+    from = html.escape from
+    msg = html.display msg
     style = style.join ' '
     @_addMessage from, msg, style
     if wasScrolledDown
@@ -96,47 +96,5 @@ class MessageRenderer
       @_activityMarkerLocation.removeClass 'activity-marker'
     @_activityMarkerLocation = @win.$messages.children().last()
     @_activityMarkerLocation.addClass 'activity-marker'
-
-escapeHTML = (html) ->
-  escaped = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-  }
-  String(html).replace /[&<>"]/g, (character) -> escaped[character] ? character
-
-display = (text) ->
-  # Gruber's url-finding regex
-  rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi
-  canonicalise = (url) ->
-    url = escapeHTML url
-    if url.match(/^[a-z][\w-]+:/i)
-      url
-    else
-      'http://' + url
-
-  escape = (str) ->
-    # long words need to be extracted before escaping so escape HTML characters
-    # don't scew the word length
-    longWords = str.match(/\S{40,}/g) ? []
-    longWords = (escapeHTML(word) for word in longWords)
-    str = escapeHTML(str)
-    result = ''
-    for word in longWords
-      replacement = "<span class=\"longword\">#{word}</span>"
-      str = str.replace word, replacement
-      result += str[.. str.indexOf(replacement) + replacement.length - 1]
-      str = str[str.indexOf(replacement) + replacement.length..]
-    result + str
-
-  res = ''
-  textIndex = 0
-  while m = rurl.exec text
-    res += escape(text.substr(textIndex, m.index - textIndex))
-    res += '<a target="_blank" href="'+canonicalise(m[0])+'">'+escape(m[0])+'</a>'
-    textIndex = m.index + m[0].length
-  res += escape(text.substr(textIndex))
-  return res
 
 exports.MessageRenderer = MessageRenderer
