@@ -6,13 +6,14 @@ exports = window.chat ?= {}
 class Storage
 
   @STATE_ITEMS = ['nick', 'servers', 'channels']
-  @CONNECTION_ITEMS = ['password', 'server_device']
+  @INITIAL_ITEMS = ['password', 'server_device', 'autostart']
 
   constructor: ->
     @_log = getLogger this
     @_channels = []
     @_servers = []
     @_nick = undefined
+    @_autostart = undefined
     @password = undefined
     @serverDevice = undefined
     chrome.storage.onChanged.addListener @_onChanged
@@ -50,11 +51,22 @@ class Storage
     else if @serverDevice
       @_store 'server_device', @serverDevice
 
+  ##
+  # Stops storing state items (channel, server, nick).
+  # This is used when the client is resuming it's IRC state and doesn't want
+  # to make redudant writes to storage.
+  ##
   pause: ->
     @_paused = true
 
   resume: ->
     @_paused = false
+
+  setAutostart: (opt_enabled) ->
+    enabled = opt_enabled ? not @_autostart
+    @_autostart = enabled
+    @_store 'autostart', enabled
+    return @_autostart
 
   nickChanged: (nick) ->
     return if @_nick is nick
@@ -107,12 +119,15 @@ class Storage
     @_store 'servers', @_servers
 
   _store: (key, value) ->
-    return if @_paused and not (key in Storage.CONNECTION_ITEMS)
+    return unless @shouldStore key
     @_log 'storing', key, '=>', value
     storageObj = {}
 
     storageObj[key] = value
     chrome.storage.sync.set storageObj
+
+  shouldStore: (key) ->
+    return not (@_paused and key in Storage.STATE_ITEMS)
 
   getState: (chat) ->
     @_chat = chat
@@ -130,12 +145,13 @@ class Storage
         nick: conn.irc.nick
     ircStates
 
-  loadConnectionInfo: (chat) ->
+  init: (chat) ->
     @_chat = chat
-    chrome.storage.sync.get Storage.CONNECTION_ITEMS, (state) =>
+    chrome.storage.sync.get Storage.INITIAL_ITEMS, (state) =>
       @_state = state
       @_restorePassword()
       @_loadServerDevice()
+      @_autostart = state.autostart
 
   restoreSavedState: (chat, opt_callback) ->
     @_chat = chat

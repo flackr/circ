@@ -43,7 +43,7 @@ class Chat extends EventEmitter
   _initializeStorage: ->
     @storage = new chat.Storage
     @remoteConnectionHandler.setStorageHandler @storage
-    @storage.loadConnectionInfo this
+    @storage.init this
 
   setPassword: (password) ->
     @remoteConnection.setPassword password

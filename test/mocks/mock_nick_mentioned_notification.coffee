@@ -4,6 +4,8 @@ class NickMentionedNotification extends window.chat.NickMentionedNotification
 
   @useMock: ->
     window.chat.NickMentionedNotification = NickMentionedNotification
+    chrome.app.window =
+      current: -> { drawAttention: (->), focus: (->) }
 
   @notificationCount: 0
 
