@@ -34,11 +34,11 @@ describe 'IRC sync storage', ->
     expect(chat.setNick).not.toHaveBeenCalled()
 
   it 'sets a new password if one is not found', ->
-    ss.loadConnectionInfo chat
+    ss.init chat
     expect(ss.password).toEqual jasmine.any(String)
 
   it 'restores the password if it was cleared', ->
-    ss.loadConnectionInfo chat
+    ss.init chat
     password = ss.password
     chrome.storage.update { password: { newValue: undefined } }, 'sync'
     expect(sync._storageMap.password).toBe password
@@ -50,7 +50,7 @@ describe 'IRC sync storage', ->
 
   it 'restores the stored password', ->
     sync.set { password: 'somepw' }
-    ss.loadConnectionInfo chat
+    ss.init chat
     expect(chat.setPassword).toHaveBeenCalledWith 'somepw'
 
   it 'restores the stored servers', ->
@@ -97,7 +97,7 @@ describe 'IRC sync storage', ->
   it 'loads the stored server device', ->
     connectInfo = { addr: '1.1.1.1', port: 1 }
     sync.set { server_device: connectInfo }
-    ss.loadConnectionInfo chat
+    ss.init chat
     expect(ss.serverDevice).toEqual connectInfo
 
   it 'can store a new server device', ->
@@ -108,7 +108,25 @@ describe 'IRC sync storage', ->
   it 'connects to the server automatically when a new server is set', ->
     connectInfo = { addr: '1.1.1.2', port: 1 }
     sync.set { server_device: { addr: '1.1.1.1', port: 1 } }
-    ss.loadConnectionInfo chat
+    ss.init chat
     chrome.storage.update { server_device: { newValue: connectInfo } }, 'sync'
     expect(chat.remoteConnectionHandler.determineConnection).
         toHaveBeenCalledWith connectInfo
+
+  it 'sets autostart with setAutostart', ->
+    result = ss.setAutostart true
+    expect(result).toBe true
+    expect(sync._storageMap['autostart']).toBe true
+
+    result = ss.setAutostart false
+    expect(result).toBe false
+    expect(sync._storageMap['autostart']).toBe false
+
+  it 'toggles autostart when no args are given', ->
+    ss.setAutostart true
+
+    result = ss.setAutostart()
+    expect(result).toBe false
+
+    result = ss.setAutostart()
+    expect(result).toBe true

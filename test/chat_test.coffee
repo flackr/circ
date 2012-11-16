@@ -76,7 +76,7 @@ describe 'An IRC client front end', ->
     expect($ '#status').toHaveText 'ournick'
 
   it "sets the document title to the version", ->
-    expect(document.title).toMatch /^CIRC [0-9].[0-9].[0-9]$/
+    expect(document.title).toMatch /^CIRC \d{1,3}\.\d{1,3}\.\d{1,3}/
 
   it "initially has one window", ->
     expect(rooms().length).toBe 1

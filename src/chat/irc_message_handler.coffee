@@ -184,7 +184,7 @@ class IRCMessageHandler extends MessageHandler
     notification.on 'clicked', =>
       removeFromArray win.notifications, notification
       @_chat.switchToWindow win
-      chrome.app?.window.current()?.focus()
+      chrome.app.window.current().focus()
 
   _nickWasMentioned: (from, msg) ->
     nick = @_win.conn?.irc.nick

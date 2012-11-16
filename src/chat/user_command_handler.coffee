@@ -323,6 +323,28 @@ class UserCommandHandler extends MessageHandler
         for addr in connectionInfo.possibleAddrs
           @displayMessageWithStyle 'notice', "    #{addr}", 'no-pretty-format'
 
+    @_addCommand 'autostart',
+      description: "sets whether the application will run on startup, " +
+          "toggles if no arguments are given"
+      usage: '[ON|OFF]'
+      params: ['opt_state']
+      parseArgs: ->
+        unless @state
+          @enabled = undefined
+          return true
+        @state = @state.toLowerCase()
+        return false unless @state is 'on' or @state is 'off'
+        @enabled = @state is 'on'
+        true
+      run: ->
+        willAutostart = @chat.storage.setAutostart @enabled
+        if willAutostart
+          @displayMessage 'notice', "CIRC will now automatically " +
+              "run on startup"
+        else
+          @displayMessage 'notice', "CIRC will no longer " +
+              "automatically run on startup"
+
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription
     commandToExtend = @_handlers[commandDescription.extends]

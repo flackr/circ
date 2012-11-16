@@ -283,7 +283,7 @@ describe 'An IRC client backend', ->
               \u0001
               VERSION\s
               CIRC:
-              \d\.\d\.\d\:
+              \d{1,3}\.\d{1,3}\.\d{1,3}\:
               Chrome
               \u0001\s*
             ///
