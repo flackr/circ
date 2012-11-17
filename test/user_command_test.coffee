@@ -1,7 +1,7 @@
 describe 'A user command', ->
   win = sayCommand = eatCommand = kickCommand = serverCommand = modeCommand = undefined
   onRun = jasmine.createSpy 'onRun'
-  context = { determineWindow: -> win }
+  client = { determineWindow: -> win }
 
   eatCommandDescription =
     description: 'eats cake'
@@ -51,7 +51,8 @@ describe 'A user command', ->
     kickCommand = new chat.UserCommand 'kick', kickCommandDescription
     serverCommand = new chat.UserCommand 'server', serverCommandDescription
     modeCommand = new chat.UserCommand 'mode', modeCommandDescription
-    modeCommand.setContext context
+    modeCommand.setChat client
+    modeCommand.setContext {}
 
   it 'parses arguments based on the params field', ->
     eatCommand.setArgs '8'
@@ -81,7 +82,9 @@ describe 'A user command', ->
     expect(modeCommand.canRun()).toBe true
 
     win.target = undefined
-    expect(modeCommand.canRun(context, {})).toBe false
+    modeCommand.setChat client
+    modeCommand.setContext {}
+    expect(modeCommand.canRun()).toBe false
 
   it 'supports optional arguments', ->
     modeCommand.setArgs 'othernick', '+o'
@@ -140,7 +143,9 @@ describe 'A user command', ->
     danceDescription =
       description: "outputs dancing kirbys on the screen"
     danceCommand = new chat.UserCommand 'dance', danceDescription
-    expect(danceCommand.canRun(context, {})).toBe false
+    danceCommand.setChat client
+    danceCommand.setContext {}
+    expect(danceCommand.canRun()).toBe false
 
   it "can have no params", ->
     danceDescription =

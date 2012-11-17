@@ -27,7 +27,29 @@ class UserCommand
     @_usage ?= description.usage
     @run ?= description.run
 
-  setContext: (@chat, context) ->
+  ##
+  # Try running the command. A command can fail to run if its requirements
+  # aren't met (e.g. needs a connection to the internet) or the specified
+  # arguments are invalid. In these cases a help message is displayed.
+  # @param {Context} context Which server/channel the command came from.
+  # @param {Object...} args Arguments for the command.
+  ##
+  tryToRun: (context, args...) ->
+    @setContext context
+    if not @canRun()
+      if @shouldDisplayFailedToRunMessage()
+        @displayHelp()
+      return
+
+    @setArgs args...
+    if @hasValidArgs()
+      @run()
+    else
+      @displayHelp()
+
+  setChat: (@chat) ->
+
+  setContext: (context) ->
     @win = @chat.determineWindow context
     unless @win is window.chat.NO_WINDOW
       @conn = @win.conn
@@ -83,8 +105,20 @@ class UserCommand
         params.splice 0, 0, param
     return params
 
-  canRun: (opt_chat, opt_context) ->
-    @setContext opt_chat, opt_context if opt_chat and opt_context
+  ##
+  # When a command can't run, determine if a helpful message should be
+  # displayed to the user.
+  ##
+  shouldDisplayFailedToRunMessage: ->
+    return false if @win is window.chat.NO_WINDOW
+    return @name isnt 'say'
+
+  ##
+  # Commands can only run if their requirements are met (e.g. connected to the
+  # internet, in a channel, etc) and a run method is defined.
+  ##
+  canRun: (opt_context) ->
+    @setContext opt_context if opt_context
     return false if not @run
     return true if not @_requires
     for requirement in @_requires
@@ -100,6 +134,9 @@ class UserCommand
 
   hasValidArgs: ->
     @_validArgs
+
+  displayHelp: ->
+    @win.message '', @getHelp(), 'notice help'
 
   getHelp: ->
     descriptionText = if @_description then ", #{@_description}" else ''
@@ -140,10 +177,17 @@ class UserCommand
     else
       @_displayDirectMessageInline nick, message
 
+  ##
+  # Used with /msg. Displays the message in a private channel.
+  ##
   _displayDirectMessageInPrivateChannel: (nick, message) ->
     context = { server: @conn.name, channel: nick }
     @chat.displayMessage 'privmsg', context, @conn.irc.nick, message
 
+  ##
+  # Used with /msg. Displays the private message in the current window.
+  # Direct messages always display inline until the user receives a response.
+  ##
   _displayDirectMessageInline: (nick, message) ->
     @displayMessageWithStyle 'privmsg', nick, message, 'direct'
 
@@ -151,6 +195,10 @@ class UserCommand
     context = { server: @conn?.name, channel: @chan }
     @chat.displayMessage type, context, args...
 
+  ##
+  # Displays a message with a custom style. This is useful for indicating that
+  # a message be rendered in a special way (e.g. no pretty formatting).
+  ##
   displayMessageWithStyle: (type, args..., style) ->
     e = new Event 'message', type, args...
     e.setContext @conn?.name, @chan
