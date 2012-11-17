@@ -22,23 +22,20 @@ class UserCommandHandler extends MessageHandler
         @handle e.name, e, e.args...
 
   handle: (type, context, args...) ->
-    command = @_handlers[type]
-    if not command then return super type, context, args...
-
-    if not command.canRun @chat, context
-      if command.name isnt 'say' and command.win isnt window.chat.NO_WINDOW
-        @_displayHelpForCommand command
+    if not @_isValidUserCommand type
+      # the command must be a developer command
+      super type, context, args...
       return
+    command = @_handlers[type]
+    command.tryToRun context, args...
 
-    command.setArgs args...
-    if command.hasValidArgs()
-      command.run()
-    else
-      @_displayHelpForCommand command
+  _isValidUserCommand: (type) ->
+    type of @_handlers
 
-  _displayHelpForCommand: (command) ->
-    command.win.message '', command.getHelp(), 'notice help'
-
+  ##
+  # Creates all user commands. The "this" parameter in the run() and
+  # parseArgs() functions is {UserCommand}.
+  ##
   _init: ->
     @_addCommand 'join',
       description: 'joins the channel, the current channel is used by default'
@@ -129,7 +126,7 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @command = @chat.userCommands.getCommand @command
         if @command
-          @win.message '', @command.getHelp(), 'notice help'
+          @command.displayHelp()
         else
           commands = @chat.userCommands.getCommands()
           @win.messageRenderer.displayHelp commands
@@ -349,6 +346,7 @@ class UserCommandHandler extends MessageHandler
     command = new chat.UserCommand name, commandDescription
     commandToExtend = @_handlers[commandDescription.extends]
     command.describe commandToExtend.description if commandToExtend
+    command.setChat @chat
     @_handlers[name] = command
 
 exports.UserCommandHandler = UserCommandHandler
