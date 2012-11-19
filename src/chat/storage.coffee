@@ -7,8 +7,10 @@ class Storage
 
   @STATE_ITEMS = ['nick', 'servers', 'channels']
   @INITIAL_ITEMS = ['password', 'server_device', 'autostart']
+  @INITIAL_ITEMS_LOCAL = ['no_walkthrough']
 
-  constructor: ->
+  constructor: (chat) ->
+    @_chat = chat
     @_log = getLogger this
     @_channels = []
     @_servers = []
@@ -68,6 +70,9 @@ class Storage
     @_store 'autostart', enabled
     return @_autostart
 
+  finishedWalkthrough: ->
+    @_store 'no_walkthrough', true, 'local'
+
   nickChanged: (nick) ->
     return if @_nick is nick
     @_nick = nick
@@ -118,19 +123,21 @@ class Storage
         break
     @_store 'servers', @_servers
 
-  _store: (key, value) ->
+  _store: (key, value, type='sync') ->
     return unless @shouldStore key
-    @_log 'storing', key, '=>', value
+    @_log 'storing', key, '=>', value, 'to', type
     storageObj = {}
-
     storageObj[key] = value
-    chrome.storage.sync.set storageObj
+
+    if type is 'sync'
+      chrome.storage.sync.set storageObj
+    else
+      chrome.storage.local.set storageObj
 
   shouldStore: (key) ->
     return not (@_paused and key in Storage.STATE_ITEMS)
 
-  getState: (chat) ->
-    @_chat = chat
+  getState: ->
     ircStates = @_createIRCStates()
     { ircStates, servers: @_servers, channels: @_channels, nick: @_nick }
 
@@ -145,26 +152,37 @@ class Storage
         nick: conn.irc.nick
     ircStates
 
-  init: (chat) ->
-    @_chat = chat
-    chrome.storage.sync.get Storage.INITIAL_ITEMS, (state) =>
-      @_state = state
-      @_restorePassword()
-      @_loadServerDevice()
-      @_autostart = state.autostart
+  ##
+  # Load initial items, such as whether to show the walkthrough.
+  ##
+  init: ->
+    chrome.storage.local.get Storage.INITIAL_ITEMS_LOCAL, (state) =>
+      @_initializeLocalItems state
 
-  restoreSavedState: (chat, opt_callback) ->
-    @_chat = chat
+      chrome.storage.sync.get Storage.INITIAL_ITEMS, (state) =>
+        @_initializeSyncItems state
+
+  _initializeSyncItems: (state) ->
+    @_state = state
+    @_restorePassword()
+    @_loadServerDevice()
+    @_autostart = state.autostart
+
+  _initializeLocalItems: (state) ->
+    @shouldDoWalkthrough = not state['no_walkthrough']
+
+  restoreSavedState: (opt_callback) ->
     chrome.storage.sync.get Storage.STATE_ITEMS, (savedState) =>
-      @loadState chat, savedState
+      @loadState savedState
       opt_callback?()
 
-  loadState: (chat, state) ->
+  loadState: (state) ->
     @_state = state
     @_restoreNick()
     @_restoreServers()
     @_restoreChannels()
     @_restoreIRCStates()
+    @_markItemsAsLoaded Storage.STATE_ITEMS, state
 
   _restorePassword: ->
     @password = @_state.password
@@ -237,6 +255,10 @@ class Storage
     @_log 'no remote server found', @_state unless @serverDevice
     @_log 'loaded server device', @serverDevice if @serverDevice
     @_chat.remoteConnectionHandler.determineConnection()
+
+  _markItemsAsLoaded: (items, state) ->
+    for item in items
+      this["#{item}Loaded"] = state[item]?
 
   becomeServerDevice: (connectionInfo) ->
     @serverDevice = { addr: connectionInfo.addr, port: connectionInfo.port }

@@ -46,7 +46,7 @@ class RemoteConnectionHandler
   setStorageHandler: (storage) ->
     @_storage = storage
     @_remoteConnection.setIRCStateFetcher =>
-      @_storage.getState @_chat
+      @_storage.getState()
     @_remoteConnection.setChatLogFetcher =>
       @_chat.messageHandler.getChatLog()
 
@@ -105,7 +105,7 @@ class RemoteConnectionHandler
       @_storage.pause()
       @_chat.closeAllConnections()
       @_stopServerReconnectAttempts()
-      @_storage.loadState @_chat, state
+      @_storage.loadState state
 
     @_remoteConnection.on 'chat_log', (chatLog) =>
       @_chat.messageHandler.replayChatLog chatLog
@@ -205,7 +205,7 @@ class RemoteConnectionHandler
   _useOwnConnectionWhileWaitingForServer: =>
     return unless @_remoteConnection.isInitializing()
     @_remoteConnection.becomeIdle()
-    connectInfo = @_chat.storage.serverDevice
+    connectInfo = @_storage.serverDevice
     @_onConnected = =>
       @_displayFailedToConnect connectInfo
     @_resumeIRCConnection()
@@ -273,10 +273,11 @@ class RemoteConnectionHandler
     @_timer.start 'started_connection'
     @_log 'resuming IRC conn'
     @_chat.closeAllConnections()
-    @_storage.restoreSavedState @_chat, =>
+    @_storage.restoreSavedState =>
       @_chat.messageHandler.replayChatLog()
       @_storage.resume()
       @_onConnected() if @_onConnected
       @_onConnected = undefined
+      @_chat.startWalkthrough() if @_storage.shouldDoWalkthrough
 
 exports.RemoteConnectionHandler = RemoteConnectionHandler

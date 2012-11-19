@@ -91,7 +91,6 @@ class Window extends EventEmitter
     @detach()
     @$messages.remove()
     @$nicks.remove()
-    
 
   attach: ->
     @_isVisible = true

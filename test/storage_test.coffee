@@ -1,8 +1,10 @@
 describe 'IRC sync storage', ->
-  ss = chat = undefined
-  sync = chrome.storage.sync
+  ss = chat = sync = local = undefined
 
   beforeEach ->
+    mocks.storage.useMock()
+    sync = chrome.storage.sync
+    local = chrome.storage.local
     chat = jasmine.createSpyObj 'chat', ['connect', 'join', 'updateStatus',
         'setNick', 'setPassword']
     chat.remoteConnectionHandler = jasmine.createSpyObj 'remoteConnectionHandler',
@@ -10,13 +12,13 @@ describe 'IRC sync storage', ->
     chat.remoteConnection = { isSupported: -> true }
     chat.remoteConnection.connectToServer = jasmine.createSpy 'connectToServer'
     chat.connections = { freenode: 'f', dalnet: 'd' }
+    chat.startWalkthrough = jasmine.createSpy 'startWalkthrough'
 
-    ss = new window.chat.Storage
+    ss = new window.chat.Storage chat
     ss.resume()
-    sync.clear()
 
   it 'does nothing when there is no state to restore', ->
-    ss.restoreSavedState chat
+    ss.init()
     expect(chat.connect).not.toHaveBeenCalled()
     expect(chat.join).not.toHaveBeenCalled()
     expect(chat.updateStatus).not.toHaveBeenCalled()
@@ -27,37 +29,37 @@ describe 'IRC sync storage', ->
     ss.nickChanged 'bob'
     ss.serverJoined 'freenode'
     ss.channelJoined 'freenode', '#bash'
-    ss.restoreSavedState chat
+    ss.restoreSavedState()
     expect(chat.connect).not.toHaveBeenCalled()
     expect(chat.join).not.toHaveBeenCalled()
     expect(chat.updateStatus).not.toHaveBeenCalled()
     expect(chat.setNick).not.toHaveBeenCalled()
 
   it 'sets a new password if one is not found', ->
-    ss.init chat
+    ss.init()
     expect(ss.password).toEqual jasmine.any(String)
 
   it 'restores the password if it was cleared', ->
-    ss.init chat
+    ss.init()
     password = ss.password
     chrome.storage.update { password: { newValue: undefined } }, 'sync'
     expect(sync._storageMap.password).toBe password
 
   it 'restores the stored nick', ->
     sync.set { nick: 'ournick' }
-    ss.restoreSavedState chat
+    ss.restoreSavedState()
     expect(chat.setNick).toHaveBeenCalledWith 'ournick'
 
   it 'restores the stored password', ->
     sync.set { password: 'somepw' }
-    ss.init chat
+    ss.init()
     expect(chat.setPassword).toHaveBeenCalledWith 'somepw'
 
   it 'restores the stored servers', ->
     sync.set { servers: [
         {name: 'freenode', port: 6667},
         {name: 'dalnet', port: 6697}]}
-    ss.restoreSavedState chat
+    ss.restoreSavedState()
     expect(chat.connect).toHaveBeenCalledWith('freenode', 6667)
     expect(chat.connect).toHaveBeenCalledWith('dalnet', 6697)
 
@@ -67,7 +69,7 @@ describe 'IRC sync storage', ->
         {name: '#awesome', server: 'freenode'},
         {name: '#hiphop', server: 'dalnet'}]}
 
-    ss.restoreSavedState chat
+    ss.restoreSavedState()
     expect(chat.join).toHaveBeenCalledWith('f', '#bash')
     expect(chat.join).toHaveBeenCalledWith('f', '#awesome')
     expect(chat.join).toHaveBeenCalledWith('d', '#hiphop')
@@ -97,7 +99,7 @@ describe 'IRC sync storage', ->
   it 'loads the stored server device', ->
     connectInfo = { addr: '1.1.1.1', port: 1 }
     sync.set { server_device: connectInfo }
-    ss.init chat
+    ss.init()
     expect(ss.serverDevice).toEqual connectInfo
 
   it 'can store a new server device', ->
@@ -108,7 +110,7 @@ describe 'IRC sync storage', ->
   it 'connects to the server automatically when a new server is set', ->
     connectInfo = { addr: '1.1.1.2', port: 1 }
     sync.set { server_device: { addr: '1.1.1.1', port: 1 } }
-    ss.init chat
+    ss.init()
     chrome.storage.update { server_device: { newValue: connectInfo } }, 'sync'
     expect(chat.remoteConnectionHandler.determineConnection).
         toHaveBeenCalledWith connectInfo
@@ -130,3 +132,12 @@ describe 'IRC sync storage', ->
 
     result = ss.setAutostart()
     expect(result).toBe true
+
+  it "starts the walkthrough on startup if it hasn't been finished", ->
+    ss.init()
+    expect(chat.startWalkthrough).toHaveBeenCalled()
+
+  it "doesn't start the walkthrough on startup when it has been finished", ->
+    local.set { 'no_walkthrough': true }
+    ss.init()
+    expect(chat.startWalkthrough).not.toHaveBeenCalled()

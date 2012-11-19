@@ -54,8 +54,10 @@ describe 'An IRC client front end', ->
     client.listenToCommands scriptHandler
     client.listenToScriptEvents scriptHandler
     client.listenToIRCEvents scriptHandler
+    client.init()
 
   beforeEach ->
+    mocks.storage.useMock()
     mocks.navigator.useMock()
     mocks.ChromeSocket.useMock()
     mocks.RemoteDevice.useMock()
@@ -69,7 +71,6 @@ describe 'An IRC client front end', ->
 
   afterEach ->
     mocks.dom.tearDown()
-    chrome.storage.sync.clear()
     client.tearDown()
 
   it "displays the preferred nick in the status bar", ->
@@ -123,7 +124,8 @@ describe 'An IRC client front end', ->
 
     it "restores the previously used nick", ->
       restart()
-      expect($ '#status').toHaveText 'newNick'
+      runs ->
+        expect($ '#status').toHaveText 'newNick'
 
     it "generates random nick when no previously used nick is available", ->
       chrome.storage.sync.set { nick: undefined }

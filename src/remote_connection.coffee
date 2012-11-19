@@ -17,6 +17,11 @@ class RemoteConnection extends EventEmitter
     @_state = 'device_state'
     @_getIRCState = ->
     @_getChatLog = ->
+
+  ##
+  # Begin finding own IP addr and then listen for incoming connections.
+  ##
+  init: ->
     RemoteDevice.getOwnDevice @_onHasOwnDevice
 
   setPassword: (password) ->

@@ -6,7 +6,6 @@ class Chat extends EventEmitter
     super
     @connections = {}
     @messageHandler = new chat.IRCMessageHandler this
-
     @userCommands = new chat.UserCommandHandler this
     devCommands = new chat.DeveloperCommands this
     @userCommands.merge devCommands
@@ -16,6 +15,10 @@ class Chat extends EventEmitter
     @_initializeStorage()
 
     @updateStatus()
+
+  init: ->
+    @storage.init()
+    @remoteConnection.init()
 
   tearDown: ->
     @emit 'tear_down'
@@ -41,9 +44,14 @@ class Chat extends EventEmitter
     @remoteConnectionHandler.setRemoteConnection @remoteConnection
 
   _initializeStorage: ->
-    @storage = new chat.Storage
+    @storage = new chat.Storage this
     @remoteConnectionHandler.setStorageHandler @storage
-    @storage.init this
+
+  startWalkthrough: ->
+    walkthrough = new chat.Walkthrough this, @storage
+    walkthrough.listenToIRCEvents @_ircEvents
+    walkthrough.on 'tear_down', =>
+      @storage.finishedWalkthrough()
 
   setPassword: (password) ->
     @remoteConnection.setPassword password
@@ -61,6 +69,7 @@ class Chat extends EventEmitter
     @removeWindow @winList.get conn.name
 
   listenToCommands: (userInput) ->
+    @_userInput = userInput
     @remoteConnection.broadcastUserInput userInput
     @userCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
@@ -71,9 +80,10 @@ class Chat extends EventEmitter
     #scriptHandler.on 'notify', @createNotification
     #scriptHandler.on 'print', @printText
 
-  listenToIRCEvents: (@ircEvents) ->
-    @ircEvents.on 'server', @onIRCEvent
-    @ircEvents.on 'message', @onIRCEvent
+  listenToIRCEvents: (ircEvents) ->
+    @_ircEvents = ircEvents
+    @_ircEvents.on 'server', @onIRCEvent
+    @_ircEvents.on 'message', @onIRCEvent
 
   connect: (server, port) ->
     if server of @connections
@@ -88,7 +98,7 @@ class Chat extends EventEmitter
     irc = new window.irc.IRC
     irc.setSocket @remoteConnection.createSocket server
     irc.setPreferredNick @previousNick if @previousNick
-    @ircEvents?.addEventsFrom irc
+    @_ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
 
   _createWindowForServer: (server, port) ->
@@ -116,12 +126,24 @@ class Chat extends EventEmitter
       server = undefined
     else
       server = opt_server
-    conn = @connections[server]
+    @_setNickLocally nick
+    @_tellServerNickChanged nick, server
+    @_emitNickChangedEvent nick
+
+  _setNickLocally: (nick) ->
     @previousNick = nick
     @storage.nickChanged nick
     @updateStatus()
+
+  _tellServerNickChanged: (nick, server) ->
+    conn = @connections[server]
     conn?.irc.doCommand 'NICK', nick
     conn?.irc.setPreferredNick nick
+
+  _emitNickChangedEvent: (nick) ->
+    event = new Event 'server', 'nick', nick
+    event.setContext @getCurrentContext()
+    @emit event.type, event
 
   onIRCEvent: (e) =>
     conn = @connections[e.context.server]
@@ -136,6 +158,7 @@ class Chat extends EventEmitter
       when 'joined' then @onJoined conn, e.context.channel, e.args...
       when 'names' then @onNames e, e.args...
       when 'parted' then @onParted e
+      when 'nick' then @updateStatus()
 
   onMessageEvent: (conn, e) =>
     win = @determineWindow e
@@ -220,7 +243,7 @@ class Chat extends EventEmitter
   removeWindow: (win=@currentWindow) ->
     index = @winList.indexOf win
     if win.isServerWindow()
-      @ircEvents?.removeEventsFrom win.conn.irc
+      @_ircEvents?.removeEventsFrom win.conn.irc
     removedWindows = @winList.remove win
     for win in removedWindows
       @_removeWindowFromState win
@@ -303,6 +326,11 @@ class Chat extends EventEmitter
       @channelDisplay.select win.name
 
   # emits message to script handler, which decides if it should send it back
+  displayMessage: (name, context, args...) ->
+    event = new Event 'message', name, args...
+    event.setContext context.server, context.channel
+    @emit event.type, event
+
   displayMessage: (name, context, args...) ->
     event = new Event 'message', name, args...
     event.setContext context.server, context.channel

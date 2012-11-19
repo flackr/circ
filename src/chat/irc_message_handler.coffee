@@ -75,7 +75,6 @@ class IRCMessageHandler extends MessageHandler
 
     nick: (from, to) ->
       if @_isOwnNick to
-        @_chat.updateStatus()
         @_formatter.setFromUs true
         @_formatter.setToUs false
       @_formatter.addStyle 'update'
@@ -117,7 +116,7 @@ class IRCMessageHandler extends MessageHandler
     error: (msg) ->
       @_formatter.setContentMessage msg
 
-    system_notice: (msg) ->
+    system: (msg) ->
       @_formatter.setContentMessage msg
 
     notice: (msg) ->

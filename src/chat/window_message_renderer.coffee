@@ -17,13 +17,8 @@ class MessageRenderer
 
   displayWelcome: ->
     @message()
-    @message '', "Welcome to CIRC, a packaged Chrome app.", "system"
+    @message '', "Welcome to CIRC!", 'system'
     @message '', @_getWebsiteBlurb(), 'system'
-    @message '', "Type /server <server> [port] to connect, then /nick " +
-        "<my_nick> and /join <#channel>.", "system"
-    @message '', "Type /help to see a full list of commands.", "system"
-    @message '', "Switch windows with alt+[0-9] or click in the channel " +
-        "list on the left.", "system"
 
   displayHelp: (commands) ->
     @message()
