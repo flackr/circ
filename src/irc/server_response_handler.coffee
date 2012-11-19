@@ -43,6 +43,7 @@ class ServerResponseHandler extends MessageHandler
     NICK: (from, newNick, msg) ->
       if @irc.isOwnNick from.nick
         @irc.nick = newNick
+        @irc.emit 'nick', newNick
         @irc.emitMessage 'nick', chat.SERVER_WINDOW, from.nick, newNick
       normNick = @irc.util.normaliseNick from.nick
       newNormNick = @irc.util.normaliseNick newNick
