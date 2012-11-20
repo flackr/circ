@@ -6,6 +6,8 @@ exports = window.irc ?= {}
 class CTCPHandler
   constructor: ->
     @_delimeter = '\u0001'
+
+    # TODO: Respond with this message when an unknown query is seen.
     @_error ="#{@_delimeter}ERRMSG#{@_delimeter}"
 
   isCTCPRequest: (msg) ->
@@ -13,18 +15,29 @@ class CTCPHandler
     return @getResponses(msg).length > 0
 
   getResponses: (msg) ->
-    @_parseMessage msg
-    responses = @_getResponseText()
-    result = []
-    for response in responses
-      console.log response
-      result.push "#{@_delimeter}#{@type}#{response}#{@_delimeter}"
-    result
+    [type, args] = @_parseMessage msg
+    responses = @_getResponseText type, args
+    (@_createCTCPResponse(type, response) for response in responses)
 
-  _getResponseText: ->
+  ##
+  # Parses the type and arguments from a CTCP request.
+  # @param {string} msg CTCP message in the format: '\0001TYPE ARG1 ARG2\0001'.
+  #     Note: \0001 is a single character.
+  # @return {string, Array.<string>} Returns the type and the args.
+  ##
+  _parseMessage: (msg) ->
+    msg = msg[1..msg.length-2] # strip the \0001's
+    [type, args...] = msg.split ' '
+    [type, args]
+
+  ##
+  # @return {Array.<string>} Returns the unformatted responses to a CTCP
+  #     request.
+  ##
+  _getResponseText: (type, args) ->
     # TODO support the o ther types found here:
     # http://www.irchelp.org/irchelp/rfc/ctcpspec.html
-    switch @type
+    switch type
       when 'VERSION'
         name = 'CIRC'
         environment = 'Chrome'
@@ -32,13 +45,13 @@ class CTCPHandler
       when 'SOURCE'
         [''] # TODO add details when client is available over FTP
       when 'PING'
-        [' ' + @args[0]]
+        [' ' + args[0]]
       else []
 
-  _parseMessage: (msg) ->
-    msg = msg[1..msg.length-2]
-    split = msg.split ' '
-    @type = split[0]
-    @args = split[1..]
+  ##
+  # @return {string} Returns a correctly formatted response to a CTCP request.
+  ##
+  _createCTCPResponse: (type, response) ->
+    "#{@_delimeter}#{type}#{response}#{@_delimeter}"
 
 exports.CTCPHandler = CTCPHandler
