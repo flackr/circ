@@ -6,14 +6,14 @@ exports = (window.chat ?= {}).window ?= {}
 ##
 class MessageRenderer
 
-  @PROJECT_URL = "noahsug.github.com/circ"
+  @PROJECT_URL = "http://noahsug.github.com/circ"
 
   constructor: (@win) ->
-    @_resetActivityMarker = false
+    @_userSawMostRecentMessage = false
     @_activityMarkerLocation = undefined
 
   onFocus: ->
-    @_resetActivityMarker = @win.$messages.children().length > 0
+    @_userSawMostRecentMessage = @win.$messages.children().length > 0
 
   displayWelcome: ->
     @message()
@@ -71,7 +71,7 @@ class MessageRenderer
     @_addMessage from, msg, style
     if wasScrolledDown
       @win.scrollToBottom()
-    @_displayActivityMarker() if @_shouldDisplayActivityMarker()
+    @_updateActivityMarker() if @_shouldUpdateActivityMarker()
 
   _addMessage: (from, msg, style) ->
     message = $('#templates .message').clone()
@@ -82,11 +82,15 @@ class MessageRenderer
     @win.emit 'message', @win.getContext(), style, message[0].outerHTML
     @win.$messages.append message
 
-  _shouldDisplayActivityMarker: ->
-    return not @win.isFocused() and @_resetActivityMarker
+  ##
+  # Update the activity marker when the user has seen the most recent messages
+  # and then received a message while the window wasn't focused.
+  ##
+  _shouldUpdateActivityMarker: ->
+    return not @win.isFocused() and @_userSawMostRecentMessage
 
-  _displayActivityMarker: ->
-    @_resetActivityMarker = false
+  _updateActivityMarker: ->
+    @_userSawMostRecentMessage = false
     if @_activityMarkerLocation
       @_activityMarkerLocation.removeClass 'activity-marker'
     @_activityMarkerLocation = @win.$messages.children().last()

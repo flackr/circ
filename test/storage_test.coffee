@@ -132,12 +132,3 @@ describe 'IRC sync storage', ->
 
     result = ss.setAutostart()
     expect(result).toBe true
-
-  it "starts the walkthrough on startup if it hasn't been finished", ->
-    ss.init()
-    expect(chat.startWalkthrough).toHaveBeenCalled()
-
-  it "doesn't start the walkthrough on startup when it has been finished", ->
-    local.set { 'no_walkthrough': true }
-    ss.init()
-    expect(chat.startWalkthrough).not.toHaveBeenCalled()
