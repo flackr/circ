@@ -170,22 +170,31 @@ class RemoteConnectionHandler
 
   _useServerDeviceConnection: ->
     clearTimeout @_useOwnConnectionTimeout
-    usingServerDeviceConnection = @_remoteConnection.getState() in ['connected', 'connecting']
-    sameConnection = @_remoteConnection.serverDevice?.usesConnection @_storage.serverDevice
-    return if usingServerDeviceConnection and sameConnection
+    return if @_alreadyConnectedToServerDevice()
     @_log 'automatically connecting to', @_storage.serverDevice
     if @_remoteConnection.isInitializing()
-      @_useOwnConnectionTimeout = setTimeout(
-          @_useOwnConnectionWhileWaitingForServer,
-          RemoteConnectionHandler.SERVER_DEVICE_CONNECTION_WAIT)
+      @_useOwnConnectionIfServerTakesTooLong()
     @_remoteConnection.connectToServer @_storage.serverDevice
+
+  _alreadyConnectedToServerDevice: ->
+    usingServerDeviceConnection = @_remoteConnection.getState() in
+        ['connected', 'connecting']
+    isCurrentServerDevice = @_remoteConnection.serverDevice?.usesConnection(
+        @_storage.serverDevice)
+    return usingServerDeviceConnection and isCurrentServerDevice
+
+  _useOwnConnectionIfServerTakesTooLong: ->
+    @_useOwnConnectionTimeout = setTimeout =>
+      @_useOwnConnectionWhileWaitingForServer()
+    , RemoteConnectionHandler.SERVER_DEVICE_CONNECTION_WAIT
 
   _tryToReconnectToServerDevice: ->
     clearTimeout @_serverDeviceReconnectTimeout
     @_serverDeviceReconnectBackoff ?=
         RemoteConnectionHandler.SERVER_DEVICE_RECONNECTION_WAIT
-    @_serverDeviceReconnectTimeout = setTimeout @_reconnect,
-        @_serverDeviceReconnectBackoff
+    @_serverDeviceReconnectTimeout = setTimeout =>
+      @_reconnect()
+    , @_serverDeviceReconnectBackoff
 
   _reconnect: =>
     @_reconnectionAttempt = true

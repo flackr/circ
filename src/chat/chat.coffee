@@ -97,7 +97,7 @@ class Chat extends EventEmitter
   _createConnection: (server) ->
     irc = new window.irc.IRC
     irc.setSocket @remoteConnection.createSocket server
-    irc.setPreferredNick @previousNick if @previousNick
+    irc.setPreferredNick @preferredNick if @preferredNick
     @_ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
 
@@ -131,7 +131,7 @@ class Chat extends EventEmitter
     @_emitNickChangedEvent nick
 
   _setNickLocally: (nick) ->
-    @previousNick = nick
+    @preferredNick = nick
     @storage.nickChanged nick
     @updateStatus()
 
@@ -283,7 +283,7 @@ class Chat extends EventEmitter
 
   updateStatus: ->
     statusList = []
-    nick = @currentWindow.conn?.irc.nick ? @previousNick
+    nick = @currentWindow.conn?.irc.nick ? @preferredNick
     away = @currentWindow.conn?.irc.away
     channel = @currentWindow.target
     topic = @currentWindow.conn?.irc.channels[channel]?.topic
