@@ -7,7 +7,7 @@ class Storage
 
   @STATE_ITEMS = ['nick', 'servers', 'channels']
   @INITIAL_ITEMS = ['password', 'server_device', 'autostart']
-  @INITIAL_ITEMS_LOCAL = ['no_walkthrough']
+  @INITIAL_ITEMS_LOCAL = ['completed_walkthrough']
 
   constructor: (chat) ->
     @_chat = chat
@@ -71,7 +71,7 @@ class Storage
     return @_autostart
 
   finishedWalkthrough: ->
-    @_store 'no_walkthrough', true, 'local'
+    @_store 'completed_walkthrough', true, 'local'
 
   nickChanged: (nick) ->
     return if @_nick is nick
@@ -169,7 +169,7 @@ class Storage
     @_autostart = state.autostart
 
   _initializeLocalItems: (state) ->
-    @shouldDoWalkthrough = not state['no_walkthrough']
+    @completedWalkthrough = state['completed_walkthrough']
 
   restoreSavedState: (opt_callback) ->
     chrome.storage.sync.get Storage.STATE_ITEMS, (savedState) =>

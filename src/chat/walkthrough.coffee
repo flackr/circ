@@ -8,7 +8,7 @@ exports = window.chat ?= {}
 class Walkthrough extends EventEmitter
 
   # Number of ms to wait after joining a server so the MTOD and other output can be displayed.
-  @SERVER_OUTPUT_DELAY = 1000
+  @SERVER_OUTPUT_DELAY: 1000
 
   ##
   # @param {{getCurrentContext: function(), displayMessage: function()}}

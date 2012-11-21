@@ -285,8 +285,8 @@ class RemoteConnectionHandler
     @_storage.restoreSavedState =>
       @_chat.messageHandler.replayChatLog()
       @_storage.resume()
-      @_onConnected() if @_onConnected
+      @_onConnected?()
       @_onConnected = undefined
-      @_chat.startWalkthrough() if @_storage.shouldDoWalkthrough
+      @_chat.startWalkthrough() unless @_storage.completedWalkthrough
 
 exports.RemoteConnectionHandler = RemoteConnectionHandler
