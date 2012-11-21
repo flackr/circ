@@ -26,6 +26,7 @@ class UserCommand
     @_validateArgs ?= description.validateArgs
     @_usage ?= description.usage
     @run ?= description.run
+    @category ?= description.category
 
   ##
   # Try running the command. A command can fail to run if its requirements

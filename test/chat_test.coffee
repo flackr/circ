@@ -86,8 +86,8 @@ describe 'An IRC client front end', ->
   it "initially has one window", ->
     expect(rooms().length).toBe 1
 
-  it "replaces the initial window with a server window on /connect", ->
-    type '/connect freenode'
+  it "replaces the initial window with a server window on /server", ->
+    type '/server freenode'
     expect(rooms().length).toBe 1
     expect(textOfRoom 0).toBe 'freenode'
     expect(client.currentWindow.conn.name).toBe 'freenode'

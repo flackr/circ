@@ -6,7 +6,13 @@ exports = (window.chat ?= {}).window ?= {}
 ##
 class MessageRenderer
 
-  @PROJECT_URL = "http://noahsug.github.com/circ"
+  @PROJECT_URL: "http://noahsug.github.com/circ"
+
+  # The max width of the help message, in number of characters.
+  @HELP_COMMAND_WIDTH: 50
+
+  # The order in command groups are displayed to the user.
+  @HELP_CATEGORY_ORDER: ['common', 'uncommon', 'one_identity', 'misc']
 
   constructor: (@win) ->
     @_userSawMostRecentMessage = false
@@ -20,13 +26,94 @@ class MessageRenderer
     @message '', "Welcome to CIRC!", 'system'
     @message '', @_getWebsiteBlurb(), 'system'
 
+  ##
+  # Display available commands, grouped by category.
+  # @param {Object.<string: {category: string}>} commands
+  ##
   displayHelp: (commands) ->
     @message()
-    @message '', "Commands Available:", 'notice help'
     @_printCommands commands
     @message '', "Type /help <command> to see details about a specific command.",
         'notice help'
     @message '', @_getWebsiteBlurb(), 'notice help'
+
+  _printCommands: (commands) ->
+    totalWidth = MessageRenderer.HELP_COMMAND_WIDTH
+    commandWidth = @_getMaxCommandLength commands
+    commandsPerLine =  Math.floor totalWidth / commandWidth
+    style = 'notice help monospace group'
+
+    commandGroups = @_groupCommandsByCategory commands
+    for group in commandGroups
+      @message '', "#{@_getCommandGroupName group.category} Commands:", style
+      @message()
+      @_printCommandGroup group.commands, commandWidth, commandsPerLine, style
+      @message()
+
+  ##
+  # Returns a map of categories mapped to command names.
+  # @param {Object.<string: {category: string}>} commands
+  # @return {Array.<{string: Array.<string>}>}
+  ##
+  _groupCommandsByCategory: (commands) ->
+    categoryToCommands = {}
+    for name, command of commands
+      category = command.category ? 'misc'
+      categoryToCommands[category] ?= []
+      categoryToCommands[category].push name
+    @_orderGroups categoryToCommands
+
+  ##
+  # Given a map of categories to commands, order the categories in the order
+  # we'd like to display to the user.
+  # @param {Object.<string: Array.<string>>} categoryToCommands
+  # @return {Array.<{category: string, commands: Array.<string>}>}
+  ##
+  _orderGroups: (categoryToCommands) ->
+    groups = []
+    for category in MessageRenderer.HELP_CATEGORY_ORDER
+      groups.push { category, commands: categoryToCommands[category] }
+    groups
+
+  ##
+  # Given a category, return the name to display to the user.
+  # @param {string} category
+  # @return {string}
+  ##
+  _getCommandGroupName: (category) ->
+    switch category
+      when 'common' then 'Basic IRC'
+      when 'uncommon' then 'Other IRC'
+      when 'one_identity' then 'One Identity'
+      else 'Misc'
+
+  ##
+  # Print an array of commands.
+  # @param {Array.<string>} commands
+  # @param {number} widthPerCommand
+  # @param {number} commandsPerLine
+  ##
+  _printCommandGroup: (commands, commandWidth, commandsPerLine, style) ->
+    line = []
+    for command, i in commands
+      line.push @_fillWithWhiteSpace command, commandWidth
+      if line.length >= commandsPerLine or i >= commands.length - 1
+        @message '', '  ' + line.join('  '), style
+        line = []
+
+  ##
+  # @return {number} Returns the number of characters in the longest command.
+  ##
+  _getMaxCommandLength: (commands) ->
+    maxLength = 0
+    for command of commands
+      if command.length > maxLength
+        maxLength = command.length
+    maxLength
+
+  _fillWithWhiteSpace: (command, maxCommandLength) ->
+    space = (' ' for i in [1..maxCommandLength-command.length]).join ''
+    return command + space
 
   displayAbout: ->
     @message()
@@ -39,29 +126,6 @@ class MessageRenderer
   _getWebsiteBlurb: ->
     "Documentation, issues and source code live at " +
         "#{MessageRenderer.PROJECT_URL}."
-
-  _printCommands: (commands) ->
-    maxWidth = 40
-    style = 'notice help monospace group'
-    widthPerCommand = @_getMaxCommandWidth commands
-    commandsPerLine = maxWidth / Math.floor widthPerCommand
-    line = []
-    for command, i in commands
-      line.push @_fillWithWhiteSpace command, widthPerCommand
-      if line.length >= commandsPerLine or i >= commands.length - 1
-        @message '', line.join('  '), style
-        line = []
-
-  _getMaxCommandWidth: (commands) ->
-    maxWidth = 0
-    for command in commands
-      if command.length > maxWidth
-        maxWidth = command.length
-    maxWidth
-
-  _fillWithWhiteSpace: (command, maxCommandWidth) ->
-    space = (' ' for i in [0..maxCommandWidth-1]).join ''
-    return command + space.slice 0, maxCommandWidth - command.length
 
   message: (from='', msg='', style...) ->
     wasScrolledDown = @win.isScrolledDown()
