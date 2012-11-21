@@ -133,8 +133,8 @@ class UserCommand
       when 'channel' then !!@chan
       else @conn?.irc.state is requirement
 
-  displayHelp: ->
-    @win.message '', @getHelp(), 'notice help'
+  displayHelp: (win=@win) ->
+    win.message '', @getHelp(), 'notice help'
 
   getHelp: ->
     descriptionText = if @_description then ", #{@_description}" else ''
