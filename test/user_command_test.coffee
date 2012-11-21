@@ -6,7 +6,7 @@ describe 'A user command', ->
   eatCommandDescription =
     description: 'eats cake'
     params: ['numCakes']
-    areValidArgs: ->
+    validateArgs: ->
       @numCakes = parseInt @numCakes
     run: -> onRun @numCakes
 
@@ -14,7 +14,7 @@ describe 'A user command', ->
     description: 'sets the mode for a user (by default, yourself)'
     params: ['opt_nick', 'mode']
     requires: ['connection', 'channel', 'connected']
-    areValidArgs: ->
+    validateArgs: ->
       @nick ?= @conn.irc.nick
     run: -> onRun @nick, @mode
 
@@ -60,19 +60,19 @@ describe 'A user command', ->
     expect(onRun).toHaveBeenCalledWith 8
 
   it 'can check if the given arguments are valid', ->
-#    expect(eatCommand._hasValidArgs).toBe false
-#
-#    eatCommand.setArgs '4'
-#    expect(eatCommand._hasValidArgs).toBe true
-#
+    expect(eatCommand._hasValidArgs).toBe false
+
+    eatCommand.setArgs '4'
+    expect(eatCommand._hasValidArgs).toBe true
+
     eatCommand.setArgs 'donkey'
     expect(eatCommand._hasValidArgs).toBe false
 
-#    eatCommand.setArgs('4', '5')
-#    expect(eatCommand._hasValidArgs).toBe false
-#
-#    eatCommand.setArgs()
-#    expect(eatCommand._hasValidArgs).toBe false
+    eatCommand.setArgs('4', '5')
+    expect(eatCommand._hasValidArgs).toBe false
+
+    eatCommand.setArgs()
+    expect(eatCommand._hasValidArgs).toBe false
 
   it 'can require certain conditions to be met', ->
     win.conn.irc.state = 'disconnected'
@@ -186,7 +186,7 @@ describe 'A user command', ->
   it 'can extend other commands', ->
     yellDescription =
       description: 'outputs text to the screen in all caps'
-      areValidArgs: ->
+      validateArgs: ->
         @text = @text.toUpperCase()
     yellCommand = new chat.UserCommand 'yell', yellDescription
     yellCommand.describe sayCommandDescription
