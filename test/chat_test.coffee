@@ -1,3 +1,6 @@
+##
+# Integration tests for the entire IRC client excluding socket logic.
+##
 describe 'An IRC client front end', ->
   client = prompt = commandInput = undefined
 
@@ -57,6 +60,7 @@ describe 'An IRC client front end', ->
     client.init()
 
   beforeEach ->
+    mocks.Walkthrough.useMock()
     mocks.storage.useMock()
     mocks.navigator.useMock()
     mocks.ChromeSocket.useMock()
@@ -99,6 +103,64 @@ describe 'An IRC client front end', ->
     expect(noticeIsVisible()).toBe false
     mocks.navigator.goOffline()
     expect(noticeIsVisible()).toBe true
+
+  describe "walkthrough", ->
+    walkthrough = undefined
+
+    beforeEach ->
+      walkthrough = mocks.Walkthrough.instance
+
+    restartWith = (obj, type='sync') ->
+      chrome.storage.sync.clear()
+      chrome.storage.local.clear()
+      chrome.storage[type].set obj
+      restart()
+      walkthrough = mocks.Walkthrough.instance
+
+    it "walks the user through the basics of setting a nick and connecting to a channel", ->
+      restartWith()
+      expect(walkthrough._startWalkthrough).toHaveBeenCalled()
+      expect(walkthrough._serverWalkthrough).not.toHaveBeenCalled()
+
+      type '/nick ournick'
+      expect(walkthrough._serverWalkthrough).toHaveBeenCalled()
+      expect(walkthrough._channelWalkthrough).not.toHaveBeenCalled()
+
+      type '/server freenode'
+      irc('freenode').handle '1', {}, 'ournick' # rpl_welcome
+      expect(walkthrough._channelWalkthrough).toHaveBeenCalled()
+      expect(walkthrough._endWalkthrough).not.toHaveBeenCalled()
+
+      type '/join #bash'
+      irc('freenode').handle 'JOIN', {nick: 'ournick'}, '#bash'
+      expect(walkthrough._endWalkthrough).toHaveBeenCalled()
+
+    it "doesn't start the walkthrough if the user has completed it", ->
+      restartWith { 'completed_walkthrough': true }, 'local'
+      expect(walkthrough._startWalkthrough).not.toHaveBeenCalled()
+
+    it "jumps to 2nd step in walkthrough if nick is already set", ->
+      restartWith { 'nick': 'ournick' }
+      expect(walkthrough._startWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._serverWalkthrough).toHaveBeenCalled()
+
+    it "jumps to 3rd step in walkthrough if a server is stored, but don't display it until connected to the server", ->
+      restartWith { 'servers': [{name: 'freenode', port: 6667}] }
+      expect(walkthrough._startWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._serverWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._channelWalkthrough).not.toHaveBeenCalled()
+
+      irc('freenode').handle '1', {}, 'ournick' # rpl_welcome
+      expect(walkthrough._channelWalkthrough).toHaveBeenCalled()
+
+    it "doesn't show the walkthrough if a channel is stored", ->
+      restartWith {
+          servers: [{name: 'freenode', port: 6667}],
+          channels: [{name: '#bash', server: 'freenode'}] }
+      expect(walkthrough._startWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._serverWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._channelWalkthrough).not.toHaveBeenCalled()
+      expect(walkthrough._channelWalkthrough).not.toHaveBeenCalled()
 
   describe "storage", ->
 
