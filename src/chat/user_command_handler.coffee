@@ -134,7 +134,7 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @command = @chat.userCommands.getCommand @command
         if @command
-          @command.displayHelp()
+          @command.displayHelp @win
         else
           commands = @chat.userCommands.getCommands()
           @win.messageRenderer.displayHelp commands
