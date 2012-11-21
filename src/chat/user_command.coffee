@@ -12,10 +12,13 @@ class UserCommand
   ##
   # Describe the command using the following format:
   # * description - a description of what the command does; used with /help
+  #       <command>
+  # * category - what category the command falls under. This is used with /help
   # * params - what parameters the command takes, 'opt_<name>' for optional,
   #       '<name>...' for variable
   # * validateArgs - returns a truthy variable if the given arguments are valid.
-  # * requires - what the command requires to run (e.g. a connections to an IRC server)
+  # * requires - what the command requires to run (e.g. a connections to an IRC
+  #       server)
   # * usage - manually set a usage message, one will be generated if not specified
   # * run - the function to call when the command is run
   ##
