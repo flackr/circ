@@ -28,7 +28,7 @@ class ServerResponseHandler extends MessageHandler
       newNames = []
       for n in names.split(/\x20/)
         # TODO: read the prefixes and modes that they imply out of the 005 message
-        n = n.replace /^[@+]/, ''
+        n = n.replace /^[~&@%+]/, ''
         if n
           nameList[irc.util.normaliseNick n] = n
           newNames.push n
