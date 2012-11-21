@@ -34,7 +34,7 @@ class UserCommandHandler extends MessageHandler
 
   ##
   # Creates all user commands. The "this" parameter in the run() and
-  # areValidArgs() functions is UserCommand.
+  # validateArgs() functions is UserCommand.
   # @this {UserCommand}
   ##
   _init: ->
@@ -42,7 +42,7 @@ class UserCommandHandler extends MessageHandler
       description: 'joins the channel, the current channel is used by default'
       params: ['opt_channel']
       requires: ['connection']
-      areValidArgs: ->
+      validateArgs: ->
         @channel ?= @chan
       run: ->
         @chat.join @conn, @channel
@@ -59,7 +59,7 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'win',
       description: 'switches windows'
       params: ['windowNum']
-      areValidArgs: ->
+      validateArgs: ->
         @windowNum = parseInt @windowNum
       run: ->
         @chat.switchToWindowByIndex @windowNum
@@ -75,13 +75,13 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'me',
       description: 'sends text to the current channel, spoken in the 3rd person'
       extends: 'say'
-      areValidArgs: ->
+      validateArgs: ->
         @text = "\u0001ACTION #{@text}\u0001"
 
     @_addCommand 'nick',
       description: 'sets your nick'
       params: ['nick']
-      areValidArgs: ->
+      validateArgs: ->
         @nick = html.escape @nick
       run: ->
         @chat.setNick @conn?.name, @nick
@@ -91,7 +91,7 @@ class UserCommandHandler extends MessageHandler
           "reconnects to the current server if no server is specified"
       params: ['opt_server', 'opt_port']
       requires: ['online']
-      areValidArgs: ->
+      validateArgs: ->
         @port ?= parseInt(@server) || 6667
         @port = parseInt(@port)
         @server ?= @conn?.name
@@ -138,7 +138,7 @@ class UserCommandHandler extends MessageHandler
       params: ['command', 'opt_args...']
       usage: '<command> [-c] [arguments...]'
       requires: ['connection']
-      areValidArgs: ->
+      validateArgs: ->
         @args = if @args then @args.split ' ' else []
       run: ->
         command = chat.customCommandParser.parse @chan, @command, @args...
@@ -171,7 +171,7 @@ class UserCommandHandler extends MessageHandler
           "no nick is specified"
       params: ['opt_nick', 'mode']
       requires: ['connection']
-      areValidArgs: ->
+      validateArgs: ->
         @nick ?= @conn.irc.nick
       run: ->
         if @isOwnNick() and @mode in ['+o', '+O', '-r']
@@ -185,32 +185,32 @@ class UserCommandHandler extends MessageHandler
       description: "gives operator status"
       params: ['nick']
       extends: 'mode'
-      areValidArgs: -> @mode = '+o'
+      validateArgs: -> @mode = '+o'
 
     @_addCommand 'deop',
       description: "removes operator status"
       params: ['nick']
       extends: 'mode'
-      areValidArgs: -> @mode = '-o'
+      validateArgs: -> @mode = '-o'
 
     @_addCommand 'voice',
       description: "gives voice"
       params: ['nick']
       extends: 'mode'
-      areValidArgs: -> @mode = '+v'
+      validateArgs: -> @mode = '+v'
 
     @_addCommand 'devoice',
       description: "removes voice"
       params: ['nick']
       extends: 'mode'
-      areValidArgs: -> @mode = '-v'
+      validateArgs: -> @mode = '-v'
 
     @_addCommand 'away',
       description: "sets your status to away, a response is " +
           "automatically sent when people /msg or WHOIS you"
       params: ['opt_response...']
       requires: ['connection']
-      areValidArgs: ->
+      validateArgs: ->
         unless stringHasContent @response
           @response = "I'm currently away from my computer"
         true
@@ -242,7 +242,7 @@ class UserCommandHandler extends MessageHandler
           "are given"
       requires: ['online']
       params: ['opt_addr', 'opt_port']
-      areValidArgs: ->
+      validateArgs: ->
         parsedPort = parseInt(@port)
         return false if (@port || @addr) and not (parsedPort || @addr)
         connectInfo = @chat.storage.serverDevice
@@ -326,7 +326,7 @@ class UserCommandHandler extends MessageHandler
           "toggles if no arguments are given"
       usage: '[ON|OFF]'
       params: ['opt_state']
-      areValidArgs: ->
+      validateArgs: ->
         unless @state
           @enabled = undefined
           return true

@@ -14,7 +14,7 @@ class UserCommand
   # * description - a description of what the command does; used with /help
   # * params - what parameters the command takes, 'opt_<name>' for optional,
   #       '<name>...' for variable
-  # * areValidArgs - determines if the given arguments are valid
+  # * validateArgs - returns a truthy variable if the given arguments are valid.
   # * requires - what the command requires to run (e.g. a connections to an IRC server)
   # * usage - manually set a usage message, one will be generated if not specified
   # * run - the function to call when the command is run
@@ -23,7 +23,7 @@ class UserCommand
     @_description ?= description.description
     @_params ?= description.params
     @_requires ?= description.requires
-    @_areValidArgs ?= description.areValidArgs
+    @_validateArgs ?= description.validateArgs
     @_usage ?= description.usage
     @run ?= description.run
 
@@ -57,7 +57,7 @@ class UserCommand
 
   setArgs: (args...) ->
     @_hasValidArgs = @_tryToAssignArgs(args) and
-        (not @_areValidArgs or !!@_areValidArgs())
+        (not @_validateArgs or !!@_validateArgs())
 
   _tryToAssignArgs: (args) ->
     @_removeTrailingWhiteSpace args
