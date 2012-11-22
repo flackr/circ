@@ -5,21 +5,15 @@ exports = window.chat ?= {}
 ##
 class Window extends EventEmitter
 
-  ##
-  # The screen will auto scroll as long as the user didn't scroll up more then
-  # this many pixels.
-  ##
-  @SCROLLED_DOWN_BUFFER = 8
-
   constructor: (server, opt_channel) ->
     super
     @name = server + if opt_channel then " #{opt_channel}" else ''
-    @wasScrolledDown = true
     @messageRenderer = new chat.window.MessageRenderer this
     @_addUI()
     @notifications = []
     @_isVisible = false
     @_isFocused = false
+    @_height = 0
     $(window).focus @_onFocus
     $(window).blur @_onBlur
 
@@ -50,7 +44,7 @@ class Window extends EventEmitter
     @$roomsAndNicks = $ '#rooms-and-nicks'
 
   _addMessageUI: ->
-    @$messagesContainer = $ '#messages-container'
+    @$messagesContainer = new chat.Scrollable $ '#messages-container'
     @$messages = $('#templates .messages').clone()
 
   _addNickUI: ->
@@ -80,8 +74,6 @@ class Window extends EventEmitter
     return @_private?
 
   detach: ->
-    @scroll = @$messagesContainer.scrollTop()
-    @wasScrolledDown = @isScrolledDown()
     @$roomsAndNicks.addClass 'no-nicks'
     @$messages.detach()
     @$nicks.detach()
@@ -98,32 +90,18 @@ class Window extends EventEmitter
     @$roomsAndNicks.removeClass 'no-nicks' if @target?
     @$messagesContainer.append @$messages
     @$nicksContainer.append @$nicks
-    if @wasScrolledDown
-      @scroll = @_getScrollHeight()
-    @$messagesContainer.scrollTop @scroll
-
-  isScrolledDown: ->
-    scrollPosition = @$messagesContainer.scrollTop() + @$messagesContainer.height()
-    scrollPosition >= @_getScrollHeight() - Window.SCROLLED_DOWN_BUFFER
-
-  _getScrollHeight: ->
-    @$messagesContainer[0].scrollHeight
 
   message: (from, msg, style...) ->
-    wasScrolledDown = @isScrolledDown()
     @messageRenderer.message from, msg, style...
-    @scrollToBottom() if wasScrolledDown
 
   ##
   # Append raw html to the message list.
-  # This is useful for adding previous chat history.
+  #
+  # This is useful for adding a large number of messages quickly, such as
+  # loading chat history.
   ##
   rawMessage: (html) ->
-    wasScrolledDown = @isScrolledDown()
     @$messages.html @$messages.html() + html
-    @scrollToBottom() if wasScrolledDown
-
-  scrollToBottom: ->
-    @$messagesContainer.scrollTop @_getScrollHeight()
+    @$messagesContainer.restoreScrollPosition()
 
 exports.Window = Window

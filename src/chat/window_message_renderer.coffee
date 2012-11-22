@@ -42,13 +42,10 @@ class MessageRenderer
         "#{MessageRenderer.PROJECT_URL}."
 
   message: (from='', msg='', style...) ->
-    wasScrolledDown = @win.isScrolledDown()
     from = html.escape from
     msg = html.display msg
     style = style.join ' '
     @_addMessage from, msg, style
-    if wasScrolledDown
-      @win.scrollToBottom()
     @_updateActivityMarker() if @_shouldUpdateActivityMarker()
 
   ##
@@ -65,6 +62,7 @@ class MessageRenderer
     $('.source', message).addClass('empty') unless from
     @win.emit 'message', @win.getContext(), style, message[0].outerHTML
     @win.$messages.append message
+    @win.$messagesContainer.restoreScrollPosition()
 
   _addWhitespace: ->
     @message()

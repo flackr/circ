@@ -10,6 +10,7 @@ describe "A window message renderer", ->
     surface = $ '<div>'
     win = {
       $messages: surface
+      $messagesContainer: { restoreScrollPosition: -> }
       isScrolledDown: ->
       scrollToBottom: ->
       getContext: -> {}
