@@ -42,8 +42,6 @@ class UserCommandHandler extends MessageHandler
       description: 'sets your nick'
       category: 'common'
       params: ['nick']
-      validateArgs: ->
-        @nick = html.escape @nick
       run: ->
         @chat.setNick @conn?.name, @nick
 

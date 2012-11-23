@@ -287,7 +287,7 @@ class Chat extends EventEmitter
     away = @currentWindow.conn?.irc.away
     channel = @currentWindow.target
     topic = @currentWindow.conn?.irc.channels[channel]?.topic
-    statusList.push "<span class='nick'>#{nick}</span>" if nick
+    statusList.push "<span class='nick'>#{html.escape nick}</span>" if nick
     statusList.push "<span class='away'>away</span>" if away
     statusList.push "<span class='topic'>#{html.display topic}</span>" if topic
     $('#status').html(statusList.join '')
