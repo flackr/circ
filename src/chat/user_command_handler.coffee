@@ -83,8 +83,6 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'nick',
       description: 'sets your nick'
       params: ['nick']
-      parseArgs: ->
-        @nick = html.escape @nick
       run: ->
         @chat.setNick @conn?.name, @nick
 
