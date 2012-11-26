@@ -25,7 +25,7 @@ class AutoComplete
 
   ##
   # Returns a list of possible auto-completions in the current channel.
-  # @return {Array<string>}
+  # @return {Array.<Completion>}
   ##
   _getPossibleCompletions: =>
     completions = []
@@ -35,7 +35,7 @@ class AutoComplete
 
   ##
   # Returns a list of commands to auto-complete.
-  # @return {Array<string>}
+  # @return {Array.<Completion>}
   ##
   _getCommandCompletions: ->
     cmds = @_context.userCommands.getCommands()
@@ -44,7 +44,8 @@ class AutoComplete
     return []
 
   ##
-  # Returns a list of nicknames in the current channel
+  # Returns a list of nicknames in the current channel.
+  # @return {Array.<Completion>}
   ##
   _getNickCompletions: ->
     chan = @_context.currentWindow.target
@@ -117,7 +118,7 @@ class AutoComplete
   class Completion
 
     ##
-    # Completion types can either be commands or nicknames
+    # Completion types can either be commands or nicknames.
     ##
     @CMD = 0
     @NICK = 1
