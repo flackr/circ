@@ -365,7 +365,12 @@ class UserCommandHandler extends MessageHandler
               "automatically run on startup"
 
     @_addCommand 'query',
-      description: 'TODO'
+      description: 'opens a new window for a private conversation with someone'
+      params: ['nick']
+      requires: ['connection']
+      run: ->
+        win = @chat.createPrivateMessageWindow @conn, @nick
+        @chat.switchToWindow win
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

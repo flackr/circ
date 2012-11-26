@@ -28,6 +28,11 @@ class IRCMessageHandler extends MessageHandler
       continue unless win
       win.rawMessage @_chatLog.get context
 
+  ##
+  # Sets which window messages will be displayed on.
+  #
+  # Call this method before calling handle().
+  ##
   setWindow: (@_win) ->
     @_formatter.setNick @_win.conn?.irc.nick
 

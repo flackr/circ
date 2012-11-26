@@ -47,6 +47,10 @@ class Window extends EventEmitter
     @$nicks = $('#templates .nicks').clone()
     @nicks = new chat.NickList @$nicks
 
+  ##
+  # Sets the window's channel.
+  # @param {string} target
+  ##
   setTarget: (@target) ->
     return if @isPrivate()
     @$roomsAndNicks.removeClass 'no-nicks'
@@ -82,7 +86,8 @@ class Window extends EventEmitter
   attach: ->
     @_isVisible = true
     @_onFocus()
-    @$roomsAndNicks.removeClass 'no-nicks' if @target?
+    if @target and not @isPrivate()
+      @$roomsAndNicks.removeClass 'no-nicks'
     @$messagesContainer.append @$messages
     @$nicksContainer.append @$nicks
     @$messagesContainer.restoreScrollPosition()

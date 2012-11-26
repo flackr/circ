@@ -207,16 +207,19 @@ class Chat extends EventEmitter
     return chat.NO_WINDOW
 
   createPrivateMessageWindow: (conn, from) ->
+    return conn.windows[from] if conn.windows[from]
     @storage.channelJoined conn.name, from, 'private'
-    conn.windows[from] = @_createWindowForChannel conn, from
-    conn.windows[from].makePrivate()
+    win = conn.windows[from] = @_createWindowForChannel conn, from
+    win.makePrivate()
+    win.message '', "You're in a private conversation with #{from}.", 'notice'
     @channelDisplay.connect conn.name, from
+    win
 
   onConnected: (conn) ->
     @displayMessage 'connect', {server: conn.name}
     @updateStatus()
     @channelDisplay.connect conn.name
-    for chan, win of conn.windows
+    for chan, win of conn.windows when not win.isPrivate()
       @displayMessage 'connect', {server: conn.name, channel: win.target}
       @channelDisplay.connect conn.name, chan if win.isPrivate()
 
