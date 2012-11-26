@@ -364,6 +364,9 @@ class UserCommandHandler extends MessageHandler
           @displayMessage 'notice', "CIRC will no longer " +
               "automatically run on startup"
 
+    @_addCommand 'query',
+      description: 'TODO'
+
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription
     commandToExtend = @_handlers[commandDescription.extends]

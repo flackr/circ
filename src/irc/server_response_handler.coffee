@@ -166,4 +166,7 @@ class ServerResponseHandler extends MessageHandler
     482: (from, to, chan, msg) ->
       @irc.emitMessage 'error', chan, msg
 
+    KILL: (from, victim, killer, msg) ->
+      @irc.emitMessage 'kill', chat.CURRENT_WINDOW, killer.nick, victim, msg
+
 exports.ServerResponseHandler = ServerResponseHandler

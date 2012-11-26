@@ -79,7 +79,7 @@ class IRC extends EventEmitter
     @socket.setTimeout 60000, @onTimeout
 
   onError: (err) ->
-    @emitMessage 'error', chat.SERVER_WINDOW, "Socket Error: #{err}"
+    @emitMessage 'socket_error', chat.SERVER_WINDOW, err
     @setReconnect()
     @socket.close()
 

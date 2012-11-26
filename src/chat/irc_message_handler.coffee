@@ -151,6 +151,19 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.addStyle 'notice'
       @_formatter.setContentMessage msg
 
+    kill: (from, to, msg) ->
+      @_formatter.addStyle 'notice'
+      # TODO: We can't use 'from' or 'msg' because they are not being properly
+      # parsed by irc.util.parseCommand().
+      @_formatter.setMessage "Kill command used on #to"
+
+    socket_error: (errorCode) ->
+      @_formatter.addStyle 'error'
+      @_formatter.setToUs true
+      switch errorCode
+        when -15 then @_formatter.setMessage 'Disconnected: Remote host closed socket'
+        else @_formatter.setMessage "Socket Error: #{errorCode}"
+
   _getModeMessage: (mode) ->
     pre = if mode[0] is '+' then 'gave' else 'took'
     post = if mode[0] is '+' then 'to' else 'from'
