@@ -204,7 +204,8 @@ class Storage
     return unless channels = @_state.channels
     @_channels = channels
     for channel in channels
-      return unless conn = @_chat.connections[channel.server]
+      conn = @_chat.connections[channel.server]
+      continue unless conn
       if channel.type is 'private'
         @_chat.createPrivateMessageWindow conn, channel.name
       else
@@ -256,6 +257,9 @@ class Storage
     @_log 'loaded server device', @serverDevice if @serverDevice
     @_chat.remoteConnectionHandler.determineConnection()
 
+  ##
+  # Marks that a certain item has been loaded from storage.
+  ##
   _markItemsAsLoaded: (items, state) ->
     for item in items
       this["#{item}Loaded"] = state[item]?

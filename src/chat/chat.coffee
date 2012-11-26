@@ -85,7 +85,7 @@ class Chat extends EventEmitter
     @remoteConnection.broadcastUserInput userInput
     @userCommands.listenTo userInput
     userInput.on 'switch_window', (winNum) =>
-      @switchToWindowByIndex winNum
+      @switchToWindowByIndex winNum - 1
 
   listenToScriptEvents: (@scriptHandler) ->
     # TODO - allow scripts to create notifications and plain text
@@ -319,8 +319,7 @@ class Chat extends EventEmitter
     document.title = titleList.join ' '
 
   switchToWindowByIndex: (winNum) ->
-    winNum = 10 if winNum is 0
-    win = @winList.get winNum - 1
+    win = @winList.get winNum
     @switchToWindow win if win?
 
   switchToWindow: (win) ->

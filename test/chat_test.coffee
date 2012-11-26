@@ -214,6 +214,10 @@ describe 'An IRC client front end', ->
       expect(client.connections['dalnet'].windows['#hiphop']).toBeDefined()
       expect(rooms().length).toBe 5
 
+    it "selects the first room when restoring previous channels and servers", ->
+      restart()
+      expect(room 0).toHaveClass 'selected'
+
     it "doesn't restore channels that were parted", ->
       type '/part #hiphop'
       restart()

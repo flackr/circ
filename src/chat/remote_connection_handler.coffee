@@ -283,10 +283,14 @@ class RemoteConnectionHandler
     @_log 'resuming IRC conn'
     @_chat.closeAllConnections()
     @_storage.restoreSavedState =>
-      @_chat.messageHandler.replayChatLog()
-      @_storage.resume()
-      @_onConnected?()
-      @_onConnected = undefined
-      @_chat.startWalkthrough() unless @_storage.completedWalkthrough
+      @_onUsingOwnConnection()
+
+  _onUsingOwnConnection: ->
+    @_chat.switchToWindowByIndex 0
+    @_chat.messageHandler.replayChatLog()
+    @_storage.resume()
+    @_onConnected?()
+    @_onConnected = undefined
+    @_chat.startWalkthrough() unless @_storage.completedWalkthrough
 
 exports.RemoteConnectionHandler = RemoteConnectionHandler

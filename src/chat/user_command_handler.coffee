@@ -52,10 +52,10 @@ class UserCommandHandler extends MessageHandler
       params: ['opt_server', 'opt_port']
       requires: ['online']
       validateArgs: ->
-        @port ?= parseInt(@server) || 6667
-        @port = parseInt(@port)
+        if @port then @port = parseInt @port
+        else @port = 6667
         @server ?= @conn?.name
-        return @port and @server
+        return @server and not isNaN @port
       run: ->
         @chat.connect @server, @port
 
@@ -87,8 +87,9 @@ class UserCommandHandler extends MessageHandler
       params: ['windowNum']
       validateArgs: ->
         @windowNum = parseInt @windowNum
+        not isNaN @windowNum
       run: ->
-        @chat.switchToWindowByIndex @windowNum
+        @chat.switchToWindowByIndex @windowNum - 1
 
     @_addCommand 'say',
       description: 'sends text to the current channel'
