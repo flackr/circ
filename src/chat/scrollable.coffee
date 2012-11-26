@@ -6,7 +6,6 @@ exports = window.chat ?= {}
 ##
 class Scrollable
 
-
   ##
   # The screen will auto scroll as long as the user didn't scroll up more then
   # this many pixels.

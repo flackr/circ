@@ -85,6 +85,7 @@ class Window extends EventEmitter
     @$roomsAndNicks.removeClass 'no-nicks' if @target?
     @$messagesContainer.append @$messages
     @$nicksContainer.append @$nicks
+    @$messagesContainer.restoreScrollPosition()
 
   message: (from, msg, style...) ->
     @messageRenderer.message from, msg, style...
