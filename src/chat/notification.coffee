@@ -32,14 +32,15 @@ class Notification extends EventEmitter
   # Display the notification.
   ##
   show: ->
-    chrome.app.window.current().drawAttention?()
     @notification?.show()
+    chrome.app.window.current?().drawAttention?()
 
   ##
   # Close the notification.
   ##
   cancel: ->
     @notification?.cancel()
+    chrome.app.window.current?().clearAttention?()
 
   ##
   # Used as a hash function for notifications.

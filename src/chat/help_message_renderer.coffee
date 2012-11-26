@@ -43,7 +43,7 @@ class HelpMessageRenderer
       @_postMessage "#{@_getCommandGroupName group.category} Commands:",
           HelpMessageRenderer.COMMAND_STYLE
       @_addWhitespace()
-      @_printCommandGroup group.commands
+      @_printCommandGroup group.commands.sort()
       @_addWhitespace()
 
   _determineCommandDimentions: ->

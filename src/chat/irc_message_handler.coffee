@@ -1,7 +1,7 @@
 exports = window.chat ?= {}
 
 ##
-# Handles messages to be displayed in a window.
+# Displays messages to the user when certain IRC events occur.
 ##
 class IRCMessageHandler extends MessageHandler
 
@@ -44,6 +44,11 @@ class IRCMessageHandler extends MessageHandler
     @_formatter.clear()
     @_formatter.setContext params...
 
+  ##
+  # The formatter.setMessage() method accepts placeholder variables (#to, #from,
+  # #content). By default, the first argument replaces #from, the 2nd argument
+  # replaces #to and the last argument replaces #content.
+  ##
   _handlers:
     topic: (from, topic) ->
       @_chat.updateStatus()

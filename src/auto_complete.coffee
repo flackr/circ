@@ -34,17 +34,17 @@ class AutoComplete
     return completions
 
   ##
-  # Returns a list of commands to auto-complete.
+  # Returns a list of commands.
   # @return {Array.<Completion>}
   ##
   _getCommandCompletions: ->
-    cmds = @_context.userCommands.getCommands()
-    if cmds?
-      return (new Completion(cmd, Completion.CMD) for cmd, obj of cmds)
-    return []
+    commands = @_context.userCommands.getCommands()
+    commandNames = (commandName for commandName, commandObj of commands)
+    commandNames.sort()
+    (new Completion(cmd, Completion.CMD) for cmd in commandNames)
 
   ##
-  # Returns a list of nicknames in the current channel.
+  # Returns a list of nicks in the current channel.
   # @return {Array.<Completion>}
   ##
   _getNickCompletions: ->
@@ -112,13 +112,13 @@ class AutoComplete
     -1
 
   ##
-  # Simple storage class for completions which store both the completion text
-  # and the type of completion.
+  # Simple storage class for completions which stores the completion text
+  # and type of completion.
   ##
   class Completion
 
     ##
-    # Completion types can either be commands or nicknames.
+    # Completions can either be commands or nicks.
     ##
     @CMD = 0
     @NICK = 1
