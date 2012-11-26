@@ -24,20 +24,38 @@ class AutoComplete
     @_completionFinder.setCompletionGenerator @_getPossibleCompletions
 
   ##
-  # Returns a list of nicks in the current channel.
+  # Returns a list of possible auto-completions in the current channel.
   # @return {Array<string>}
   ##
   _getPossibleCompletions: =>
-    chan = @_context.currentWindow.target
     completions = []
+    completions = completions.concat @_getCommandCompletions()
+    completions = completions.concat @_getNickCompletions()
+    return completions
+
+  ##
+  # Returns a list of commands to auto-complete.
+  # @return {Array<string>}
+  ##
+  _getCommandCompletions: ->
     cmds = @_context.userCommands.getCommands()
     if cmds?
-      completions = completions.concat (new Completion(cmd, Completion.CMD) for cmd, obj of cmds)
+      return (new Completion(cmd, Completion.CMD) for cmd, obj of cmds)
+    return []
+
+  ##
+  # Returns a list of nicknames in the current channel
+  ##
+  _getNickCompletions: ->
+    chan = @_context.currentWindow.target
     nicks = @_context.currentWindow.conn?.irc.channels[chan]?.names
     if nicks?
       ownNick = @_context.currentWindow.conn.irc.nick
-      completions = completions.concat (new Completion(nick, Completion.NICK) for norm, nick of nicks when nick isnt ownNick)
-    return completions
+      completions = []
+      for norm, nick of nicks when nick isnt ownNick
+        completions.push new Completion(nick, Completion.NICK)
+      return completions
+    return []
 
   ##
   # Returns the passed in text, with the current stub replaced with its
@@ -99,7 +117,7 @@ class AutoComplete
   class Completion
 
     ##
-    # Completion types can either be commands (CMD) or nicknames (nick)
+    # Completion types can either be commands or nicknames
     ##
     @CMD = 0
     @NICK = 1
@@ -107,7 +125,7 @@ class AutoComplete
     @COMPLETION_SUFFIX = ':'
 
     constructor: (@_text, @_type) ->
-      if @_type == Completion.CMD
+      if @_type is Completion.CMD
         @_text = '/' + @_text
 
     getText: ->
@@ -117,7 +135,7 @@ class AutoComplete
       return @_type
 
     getSuffix: (preCompletionLength) ->
-      if @_type == Completion.NICK and preCompletionLength is 0
+      if @_type is Completion.NICK and preCompletionLength is 0
         return Completion.COMPLETION_SUFFIX + ' '
       return ' '
 
