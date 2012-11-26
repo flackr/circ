@@ -47,5 +47,4 @@ class Notification extends EventEmitter
   toString: ->
     @_title + @_message
 
-
 exports.Notification = Notification

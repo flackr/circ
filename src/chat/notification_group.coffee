@@ -16,19 +16,24 @@ class NotificationGroup extends EventEmitter
     @_notification.show()
 
   _createNotification: (item) ->
-    @_stubs.push item.getStub()
+    @_addStubIfUnique item.getStub()
     if @_size is 1
       title = item.getTitle()
       body = item.getBody()
     else
       if @_channel
-        title = '#{@_size} notifications in #{channel}'
+        title = "#{@_size} notifications in #{@_channel}"
       else
-        title = '#{@_size} notifications'
+        title = "#{@_size} notifications"
       body = @_stubs.join ', '
     body = truncateIfTooLarge body, 75
     @_notification = new chat.Notification title, body
     @_addNotificationListeners()
+
+  _addStubIfUnique: (stub) ->
+    unless stub in @_stubs
+      @_stubs.push stub
+
 
   _addNotificationListeners: ->
     @_notification.on 'clicked', =>
