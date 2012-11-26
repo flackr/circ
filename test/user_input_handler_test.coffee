@@ -45,13 +45,18 @@ describe 'A user input handler', ->
     keydown: (cb) => windowKeyDown = cb
 
   names = {bill: 'bill', sally: 'sally', bob: 'bob', joe: 'Joe'}
+  commands = {help: 'help', join: 'join', nick: 'nick'}
 
-  context = currentWindow:
-    target: '#bash'
-    conn:
-      name: 'freenode.net'
-      irc:
-        channels: {}
+  context =
+    currentWindow:
+      target: '#bash'
+      conn:
+        name: 'freenode.net'
+        irc:
+          channels: {}
+    userCommands:
+      getCommands: ->
+        return commands
 
   beforeEach ->
     handler = new UserInputHandler input, window
@@ -175,6 +180,12 @@ describe 'A user input handler', ->
       cursor 4
       tab()
       expect(onVal.mostRecentCall.args[0]).toBe 'bill: '
+
+    it "completes commands when the first character is a '/'", ->
+      val ='/h'
+      cursor 2
+      tab()
+      expect(onVal.mostRecentCall.args[0]).toBe '/help '
 
   describe 'input stack', ->
 
