@@ -24,15 +24,38 @@ class AutoComplete
     @_completionFinder.setCompletionGenerator @_getPossibleCompletions
 
   ##
-  # Returns a list of nicks in the current channel.
-  # @return {Array<string>}
+  # Returns a list of possible auto-completions in the current channel.
+  # @return {Array.<Completion>}
   ##
   _getPossibleCompletions: =>
+    completions = []
+    completions = completions.concat @_getCommandCompletions()
+    completions = completions.concat @_getNickCompletions()
+    return completions
+
+  ##
+  # Returns a list of commands to auto-complete.
+  # @return {Array.<Completion>}
+  ##
+  _getCommandCompletions: ->
+    cmds = @_context.userCommands.getCommands()
+    if cmds?
+      return (new Completion(cmd, Completion.CMD) for cmd, obj of cmds)
+    return []
+
+  ##
+  # Returns a list of nicknames in the current channel.
+  # @return {Array.<Completion>}
+  ##
+  _getNickCompletions: ->
     chan = @_context.currentWindow.target
     nicks = @_context.currentWindow.conn?.irc.channels[chan]?.names
     if nicks?
       ownNick = @_context.currentWindow.conn.irc.nick
-      return (nick for norm, nick of nicks when nick isnt ownNick)
+      completions = []
+      for norm, nick of nicks when nick isnt ownNick
+        completions.push new Completion(nick, Completion.NICK)
+      return completions
     return []
 
   ##
@@ -65,9 +88,7 @@ class AutoComplete
   _getCompletion: ->
     completion = @_completionFinder.getCompletion @_stub
     return @_stub if completion is CompletionFinder.NONE
-    if @_preCompletion.length is 0
-      completion += AutoComplete.COMPLETION_SUFFIX
-    completion += ' '
+    return completion.getText() + completion.getSuffix(@_preCompletion.length)
 
   ##
   # Finds the stub by looking at the cursor position, then finds the text before
@@ -89,5 +110,37 @@ class AutoComplete
     for i in [start..0]
       return i if regex.test @_text[i]
     -1
+
+  ##
+  # Simple storage class for completions which store both the completion text
+  # and the type of completion.
+  ##
+  class Completion
+
+    ##
+    # Completion types can either be commands or nicknames.
+    ##
+    @CMD = 0
+    @NICK = 1
+
+    @COMPLETION_SUFFIX = ':'
+
+    constructor: (@_text, @_type) ->
+      if @_type is Completion.CMD
+        @_text = '/' + @_text
+
+    getText: ->
+      return @_text
+
+    getType: ->
+      return @_type
+
+    getSuffix: (preCompletionLength) ->
+      if @_type is Completion.NICK and preCompletionLength is 0
+        return Completion.COMPLETION_SUFFIX + ' '
+      return ' '
+
+    toString: ->
+      return @getText()
 
 exports.AutoComplete = AutoComplete

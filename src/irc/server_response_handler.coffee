@@ -103,6 +103,11 @@ class ServerResponseHandler extends MessageHandler
 
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
+    # ERR_ERONEOUSNICKNAME
+    432: (from, nick, badNick) ->
+      message = 'Erroneous Nickname: ' + badNick
+      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
+
     # ERR_NICKNAMEINUSE
     433: (from, nick, taken) ->
       newNick = taken + '_'
