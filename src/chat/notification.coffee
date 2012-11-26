@@ -6,26 +6,27 @@ exports = window.chat ?= {}
 class Notification extends EventEmitter
 
   # The default image to display on notifications
+  # TODO: Stop using javachat's icon, use an image we host
   @defaultImage: 'http://sourceforge.net/p/acupofjavachat/icon'
 
   constructor: (@_title, @_message, @_image=Notification.defaultImage) ->
     super
     @_createNotification()
     @_addOnClickListener()
-    Notification.windowMap
+    @_addOnCloseListener()
 
   _createNotification: ->
     @notification = webkitNotifications.createNotification @_image, @_title,
         @_message
 
   _addOnClickListener: ->
-    @notification?.onclick = =>
+    @notification.onclick = =>
       @cancel()
       @emit 'clicked'
 
-  delete: ->
-    @notification?.onclick = null
-    delete @notification
+  _addOnCloseListener: ->
+    @notification.onclose = =>
+      @emit 'closed'
 
   ##
   # Display the notification.

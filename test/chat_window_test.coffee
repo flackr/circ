@@ -6,7 +6,7 @@ describe "A chat window", ->
   afterEach ->
     mocks.dom.tearDown()
 
-  it 'should not display nicks by default', ->
+  it "doens't display the 'nicks' title when not in any channel", ->
     win = new chat.Window 'name'
     win.attach()
     expect($ '#rooms-and-nicks').toHaveClass 'no-nicks'

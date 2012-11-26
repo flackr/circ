@@ -176,12 +176,10 @@ class IRCMessageHandler extends MessageHandler
         @_chat.channelDisplay.mention @_win.conn?.name, @_win.target
 
   _createNotification: (from, msg) ->
-    notification = new chat.NickMentionedNotification @_win.target, from, msg
-    notification.show()
-    @_win.notifications.push notification
     win = @_win
-    notification.on 'clicked', =>
-      removeFromArray win.notifications, notification
+    notification = new chat.NickMentionedNotification win.target, from, msg
+    win.notifications.add notification
+    win.notifications.on 'clicked', =>
       @_chat.switchToWindow win
       chrome.app.window.current().focus?()
 

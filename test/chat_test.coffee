@@ -65,7 +65,7 @@ describe 'An IRC client front end', ->
     mocks.navigator.useMock()
     mocks.ChromeSocket.useMock()
     mocks.RemoteDevice.useMock()
-    mocks.NickMentionedNotification.useMock()
+    mocks.Notification.useMock()
     jasmine.Clock.useMock()
     mocks.dom.setUp()
     prompt = $('#input')
@@ -311,11 +311,6 @@ describe 'An IRC client front end', ->
       expect(room -1).toHaveClass 'activity'
       expect(room -1).not.toHaveClass 'selected'
 
-    it "creates a notification when a direct private message is received", ->
-      chat.NickMentionedNotification.notificationCount = 0
-      currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
-      expect(chat.NickMentionedNotification.notificationCount).toBe 1
-
     it "can join a channel with /join", ->
       type '/join #bash'
       expect(currentIRC.doCommand).toHaveBeenCalledWith 'JOIN', '#bash'
@@ -325,7 +320,6 @@ describe 'An IRC client front end', ->
 
       beforeEach ->
         currentIRC.onClose()
-
 
       it 'shows all servers and channels as disconnected', ->
         expect(room 0).toHaveClass 'disconnected'
@@ -372,15 +366,6 @@ describe 'An IRC client front end', ->
         type "/win 1"
         expect(client.currentWindow.target).toBe undefined
 
-      it "creates a notification when the users nick is mentioned", ->
-        type "/win 1"
-        chat.NickMentionedNotification.notificationCount = 0
-        currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
-        expect(chat.NickMentionedNotification.notificationCount).toBe 1
-        expect(room -1).toHaveClass 'mention'
-        expect(room -1).toHaveClass 'activity'
-        expect(room -1).not.toHaveClass 'selected'
-
       it "marks a window as active if a message is sent and it's not selected", ->
         type '/server dalnet'
         irc2 = client.currentWindow.conn.irc
@@ -404,6 +389,31 @@ describe 'An IRC client front end', ->
         client.channelDisplay.emit 'clicked', 'freenode', '#bash'
         expect(client.currentWindow.target).toBe '#bash'
         expect(room -1).toHaveClass 'selected'
+
+      describe "can display desktop notifications which", ->
+
+        it "display when a direct private message is received", ->
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
+          expect(mocks.Notification.numActive).toBe 1
+
+        it "display when the user's nick is mentioned", ->
+          type "/win 1"
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
+          expect(mocks.Notification.numActive).toBe 1
+          expect(room -1).toHaveClass 'mention'
+          expect(room -1).toHaveClass 'activity'
+          expect(room -1).not.toHaveClass 'selected'
+
+        it "group when there are multiple notifications for the same channel", ->
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi!'
+          expect(mocks.Notification.numActive).toBe 1
+
+        it "don't group when there are multiple notifications for different channels", ->
+          type "/win 1"
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
+          currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
+          expect(mocks.Notification.numActive).toBe 2
 
       describe "has a nick list which", ->
         currentNicks = undefined

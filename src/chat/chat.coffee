@@ -252,7 +252,7 @@ class Chat extends EventEmitter
   _removeWindowFromState: (win) ->
     @channelDisplay.remove win.conn.name, win.target
     @storage.parted win.conn.name, win.target
-    win.clearNotifications()
+    win.notifications.clear()
     if win.target?
       delete @connections[win.conn.name].windows[win.target]
     else

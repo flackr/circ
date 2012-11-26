@@ -4,10 +4,25 @@ exports = window.chat ?= {}
 # A notification used when the user's nick is mentioned.
 # Provides functions for determining if a nick was mentioned.
 ##
-class NickMentionedNotification extends window.chat.Notification
-  constructor: (channel, from, msg) ->
-    msg = msg[..72] + '...' if msg.length > 75
-    super "#{channel} - #{from}", msg
+class NickMentionedNotification
+
+  constructor: (channel, from, message) ->
+    @_channel = channel
+    @_from = from
+    @_message = message
+
+  getBody: ->
+    @_message
+
+  getTitle: ->
+    "#{@_from} mentioned you in #{@_channel}"
+
+  ##
+  # When there are multiple notifications, a list of stubs is displayed from
+  # each notification
+  ##
+  getStub: ->
+    "#{@_from} mentioned you"
 
   @shouldNotify: (nick, msg) ->
     return false if not nick?

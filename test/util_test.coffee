@@ -2,6 +2,20 @@ describe "Util provides the following functions:", ->
   class TestClass1
   class TestClass2
 
+  describe "truncateIfTooLarge", ->
+
+    it "does nothing if the length of the text is less then the given max size", ->
+      expect(truncateIfTooLarge 'puppy', 5).toBe 'puppy'
+      expect(truncateIfTooLarge '', 100).toBe ''
+
+    it "truncates the text and appends a suffix if the length text of the text
+        is greater then the max size", ->
+      expect(truncateIfTooLarge 'puppy', 4).toBe 'p...'
+      expect(truncateIfTooLarge 'sally had a little lamb', 10).toBe 'sally h...'
+
+    it "can have the suffix changed", ->
+      expect(truncateIfTooLarge 'puppy', 4, '!').toBe 'pup!'
+
   describe "pluralize", ->
 
     it "does nothing if there is one of something", ->

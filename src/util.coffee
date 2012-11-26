@@ -40,6 +40,12 @@ exports.pluralize = (word, number) ->
   else
     word + 's'
 
+exports.truncateIfTooLarge = (text, maxSize, suffix='...') ->
+  if text.length > maxSize
+    text[..maxSize - suffix.length - 1] + suffix
+  else
+    text
+
 ##
 # Capitalizes the given string.
 # @param {string} sentence

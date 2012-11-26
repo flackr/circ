@@ -10,17 +10,12 @@ class Window extends EventEmitter
     @name = server + if opt_channel then " #{opt_channel}" else ''
     @messageRenderer = new chat.window.MessageRenderer this
     @_addUI()
-    @notifications = []
+    @notifications = new chat.NotificationGroup opt_channel
     @_isVisible = false
     @_isFocused = false
     @_height = 0
     $(window).focus @_onFocus
     $(window).blur @_onBlur
-
-  clearNotifications: ->
-    for notification in @notifications
-      notification.cancel()
-      notification.delete()
 
   getContext: ->
     @_context ?= new Context @conn?.name, @target
@@ -29,7 +24,7 @@ class Window extends EventEmitter
   _onFocus: =>
     return unless @_isVisible
     @_isFocused = true
-    @clearNotifications()
+    @notifications.clear()
     @messageRenderer.onFocus()
 
   _onBlur: =>
