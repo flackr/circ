@@ -73,7 +73,8 @@ class CompletionFinder
   _findCompletions: ->
     ignoreCase = not /[A-Z]/.test @_currentStub
     for completion in @_completions
-      candidate = if ignoreCase then completion.toLowerCase() else completion
+      completionText = completion.toString()
+      candidate = if ignoreCase then completionText.toLowerCase() else completionText
       if candidate.indexOf(@_currentStub) is 0
         @_currentCompletions.push completion
 

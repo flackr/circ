@@ -29,11 +29,15 @@ class AutoComplete
   ##
   _getPossibleCompletions: =>
     chan = @_context.currentWindow.target
+    completions = []
+    cmds = @_context.userCommands.getCommands()
+    if cmds?
+      completions = completions.concat (new Completion(cmd, Completion.CMD) for cmd, obj of cmds)
     nicks = @_context.currentWindow.conn?.irc.channels[chan]?.names
     if nicks?
       ownNick = @_context.currentWindow.conn.irc.nick
-      return (nick for norm, nick of nicks when nick isnt ownNick)
-    return []
+      completions = completions.concat (new Completion(nick, Completion.NICK) for norm, nick of nicks when nick isnt ownNick)
+    return completions
 
   ##
   # Returns the passed in text, with the current stub replaced with its
@@ -65,9 +69,7 @@ class AutoComplete
   _getCompletion: ->
     completion = @_completionFinder.getCompletion @_stub
     return @_stub if completion is CompletionFinder.NONE
-    if @_preCompletion.length is 0
-      completion += AutoComplete.COMPLETION_SUFFIX
-    completion += ' '
+    return completion.getText() + completion.getSuffix(@_preCompletion.length)
 
   ##
   # Finds the stub by looking at the cursor position, then finds the text before
@@ -89,5 +91,37 @@ class AutoComplete
     for i in [start..0]
       return i if regex.test @_text[i]
     -1
+
+  ##
+  # Simple storage class for completions which store both the completion text
+  # and the type of completion.
+  ##
+  class Completion
+
+    ##
+    # Completion types can either be commands (CMD) or nicknames (nick)
+    ##
+    @CMD = 0
+    @NICK = 1
+
+    @COMPLETION_SUFFIX = ':'
+
+    constructor: (@_text, @_type) ->
+      if @_type == Completion.CMD
+        @_text = '/' + @_text
+
+    getText: ->
+      return @_text
+
+    getType: ->
+      return @_type
+
+    getSuffix: (preCompletionLength) ->
+      if @_type == Completion.NICK and preCompletionLength is 0
+        return Completion.COMPLETION_SUFFIX + ' '
+      return ' '
+
+    toString: ->
+      return @getText()
 
 exports.AutoComplete = AutoComplete
