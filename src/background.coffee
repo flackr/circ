@@ -33,5 +33,19 @@ chrome.app.runtime.onLaunched?.addListener ->
   else
     create()
 
+##
+# Repeatedly check if the window has been closed.
+# TODO: This won't be needed once the onClose event hits stable.
+##
+updateWhenAppCloses = ->
+  setInterval =>
+    unless appIsRunning()
+      chrome.runtime.reload()
+  , 1000
+
 chrome.runtime.onUpdateAvailable?.addListener =>
-  chrome.runtime.reload?() unless appIsRunning()
+  return unless chrome.runtime.reload?
+  if appIsRunning()
+    updateWhenAppCloses()
+  else
+    chrome.runtime.reload()

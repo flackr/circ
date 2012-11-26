@@ -51,9 +51,12 @@ class Chat extends EventEmitter
   _listenForUpdates: ->
     return unless chrome.runtime.reload?
     chrome.runtime.onUpdateAvailable?.addListener =>
-      message = "A new versionn of CIRC is available. Would you like to restart and update? [yes]"
-      @notice.prompt message, =>
-        chrome.runtime.reload()
+      @_promptToUpdate()
+
+  _promptToUpdate: ->
+    message = "A new versionn of CIRC is available. Would you like to restart and update? [yes]"
+    @notice.prompt message, =>
+      chrome.runtime.reload()
 
   startWalkthrough: ->
     walkthrough = new chat.Walkthrough this, @storage
