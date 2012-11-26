@@ -191,8 +191,7 @@ class Chat extends EventEmitter
       e.context.channel = chat.SERVER_WINDOW
 
     chan = e.context.channel
-    if conn?.irc.isOwnNick chan
-      return chat.NO_WINDOW unless e.name is 'privmsg'
+    if @_isDirectMessageToUser(conn, chan, e.name)
       from = e.args?[0]
       unless conn.windows[from]
         @createPrivateMessageWindow conn, from
@@ -205,6 +204,12 @@ class Chat extends EventEmitter
     if conn.windows[chan]
       return conn.windows[chan]
     return chat.NO_WINDOW
+
+  ##
+  # Direct messages (e.g. /msg) have the channel set to the user's nick.
+  ##
+  _isDirectMessageToUser: (conn, chan, type) ->
+    conn?.irc.isOwnNick(chan) and type is 'privmsg'
 
   createPrivateMessageWindow: (conn, from) ->
     return conn.windows[from] if conn.windows[from]
