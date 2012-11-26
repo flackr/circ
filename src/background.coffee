@@ -1,23 +1,22 @@
 windowProperties =
-    width: 775
-    height: 400
-    minWidth: 570
-    minHeight: 160
+  width: 775
+  height: 400
+  minWidth: 570
+  minHeight: 160
 
 currentApp = null
 
-# TODO This is a hack to determine if the previous window has be closed.
+##
+# TODO: This is a hack to determine if the app is running - we can remove this
+# once the onClose event hits stable.
+##
 appIsRunning = ->
-  return false unless currentApp
-  try
-    currentApp.focus() # will fail if the window has been closed
-    return true
-  return false
+  return currentApp?.contentWindow.navigator
 
 onCreated = (win) ->
   currentApp = win
   win.onClosed?.addListener ->
-    # TODO close sockets
+    # TODO: close sockets, reload if an update is available
 
 create = ->
   chrome.app.window.create 'bin/main.html', windowProperties, onCreated
@@ -34,7 +33,7 @@ chrome.app.runtime.onLaunched?.addListener ->
     create()
 
 ##
-# Repeatedly check if the window has been closed.
+# Repeatedly check if the window has been closed and update when it has.
 # TODO: This won't be needed once the onClose event hits stable.
 ##
 updateWhenAppCloses = ->
