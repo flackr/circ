@@ -37,6 +37,9 @@ describe 'An IRC client front end', ->
   noticeIsVisible = ->
     $("#notice")[0].style.top is "0px"
 
+  getNoticeOption = (index) ->
+    $("#notice .option" + index)
+
   restart = ->
     RemoteDevice.devices = []
     mocks.dom.tearDown()
@@ -59,8 +62,9 @@ describe 'An IRC client front end', ->
     client.listenToIRCEvents scriptHandler
     client.init()
 
-  beforeEach ->
+  useMocks = ->
     mocks.Walkthrough.useMock()
+    mocks.Runtime.useMock()
     mocks.storage.useMock()
     mocks.navigator.useMock()
     mocks.ChromeSocket.useMock()
@@ -68,6 +72,9 @@ describe 'An IRC client front end', ->
     mocks.Notification.useMock()
     jasmine.Clock.useMock()
     mocks.dom.setUp()
+
+  beforeEach ->
+    useMocks()
     prompt = $('#input')
     commandInput = new UserInputHandler(prompt, $ window)
     chrome.storage.sync.set { nick: 'ournick' }
@@ -752,7 +759,7 @@ describe 'An IRC client front end', ->
           expect(noticeIsVisible()).toBe true
           expect(device(1).close).toHaveBeenCalled()
 
-        it "establishes connection when internet is renabled", ->
+        it "establishes connection when internet is re-enabled", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
           delete state.ircState
           chrome.storage.sync.set state
@@ -764,3 +771,9 @@ describe 'An IRC client front end', ->
           expect(noticeIsVisible()).toBe true
           mocks.navigator.goOnline()
           expect(client.remoteConnection.getState()).toBe 'connecting'
+
+        it "prompts the user to update when a newer version of CIRC is available", ->
+          chrome.runtime.updateAvailable()
+          expect(noticeIsVisible()).toBe true
+          getNoticeOption(1).click()
+          expect(chrome.runtime.reload).toHaveBeenCalled()

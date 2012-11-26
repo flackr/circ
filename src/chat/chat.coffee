@@ -13,6 +13,7 @@ class Chat extends EventEmitter
     @_initializeUI()
     @_initializeRemoteConnection()
     @_initializeStorage()
+    @_listenForUpdates()
 
     @updateStatus()
 
@@ -46,6 +47,13 @@ class Chat extends EventEmitter
   _initializeStorage: ->
     @storage = new chat.Storage this
     @remoteConnectionHandler.setStorageHandler @storage
+
+  _listenForUpdates: ->
+    return unless chrome.runtime.reload?
+    chrome.runtime.onUpdateAvailable?.addListener =>
+      message = "A new versionn of CIRC is available. Would you like to restart and update? [yes]"
+      @notice.prompt message, =>
+        chrome.runtime.reload()
 
   startWalkthrough: ->
     walkthrough = new chat.Walkthrough this, @storage
