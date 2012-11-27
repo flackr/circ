@@ -33,18 +33,19 @@ chrome.app.runtime.onLaunched?.addListener ->
     create()
 
 ##
-# Repeatedly check if the window has been closed and update when it has.
+# Repeatedly check if the window has been closed and close the background page
+# when it has.
 # TODO: This won't be needed once the onClose event hits stable.
 ##
-updateWhenAppCloses = ->
+closeWhenAppCloses = ->
   setInterval =>
     unless appIsRunning()
-      chrome.runtime.reload()
+      window.close()
   , 1000
 
 chrome.runtime.onUpdateAvailable?.addListener =>
   return unless chrome.runtime.reload?
   if appIsRunning()
-    updateWhenAppCloses()
+    closeWhenAppCloses()
   else
-    chrome.runtime.reload()
+    window.close()
