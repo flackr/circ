@@ -1,7 +1,7 @@
 exports = (window.irc ?= {}).util ?= {}
 
 exports.parseCommand = (data) ->
-  str = data.toString('utf8')
+  str = $.trim data.toString('utf8')
   parts = ///
     ^
     (?: : ([^\x20]+?) \x20)?        # prefix

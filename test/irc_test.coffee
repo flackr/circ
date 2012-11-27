@@ -93,6 +93,19 @@ describe 'An IRC client backend', ->
         runs ->
           expect(chat.onIRCMessage).toHaveBeenCalledWith SERVER_WINDOW, 'welcome', 'Welcome'
 
+      it "properly parses commands with parseCommand()", ->
+        data = ":ournick!ournick@name.corp.company.com JOIN :#bash"
+        cmd = irc.util.parseCommand data
+        console.log cmd
+        expect(cmd.command).toBe 'JOIN'
+        expect(cmd.params).toEqual ["#bash"]
+        expect(cmd.prefix).toBe 'ournick!ournick@name.corp.company.com'
+
+        data = ":irc.corp.company.com 324 ournick #bash +smntQ "
+        cmd = irc.util.parseCommand data
+        expect(cmd.command).toBe '324'
+        expect(cmd.params).toEqual ['ournick', '#bash', '+smntQ']
+
       it "properly creates commands on doCommand()", ->
         irc.doCommand 'JOIN', '#awesome'
         irc.doCommand 'PRIVMSG', '#awesome', 'hello world'

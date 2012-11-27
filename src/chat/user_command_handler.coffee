@@ -183,6 +183,7 @@ class UserCommandHandler extends MessageHandler
           "current channel is used by default"
       category: 'uncommon'
       params: ['opt_channel', 'mode', 'opt_nicks...']
+      usage: "[channel] <mode> [nick1] [nick2] ..."
       requires: ['connection']
       validateArgs: ->
         @nicks = @nicks?.split(' ') ? []
@@ -199,6 +200,7 @@ class UserCommandHandler extends MessageHandler
       description: "gives operator status"
       params: ['nick']
       extends: 'mode'
+      usage: "<nick>"
       requires: ['connection', 'channel']
       validateArgs: ->
         @setModeArgs '+o'
@@ -207,6 +209,7 @@ class UserCommandHandler extends MessageHandler
       description: "removes operator status"
       params: ['nick']
       extends: 'mode'
+      usage: "<nick>"
       requires: ['connection', 'channel']
       validateArgs: ->
         @setModeArgs '-o'
@@ -215,6 +218,7 @@ class UserCommandHandler extends MessageHandler
       description: "gives voice"
       params: ['nick']
       extends: 'mode'
+      usage: "<nick>"
       requires: ['connection', 'channel']
       validateArgs: ->
         @setModeArgs '+v'
@@ -223,6 +227,7 @@ class UserCommandHandler extends MessageHandler
       description: "removes voice"
       params: ['nick']
       extends: 'mode'
+      usage: "<nick>"
       requires: ['connection', 'channel']
       validateArgs: ->
         @setModeArgs '-v'
