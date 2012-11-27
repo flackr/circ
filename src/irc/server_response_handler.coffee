@@ -9,6 +9,24 @@ class ServerResponseHandler extends MessageHandler
     super
     @ctcpHandler = new window.irc.CTCPHandler
 
+  canHandle: (type) ->
+    if @_isErrorMessage(type) then true
+    else super type
+
+  ##
+  # Handle a message of the given type. Error messages are handled with the
+  # default error handler unless a handler is explicitly specified.
+  # @param {string} type The type of message (e.g. PRIVMSG).
+  # @param {object...} params A variable number of arguments.
+  ##
+  handle: (type, params...) ->
+    if @_isErrorMessage(type) and not (type of @_handlers)
+      type = 'error'
+    super type, params...
+
+  _isErrorMessage: (type) ->
+    400 <= parseInt(type) < 500
+
   _handlers:
     # rpl_welcome
     1: (from, nick, msg) ->
@@ -103,18 +121,6 @@ class ServerResponseHandler extends MessageHandler
 
     PONG: (from, payload) -> # ignore for now. later, lag calc.
 
-    # ERR_ERONEOUSNICKNAME
-    432: (from, nick, badNick) ->
-      message = 'Erroneous Nickname: ' + badNick
-      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
-
-    # ERR_NICKNAMEINUSE
-    433: (from, nick, taken) ->
-      newNick = taken + '_'
-      newNick = undefined if nick is newNick
-      @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, newNick
-      @irc.send 'NICK', newNick if newNick
-
     TOPIC: (from, channel, topic) ->
       if @irc.channels[channel]?
         @irc.channels[channel].topic = topic
@@ -162,9 +168,41 @@ class ServerResponseHandler extends MessageHandler
       @irc.away = true
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
-    #err_chanoprivsneeded
-    482: (from, to, chan, msg) ->
-      @irc.emitMessage 'error', chan, msg
+    # err_eroneousnickname
+    432: (from, otherArgs..., badNick, msg) ->
+      message = "#{msg}: #{badNick}"
+      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
+
+    # err_nicknameinuse
+    433: (from, nick, taken) ->
+      newNick = taken + '_'
+      newNick = undefined if nick is newNick
+      @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, newNick
+      @irc.send 'NICK', newNick if newNick
+
+    # err_useronchannel
+    443: (from, char, user, channel) ->
+      message = "#{user} is already on channel #{channel}"
+      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
+
+    # err_unknownmode
+    472: (from, char, msg) ->
+      message = "#{char} #{msg}"
+      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
+
+    ##
+    # The default error handler for error messages. This handler is used for all
+    # 4XX error messages unless a handler is explicitly specified.
+    #
+    # Messages are displayed in the following format:
+    #   "Message text: <arg1>, <arg2>, ..., <argn>
+    ##
+    error: (from, args..., msg) ->
+      if args.length > 0
+        message = "#{msg}: #{args.join ', '}"
+      else
+        message = msg
+      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
 
     KILL: (from, victim, killer, msg) ->
       @irc.emitMessage 'kill', chat.CURRENT_WINDOW, killer.nick, victim, msg
