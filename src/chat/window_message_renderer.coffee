@@ -8,6 +8,9 @@ class MessageRenderer
 
   @PROJECT_URL: "http://noahsug.github.com/circ"
 
+  # The max number of messages a room can display at once.
+  @MAX_MESSAGES: 3500
+
   constructor: (@win) ->
     @_userSawMostRecentMessage = false
     @_activityMarkerLocation = undefined
@@ -55,14 +58,28 @@ class MessageRenderer
     @message '', msg, style
 
   _addMessage: (from, msg, style) ->
+    message = @_createMessageHTML from, msg, style
+    @win.emit 'message', @win.getContext(), style, message[0].outerHTML
+    @win.$messages.append message
+    @win.$messagesContainer.restoreScrollPosition()
+    @_trimMessagesIfTooMany()
+
+  _createMessageHTML: (from, msg, style) ->
     message = $('#templates .message').clone()
     message.addClass style
     $('.source', message).html from
     $('.content', message).html msg
     $('.source', message).addClass('empty') unless from
-    @win.emit 'message', @win.getContext(), style, message[0].outerHTML
-    @win.$messages.append message
-    @win.$messagesContainer.restoreScrollPosition()
+    message
+
+  ##
+  # Trim chat messages when there are too many in order to save on memory.
+  ##
+  _trimMessagesIfTooMany: ->
+    messages = @win.$messagesContainer.children().children()
+    return unless messages.length > MessageRenderer.MAX_MESSAGES
+    for i in [0..19]
+      messages[i].remove()
 
   _addWhitespace: ->
     @message()
