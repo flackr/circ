@@ -212,4 +212,12 @@ class UserCommand
     message = delimiter + type + delimiter
     @conn.irc.doCommand 'PRIVMSG', @nick, message
 
+  ##
+  # Used to set the arguments for MODE shortcut commands (e.g. /op, /voice, etc)
+  ##
+  setModeArgs: (type) ->
+    @nicks = [@nick]
+    @channel = @chan
+    @mode = type
+
 exports.UserCommand = UserCommand

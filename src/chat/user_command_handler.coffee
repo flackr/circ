@@ -179,44 +179,53 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'mode',
       # TODO when used with no args, display current modes
-      description: "sets the mode for the given user, your nick is used if " +
-          "no nick is specified"
+      description: "sets the mode for a channel and/or user(s), the " +
+          "current channel is used by default"
       category: 'uncommon'
-      params: ['opt_nick', 'mode']
+      params: ['opt_channel', 'mode', 'opt_nicks...']
       requires: ['connection']
       validateArgs: ->
-        @nick ?= @conn.irc.nick
+        @nicks = @nicks?.split(' ') ? []
+        if @channel?[0] in ['+', '-']
+          # a channel wasn't specified, shift variables over by one
+          @nicks.push @mode
+          @mode = @channel
+          @channel = @chan
+        @channel ?= @chan
       run: ->
-        if @isOwnNick() and @mode in ['+o', '+O', '-r']
-          @displayMessage 'error', "You can't give yourself #{@mode} status"
-        else if @chan
-          @conn.irc.doCommand 'MODE', @chan, @mode, @nick
-        else
-          @conn.irc.doCommand 'MODE', @mode, @nick
+        @conn.irc.doCommand 'MODE', @channel, @mode, @nicks...
 
     @_addCommand 'op',
       description: "gives operator status"
       params: ['nick']
       extends: 'mode'
-      validateArgs: -> @mode = '+o'
+      requires: ['connection', 'channel']
+      validateArgs: ->
+        @setModeArgs '+o'
 
     @_addCommand 'deop',
       description: "removes operator status"
       params: ['nick']
       extends: 'mode'
-      validateArgs: -> @mode = '-o'
+      requires: ['connection', 'channel']
+      validateArgs: ->
+        @setModeArgs '-o'
 
     @_addCommand 'voice',
       description: "gives voice"
       params: ['nick']
       extends: 'mode'
-      validateArgs: -> @mode = '+v'
+      requires: ['connection', 'channel']
+      validateArgs: ->
+        @setModeArgs '+v'
 
     @_addCommand 'devoice',
       description: "removes voice"
       params: ['nick']
       extends: 'mode'
-      validateArgs: -> @mode = '-v'
+      requires: ['connection', 'channel']
+      validateArgs: ->
+        @setModeArgs '-v'
 
     @_addCommand 'away',
       description: "sets your status to away, a response is " +

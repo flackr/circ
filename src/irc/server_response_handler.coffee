@@ -25,7 +25,7 @@ class ServerResponseHandler extends MessageHandler
     super type, params...
 
   _isErrorMessage: (type) ->
-    400 <= parseInt(type) < 500
+    400 <= parseInt(type) < 600
 
   _handlers:
     # rpl_welcome
@@ -167,11 +167,6 @@ class ServerResponseHandler extends MessageHandler
       @irc.away = true
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
-    # err_eroneousnickname
-    432: (from, otherArgs..., badNick, msg) ->
-      message = "#{msg}: #{badNick}"
-      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
-
     # err_nicknameinuse
     433: (from, nick, taken) ->
       newNick = taken + '_'
@@ -179,26 +174,16 @@ class ServerResponseHandler extends MessageHandler
       @irc.emitMessage 'nickinuse', chat.CURRENT_WINDOW, taken, newNick
       @irc.send 'NICK', newNick if newNick
 
-    # err_useronchannel
-    443: (from, char, user, channel) ->
-      message = "#{user} is already on channel #{channel}"
-      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
-
-    # err_unknownmode
-    472: (from, char, msg) ->
-      message = "#{char} #{msg}"
-      @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
-
     ##
     # The default error handler for error messages. This handler is used for all
     # 4XX error messages unless a handler is explicitly specified.
     #
     # Messages are displayed in the following format:
-    #   "Message text: <arg1>, <arg2>, ..., <argn>
+    #   "<arg1> <arg2> ... <argn>: <message>
     ##
-    error: (from, args..., msg) ->
+    error: (from, to, args..., msg) ->
       if args.length > 0
-        message = "#{msg}: #{args.join ', '}"
+        message = "#{args.join ' '} :#{msg}"
       else
         message = msg
       @irc.emitMessage 'error', chat.CURRENT_WINDOW, message
