@@ -198,8 +198,8 @@ describe 'An IRC client backend', ->
         socket.respondWithData ":freenode.net 482 ournick #awesome :You're not a channel operator"
         waitsForArrayBufferConversion()
         runs ->
-          expect(chat.onIRCMessage).toHaveBeenCalledWith '#awesome', 'error',
-              "You're not a channel operator"
+          expect(chat.onIRCMessage).toHaveBeenCalledWith CURRENT_WINDOW, 'error',
+              "#awesome :You're not a channel operator"
 
       it "emits a mode notice when someone is given channel operator status", ->
         joinChannel '#awesome'
@@ -282,8 +282,8 @@ describe 'An IRC client backend', ->
               NOTICE\sfrigg\s:
               \u0001
               VERSION\s
-              CIRC:
-              \d{1,3}\.\d{1,3}\.\d{1,3}\:
+              CIRC\s
+              \d{1,3}\.\d{1,3}\.\d{1,3}\s
               Chrome
               \u0001\s*
             ///

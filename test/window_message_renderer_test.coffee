@@ -8,15 +8,15 @@ describe "A window message renderer", ->
   beforeEach ->
     mocks.dom.setUp()
     surface = $ '<div>'
-    win = {
+    win =
       $messages: surface
-      $messagesContainer: { restoreScrollPosition: -> }
+      $messagesContainer: $ '<#messages-container>'
       isScrolledDown: ->
       scrollToBottom: ->
       getContext: -> {}
       emit: ->
       isFocused: -> true
-    }
+    win.$messagesContainer.restoreScrollPosition = ->
     renderer = new chat.window.MessageRenderer win
     spyOn(renderer, '_addMessage').andCallThrough()
 
