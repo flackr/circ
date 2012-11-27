@@ -103,8 +103,7 @@ class ServerResponseHandler extends MessageHandler
 
     PRIVMSG: (from, target, msg) ->
       if @ctcpHandler.isCTCPRequest msg
-        for response in @ctcpHandler.getResponses msg
-          @irc.doCommand 'NOTICE', from.nick, response, true
+        @_handleCTCPRequest from, target, msg
       else
         @irc.emitMessage 'privmsg', target, from.nick, msg
 
@@ -206,5 +205,12 @@ class ServerResponseHandler extends MessageHandler
 
     KILL: (from, victim, killer, msg) ->
       @irc.emitMessage 'kill', chat.CURRENT_WINDOW, killer.nick, victim, msg
+
+  _handleCTCPRequest: (from, target, msg) ->
+    name = @ctcpHandler.getReadableName msg
+    message = "Received a CTCP #{name} from #{from.nick}"
+    @irc.emitMessage 'notice', chat.CURRENT_WINDOW, message
+    for response in @ctcpHandler.getResponses msg
+      @irc.doCommand 'NOTICE', from.nick, response, true
 
 exports.ServerResponseHandler = ServerResponseHandler

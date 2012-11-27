@@ -206,4 +206,10 @@ class UserCommand
     e.addStyle style
     @chat.emit e.type, e
 
+  handleCTCPRequest: (nick, type) ->
+    @displayDirectMessage @nick, "CTCP #{type}"
+    delimiter = irc.CTCPHandler.DELIMITER
+    message = delimiter + type + delimiter
+    @conn.irc.doCommand 'PRIVMSG', @nick, message
+
 exports.UserCommand = UserCommand

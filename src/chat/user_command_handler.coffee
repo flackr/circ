@@ -170,7 +170,7 @@ class UserCommandHandler extends MessageHandler
         @conn.irc.doCommand 'TOPIC', @chan, @topic
 
     @_addCommand 'kick',
-      description: "removes the nick from the current channel"
+      description: "removes a user from the current channel"
       category: 'uncommon'
       params: ['nick', 'opt_reason...']
       requires: ['connection', 'channel']
@@ -371,6 +371,20 @@ class UserCommandHandler extends MessageHandler
       run: ->
         win = @chat.createPrivateMessageWindow @conn, @nick
         @chat.switchToWindow win
+
+    @_addCommand 'kill',
+      description: 'kicks a user from the server'
+      params: ['nick', 'opt_reason']
+      requires: ['connection']
+      run: ->
+        @conn.irc.doCommand 'KILL', @nick, @reason
+
+    @_addCommand 'version',
+      description: "get the user's IRC version"
+      params: ['nick']
+      requires: ['connection']
+      run: ->
+        @handleCTCPRequest @nick, 'VERSION'
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

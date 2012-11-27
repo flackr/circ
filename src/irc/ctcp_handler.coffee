@@ -4,15 +4,19 @@ exports = window.irc ?= {}
 # Handles CTCP requests such as VERSION, PING, etc.
 ##
 class CTCPHandler
-  constructor: ->
-    @_delimeter = '\u0001'
+  @DELIMITER = '\u0001'
 
+  constructor: ->
     # TODO: Respond with this message when an unknown query is seen.
-    @_error ="#{@_delimeter}ERRMSG#{@_delimeter}"
+    @_error ="#{CTCPHandler.DELIMITER}ERRMSG#{CTCPHandler.DELIMITER}"
 
   isCTCPRequest: (msg) ->
     return false unless /\u0001[\w\s]*\u0001/.test msg
     return @getResponses(msg).length > 0
+
+  getReadableName: (msg) ->
+    [type, args] = @_parseMessage msg
+    type
 
   getResponses: (msg) ->
     [type, args] = @_parseMessage msg
@@ -41,7 +45,7 @@ class CTCPHandler
       when 'VERSION'
         name = 'CIRC'
         environment = 'Chrome'
-        [' ' + [name, irc.VERSION, environment].join ':']
+        [' ' + [name, irc.VERSION, environment].join ' ']
       when 'SOURCE'
         [''] # TODO add details when client is available over FTP
       when 'PING'
@@ -52,6 +56,6 @@ class CTCPHandler
   # @return {string} Returns a correctly formatted response to a CTCP request.
   ##
   _createCTCPResponse: (type, response) ->
-    "#{@_delimeter}#{type}#{response}#{@_delimeter}"
+    "#{CTCPHandler.DELIMITER}#{type}#{response}#{CTCPHandler.DELIMITER}"
 
 exports.CTCPHandler = CTCPHandler
