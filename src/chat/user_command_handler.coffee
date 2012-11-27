@@ -144,13 +144,13 @@ class UserCommandHandler extends MessageHandler
       description: "sends a raw event to the IRC server, use the -c flag to " +
           "make the command apply to the current channel"
       category: 'uncommon'
-      params: ['command', 'opt_args...']
+      params: ['command', 'opt_arguments...']
       usage: '<command> [-c] [arguments...]'
       requires: ['connection']
       validateArgs: ->
-        @args = if @args then @args.split ' ' else []
+        @arguments = if @arguments then @arguments.split ' ' else []
       run: ->
-        command = chat.customCommandParser.parse @chan, @command, @args...
+        command = chat.customCommandParser.parse @chan, @command, @arguments...
         @conn.irc.doCommand command...
 
     @_addCommand 'load',
@@ -180,19 +180,27 @@ class UserCommandHandler extends MessageHandler
     @_addCommand 'mode',
       # TODO when used with no args, display current modes
       description: "sets the mode for a channel and/or user(s), the " +
-          "current channel is used by default"
+          "current channel is used by default, returns the current " +
+          "channel's mode if no arguments are given"
       category: 'uncommon'
-      params: ['opt_channel', 'mode', 'opt_nicks...']
-      usage: "[channel] <mode> [nick1] [nick2] ..."
+      params: ['opt_channel', 'opt_mode', 'opt_nicks...']
+      usage: "[[channel] <mode> [nick1] [nick2] ...]"
       requires: ['connection']
       validateArgs: ->
         @nicks = @nicks?.split(' ') ? []
-        if @channel?[0] in ['+', '-']
+
+        if @args.length is 0
+          @channel = @chan
+          return @channel
+
+        if @isValidMode(@channel) and @channel isnt @chan
           # a channel wasn't specified, shift variables over by one
           @nicks.push @mode
           @mode = @channel
           @channel = @chan
-        @channel ?= @chan
+
+        return @channel and @isValidMode @mode
+
       run: ->
         @conn.irc.doCommand 'MODE', @channel, @mode, @nicks...
 

@@ -64,6 +64,7 @@ class UserCommand
         (not @_validateArgs or !!@_validateArgs())
 
   _tryToAssignArgs: (args) ->
+    @args = []
     @_removeTrailingWhiteSpace args
     if not @_params
       return args.length is 0
@@ -75,6 +76,7 @@ class UserCommand
 
     for param, i in params
       this[@_getParamName param] = args[i]
+    @args = args
     return true
 
   _resetParams: ->
@@ -213,11 +215,20 @@ class UserCommand
     @conn.irc.doCommand 'PRIVMSG', @nick, message
 
   ##
-  # Used to set the arguments for MODE shortcut commands (e.g. /op, /voice, etc)
+  # Used to set the arguments for MODE shortcut commands.
+  # @param {string} type E.g. /op, /voice, etc.
   ##
   setModeArgs: (type) ->
     @nicks = [@nick]
     @channel = @chan
     @mode = type
+
+  ##
+  # Determine if the given string is a valid mode expression.
+  # TODO: This can be improved. (e.g. ++ and +a++ shouldn't be valid)
+  # @param {string} mode E.g. +o, -o, +v, etc.
+  ##
+  isValidMode: (mode) ->
+    return mode?[0] in ['+', '-']
 
 exports.UserCommand = UserCommand
