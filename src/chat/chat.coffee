@@ -92,12 +92,9 @@ class Chat extends EventEmitter
       conn.irc.quit @reason
     @removeWindow @winList.get conn.name
 
-  listenToCommands: (userInput) ->
-    @_userInput = userInput
-    @remoteConnection.broadcastUserInput userInput
-    @userCommands.listenTo userInput
-    userInput.on 'switch_window', (winNum) =>
-      @switchToWindowByIndex winNum - 1
+  listenToCommands: (commandEmitter) ->
+    @remoteConnection.broadcastUserInput commandEmitter
+    @userCommands.listenTo commandEmitter
 
   listenToScriptEvents: (@scriptHandler) ->
     # TODO - allow scripts to create notifications and plain text
@@ -232,6 +229,19 @@ class Chat extends EventEmitter
     @channelDisplay.connect conn.name, from
     win
 
+  ##
+  # Keep track of the last person to mention the user's nick in each room.
+  ##
+  recordLastUserToMention: (context, user) ->
+    @_lastUsersToMention ?= {}
+    @_lastUsersToMention[context] = user
+
+  ##
+  # Returns the last person to mention the user's nick for a given room.
+  ##
+  getLastUserToMention: (context) ->
+    @_lastUsersToMention?[context]
+
   onConnected: (conn) ->
     @displayMessage 'connect', {server: conn.name}
     @updateStatus()
@@ -338,8 +348,12 @@ class Chat extends EventEmitter
 
     document.title = titleList.join ' '
 
-  switchToWindowByIndex: (winNum) ->
-    win = @winList.get winNum
+  ##
+  # Switch to a window that represents a channel by it's position in the rooms
+  # list.
+  ##
+  switchToChannelByIndex: (winNum) ->
+    win = @winList.getChannelWindow winNum
     @switchToWindow win if win?
 
   switchToWindow: (win) ->

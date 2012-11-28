@@ -34,12 +34,15 @@ class AutoComplete
     return completions
 
   ##
-  # Returns a list of commands.
+  # Returns a list of visible commands.
   # @return {Array.<Completion>}
   ##
   _getCommandCompletions: ->
     commands = @_context.userCommands.getCommands()
-    commandNames = (commandName for commandName, commandObj of commands)
+    commandNames = []
+    for commandName, commandObj of commands
+      continue if commandObj.category is 'hidden'
+      commandNames.push commandName
     commandNames.sort()
     (new Completion(cmd, Completion.CMD) for cmd in commandNames)
 

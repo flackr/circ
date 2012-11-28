@@ -5,26 +5,26 @@ exports = window
 # traversing through previous commands.
 ##
 class UserInputHandler extends EventEmitter
-  @ENTER_KEY = 13
-  @UP = 38
-  @DOWN = 40
-  @TAB = 9
 
   constructor: (@input, @window) ->
     super
     @input.focus()
     @_inputStack = new InputStack
     @_autoComplete = new AutoComplete
+    @_keyboardShortcutMap = new KeyboardShortcutMap()
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
 
   setContext: (@_context) ->
     @_autoComplete.setContext @_context
+    @_context.on 'set_input', (text) =>
+      @input.val text unless @input.val()
 
   _handleGlobalKeydown: (e) =>
     @text = @input.val()
     @_focusInputOnKeyPress e
-    @_switchWindowsOnAltNumber e
+    @_handleKeyboardShortcuts e
+    return false if e.isDefaultPrevented()
     @_showPreviousCommandsOnArrowKeys e
     @_autoCompleteOnTab e
     !e.isDefaultPrevented()
@@ -34,28 +34,32 @@ class UserInputHandler extends EventEmitter
       e.currentTarget = @input[0]
       @input.focus()
 
-  _switchWindowsOnAltNumber: (e) ->
-    if e.altKey and 48 <= e.which <= 57
-      @emit 'switch_window', e.which - 48
-      e.preventDefault()
+  _handleKeyboardShortcuts: (e) ->
+    [command, args] = @_keyboardShortcutMap.getMappedCommand e, @input.val()
+    return unless command
+    e.preventDefault()
+    event = new Event 'command', command, args...
+    @_emitEventToCurrentWindow event
 
   _showPreviousCommandsOnArrowKeys: (e) ->
-    if e.which == UserInputHandler.UP or e.which == UserInputHandler.DOWN
+    if e.which is keyCodes.toKeyCode('UP') or e.which is keyCodes.toKeyCode('DOWN')
       e.preventDefault()
-      if e.which == UserInputHandler.UP
+      if e.which is keyCodes.toKeyCode('UP')
         @_inputStack.setCurrentText @text
         input = @_inputStack.showPreviousInput()
-      else
+      else # pressed the down arrow key
         input = @_inputStack.showNextInput()
       @input.val(input) if input?
     else
       @_inputStack.reset()
 
   _autoCompleteOnTab: (e) ->
-    if e.which == UserInputHandler.TAB
+    if e.which == keyCodes.toKeyCode 'TAB'
       e.preventDefault()
       if @text
-        @input.val @_autoComplete.getTextWithCompletion @text, @_getCursorPosition()
+        textWithCompletion = @_autoComplete.getTextWithCompletion @text,
+            @_getCursorPosition()
+        @input.val textWithCompletion
         @_setCursorPosition @_autoComplete.getUpdatedCursorPosition()
 
   _setCursorPosition: (pos) ->
@@ -66,7 +70,7 @@ class UserInputHandler extends EventEmitter
 
   _handleKeydown: (e) =>
     @text = @input.val()
-    if e.which == UserInputHandler.ENTER_KEY
+    if e.which is keyCodes.toKeyCode 'ENTER'
       if @text.length > 0
         @input.val('')
         @_sendUserCommand()
@@ -83,10 +87,11 @@ class UserInputHandler extends EventEmitter
       words = words[1..]
     else
       name = 'say'
-    server = @_context.currentWindow.conn?.name
-    channel = @_context.currentWindow.target
     event = new Event 'command', name, words...
-    event.setContext server, channel
+    @_emitEventToCurrentWindow event
+
+  _emitEventToCurrentWindow: (event) ->
+    event.context = @_context.currentWindow.getContext()
     @emit event.type, event
 
 exports.UserInputHandler = UserInputHandler

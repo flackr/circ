@@ -2,7 +2,9 @@ describe 'A window list', ->
   wl = windows = undefined
 
   createWindow = (server, chan) ->
-    win = { conn: {name: server}, target: chan, equals: (w) -> w.target is chan}
+    win = new chat.Window server, chan
+    win.setTarget chan if chan
+    win.conn = { name: server }
     windows.push win
     win
 
@@ -20,7 +22,6 @@ describe 'A window list', ->
 
   it 'returns undefined when getChannelWindow is called with no matching window', ->
     expect(wl.getChannelWindow 0).toBeUndefined()
-    expect(wl.getChannelWindow 'freenode.net', '#bash').toBeUndefined()
 
   it 'returns -1 when indexOf is called with no matching window', ->
     expect(wl.indexOf createWindow 'freenode').toBe -1
@@ -43,7 +44,6 @@ describe 'A window list', ->
   it "returns undefined on getChannelWindow when it only has server windows", ->
     wl.add createWindow 'freenode'
     wl.add createWindow 'dalnet'
-    expect(wl.getChannelWindow 'freenode', '#bash').toBeUndefined()
     expect(wl.getChannelWindow 0).toBeUndefined()
     expect(wl.getChannelWindow 1).toBeUndefined()
 
@@ -61,12 +61,12 @@ describe 'A window list', ->
     wl.add windows[0]
     expect(wl.length).toBe 4
 
-  it "returns undefined when getChannelWindow is called on a deleted window", ->
+  it "returns undefined when get is called on a deleted window", ->
     joinMultipleServersAndChannels()
     wl.remove windows[0]
     wl.remove windows[4]
-    expect(wl.getChannelWindow 'freenode').toBeUndefined()
-    expect(wl.getChannelWindow 'dalnet', '#bash').toBeUndefined()
+    expect(wl.get 'freenode').toBeUndefined()
+    expect(wl.get 'dalnet', '#bash').toBeUndefined()
 
   it "deletes all channel windows when their server window is deleted", ->
     joinMultipleServersAndChannels()
@@ -75,19 +75,20 @@ describe 'A window list', ->
     for i, window in [-1, -1, -1, 0, -1, 1]
       expect(wl.indexOf windows[window]).toBe i
 
-  it "returns the nth channel window on getChannelWindow(n)", ->
+  it "returns the Nth channel window on getChannelWindow(N)", ->
     joinMultipleServersAndChannels()
     for window, i in [1, 2, 4, 5]
       expect(wl.getChannelWindow i).toBe windows[window]
 
-  it "returns the window with the given server and conn on getChannelWindow(server, conn)", ->
+  it "returns the Nth server window on getServerWindow(N)", ->
     joinMultipleServersAndChannels()
-    expect(wl.getChannelWindow 'freenode', '#bash').toBe windows[1]
-    expect(wl.getChannelWindow 'freenode', '#zebra').toBe windows[2]
-    expect(wl.getChannelWindow 'dalnet', '#bash').toBe windows[4]
-    expect(wl.getChannelWindow 'dalnet', '#zebra').toBe windows[5]
+    expect(wl.getServerWindow 1).toBe windows[3]
 
-  it "returns the window with the given server and conn on get(server, conn)", ->
+  it "returns the server window with the given name on getServerWindow(N)", ->
+    joinMultipleServersAndChannels()
+    expect(wl.getServerWindow 1).toBe windows[3]
+
+  it "returns the window with the given server and channel on get(server, chan)", ->
     joinMultipleServersAndChannels()
     expect(wl.get 'freenode').toBe windows[0]
     expect(wl.get 'freenode', '#bash').toBe windows[1]
@@ -144,3 +145,12 @@ describe 'A window list', ->
     wl.add createWindow 'freenode', '#bash'  # windows 5
     expect(wl.localIndexOf windows[2]).toBe 1
     expect(wl.localIndexOf windows[5]).toBe 0
+
+  it "can return the server that corresponds with a given window", ->
+    joinMultipleServersAndChannels()
+    expect(wl.getServerForWindow windows[0]).toBe windows[0]
+    expect(wl.getServerForWindow windows[1]).toBe windows[0]
+    expect(wl.getServerForWindow windows[2]).toBe windows[0]
+    expect(wl.getServerForWindow windows[3]).toBe windows[3]
+    expect(wl.getServerForWindow windows[4]).toBe windows[3]
+    expect(wl.getServerForWindow windows[5]).toBe windows[3]
