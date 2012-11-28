@@ -21,6 +21,8 @@ chrome.runtime.onStartup?.addListener ->
   chrome.storage.sync.get 'autostart', (storageMap) ->
     if storageMap.autostart
       create()
+    else
+      window.close() unless appIsRunning()
 
 chrome.app.runtime.onLaunched?.addListener ->
   if appIsRunning()
