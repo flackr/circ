@@ -6,17 +6,13 @@ windowProperties =
 
 currentApp = null
 
-##
-# TODO: This is a hack to determine if the app is running - we can remove this
-# once the onClose event hits stable.
-##
 appIsRunning = ->
-  return currentApp?.contentWindow.navigator
+  not currentApp?.contentWindow.closed
 
 onCreated = (win) ->
   currentApp = win
   win.onClosed?.addListener ->
-    # TODO: close sockets, reload if an update is available
+    window.close()
 
 create = ->
   chrome.app.window.create 'bin/main.html', windowProperties, onCreated
@@ -35,7 +31,7 @@ chrome.app.runtime.onLaunched?.addListener ->
 ##
 # Repeatedly check if the window has been closed and close the background page
 # when it has.
-# TODO: This won't be needed once the onClose event hits stable.
+# TODO: Take this out once the onClose event hits stable.
 ##
 closeWhenAppCloses = ->
   setInterval =>
