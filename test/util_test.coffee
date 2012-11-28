@@ -1,6 +1,4 @@
 describe "Util provides the following functions:", ->
-  class TestClass1
-  class TestClass2
 
   describe "truncateIfTooLarge", ->
 
@@ -30,6 +28,8 @@ describe "Util provides the following functions:", ->
       expect(pluralize 'stress', 2).toBe 'stresses'
 
   describe "getLogger", ->
+    class TestClass1
+    class TestClass2
 
     it "logs debug info", ->
       spyOn(window.console, 'log')

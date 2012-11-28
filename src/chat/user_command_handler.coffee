@@ -179,30 +179,30 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'mode',
       # TODO when used with no args, display current modes
-      description: "sets the mode for a channel and/or user(s), the " +
-          "current channel is used by default, returns the current " +
-          "channel's mode if no arguments are given"
+      description: "sets or gets the modes of a channel or user(s), the " +
+          "current channel is used by default"
       category: 'uncommon'
-      params: ['opt_channel', 'opt_mode', 'opt_nicks...']
-      usage: "[[channel] <mode> [nick1] [nick2] ...]"
+      params: ['opt_target', 'opt_mode', 'opt_nicks...']
+      usage: "< [channel|nick] | [channel] <mode> [nick1] [nick2] ...>"
       requires: ['connection']
       validateArgs: ->
+        return true if @args.length is 0
         @nicks = @nicks?.split(' ') ? []
+        return true if @args.length is 1 and not @isValidMode(@target)
 
-        if @args.length is 0
-          @channel = @chan
-          return @channel
-
-        if @isValidMode(@channel) and @channel isnt @chan
-          # a channel wasn't specified, shift variables over by one
+        if @isValidMode(@target) and @target isnt @chan
+          # a target wasn't specified, shift variables over by one
           @nicks.push @mode
-          @mode = @channel
-          @channel = @chan
-
-        return @channel and @isValidMode @mode
+          @mode = @target
+          @target = @chan
+        return @target and @isValidMode @mode
 
       run: ->
-        @conn.irc.doCommand 'MODE', @channel, @mode, @nicks...
+        if @args.length is 0
+          @conn.irc.doCommand 'MODE', @chan if @chan
+          @conn.irc.doCommand 'MODE', @conn.irc.nick
+        else
+          @conn.irc.doCommand 'MODE', @target, @mode, @nicks...
 
     @_addCommand 'op',
       description: "gives operator status"

@@ -1,6 +1,6 @@
 exports = window
 
-## determine API support
+# determine API support
 exports.api =
   listenSupported: ->
     chrome.socket?.listen and chrome.experimental

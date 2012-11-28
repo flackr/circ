@@ -111,10 +111,15 @@ describe "A message formatter", ->
     expect(formatter.format()).toBe '(You can be called ournick)'
     expect(formatter.getStyle()).toBe 'purple self'
 
-  it "changes 'you is' phrases into 'you are'", ->
+  it "changes 'you is' to 'you are'", ->
     formatter.setContext 'ournick', 'ournick'
     formatter.setMessage '#from is cool; #to is the best'
     expect(formatter.format()).toBe '(You are cool; you are the best)'
+
+  it "changes 'you has' to 'you have'", ->
+    formatter.setContext 'ournick'
+    formatter.setMessage '#from has a dog'
+    expect(formatter.format()).toBe '(You have a dog)'
 
   it "can optionally not use pretty formatting", ->
     formatter.setContext 'ournick'

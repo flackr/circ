@@ -209,10 +209,10 @@ class UserCommand
     @chat.emit e.type, e
 
   handleCTCPRequest: (nick, type) ->
-    @displayDirectMessage @nick, "CTCP #{type}"
+    @displayDirectMessage nick, "CTCP #{type}"
     delimiter = irc.CTCPHandler.DELIMITER
     message = delimiter + type + delimiter
-    @conn.irc.doCommand 'PRIVMSG', @nick, message
+    @conn.irc.doCommand 'PRIVMSG', nick, message
 
   ##
   # Used to set the arguments for MODE shortcut commands.
@@ -220,7 +220,7 @@ class UserCommand
   ##
   setModeArgs: (type) ->
     @nicks = [@nick]
-    @channel = @chan
+    @target = @chan
     @mode = type
 
   ##

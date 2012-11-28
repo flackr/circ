@@ -60,7 +60,14 @@ describe 'A user command handler', ->
 
   it "supports the mode command", ->
     handle 'mode'
+    expect(onMode).toHaveBeenCalled()
+
+    onMode.reset()
+    handle 'mode', 'channel', 'invalid mode'
     expect(onMode).not.toHaveBeenCalled()
+
+    handle 'mode', '+sm-v', 'nick1', 'nick2', 'nick3'
+    expect(onMode).toHaveBeenCalled()
 
   it "supports the away command", ->
     onAway = spyOn handler._handlers.away, 'run'

@@ -138,8 +138,7 @@ class MessageFormatter
   ##
   _incorporateContext: ->
     msg = @_message
-    msg = @_youIsToYouAre '#from', msg if @_fromUs
-    msg = @_youIsToYouAre '#to', msg if @_toUs
+    msg = @_fixGrammer '#from', msg
     msg = msg.replace '#from', if @_fromUs then 'you' else @_from
     msg = msg.replace '#to', if @_toUs then 'you' else @_to
     msg.replace '#content', @_content
@@ -156,10 +155,14 @@ class MessageFormatter
       msg = "#{msg}."
     return msg
 
-  _youIsToYouAre: (you, msg) ->
-    if msg.indexOf "#{you} is" isnt -1
-      return msg.replace "#{you} is", "#{you} are"
-    return msg
+  _fixGrammer: (you, msg) ->
+    youPlaceholders = []
+    youPlaceholders.push '#from' if @_fromUs
+    youPlaceholders.push '#to' if @_toUs
+    for you in youPlaceholders
+      msg = msg.replace "#{you} is", "#{you} are"
+      msg = msg.replace "#{you} has", "#{you} have"
+    msg
 
   ##
   # Returns true if the given message starts with the nick the message pertains

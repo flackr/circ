@@ -68,6 +68,12 @@ class IRCMessageHandler extends MessageHandler
         @_formatter.addStyle 'update'
         @_formatter.setMessage '#from changed the topic to: #content'
 
+    topic_info: (who, time) ->
+      @_formatter.addStyle 'notice'
+      @_formatter.setContent new Date(parseInt time).toString()
+      @_formatter.setMessage 'Topic set by #from on #content.'
+      @_formatter.setPrettyFormat false
+
     join: (nick) ->
       @_formatter.addStyle 'update'
       @_formatter.setMessage '#from joined the channel'
@@ -98,6 +104,11 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.addStyle 'update'
       @_formatter.setContent @_getModeMessage mode
       @_formatter.setMessage '#from #content #to'
+
+    user_mode: (who, mode) ->
+      @_formatter.addStyle 'notice'
+      @_formatter.setContext undefined, who, mode
+      @_formatter.setMessage '#to has modes #content'
 
     quit: (nick, reason) ->
       @_formatter.addStyle 'update'

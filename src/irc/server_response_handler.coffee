@@ -127,18 +127,6 @@ class ServerResponseHandler extends MessageHandler
       else
         console.warn "Got TOPIC for a channel we're not in (#{channel})"
 
-    # rpl_notopic
-    331: (from, to, channel, msg) ->
-      @handle 'TOPIC', {}, channel
-
-    # rpl_topic
-    332: (from, to, channel, topic) ->
-      @handle 'TOPIC', {}, channel, topic
-
-    # rpl_topicwhotime
-    333: (from, to, channel, who, time) ->
-      # TODO show who set the topic and when
-
     KICK: (from, channel, to, reason) ->
       if not @irc.channels[channel]
         console.warn "Got KICK message from #{from} to #{to} in channel we are not in (#{channel})"
@@ -152,20 +140,47 @@ class ServerResponseHandler extends MessageHandler
     MODE: (from, chan, mode, to) ->
       @irc.emitMessage 'mode', chan, from.nick, to, mode
 
-    #rpl_away
+    # rpl_umodeis
+    221: (from, to, mode) ->
+      @irc.emitMessage 'user_mode', chat.CURRENT_WINDOW, to, mode
+
+    # rpl_away
     301: (from, target, who, msg) ->
       # send a direct message from the user, saying the other user is away
       @irc.emitMessage 'privmsg', target, who, msg
 
-    #rpl_unaway
+    # rpl_unaway
     305: (from, to, msg) ->
       @irc.away = false
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
 
-    #rpl_nowaway
+    # rpl_nowaway
     306: (from, to, msg) ->
       @irc.away = true
       @irc.emitMessage 'away', chat.CURRENT_WINDOW, msg
+
+    # rpl_channelmodeis
+    324: (from, to, channel, mode, modeParams) ->
+      message = "Channel modes: #{mode} #{modeParams ? ''}"
+      @irc.emitMessage 'notice', channel, message
+
+    # rpl_channelcreated
+    329: (from, to, channel, time) ->
+      readableTime = new Date(parseInt time)
+      message = "Channel created on #{readableTime}"
+      @irc.emitMessage 'notice', channel, message
+
+    # rpl_notopic
+    331: (from, to, channel, msg) ->
+      @handle 'TOPIC', {}, channel
+
+    # rpl_topic
+    332: (from, to, channel, topic) ->
+      @handle 'TOPIC', {}, channel, topic
+
+    # rpl_topicwhotime
+    333: (from, to, channel, who, time) ->
+      @irc.emitMessage 'topic_info', channel, who, time
 
     # err_nicknameinuse
     433: (from, nick, taken) ->
