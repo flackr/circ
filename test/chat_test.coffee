@@ -32,7 +32,17 @@ describe 'An IRC client front end', ->
 
   type = (text) ->
     prompt.val(text)
-    commandInput._handleKeydown { which: 13, preventDefault: -> }
+    event = $.Event 'keypress'
+    event.which = 13 # enter
+    commandInput._handleKeydown event
+
+  pressTab = ->
+    event = $.Event 'keypress'
+    event.which = 9 # tab
+    commandInput._handleGlobalKeydown event
+
+  switchToWindow = (index) ->
+    client.switchToWindow client.winList.get index
 
   noticeIsVisible = ->
     $("#notice")[0].style.top is "0px"
@@ -177,7 +187,6 @@ describe 'An IRC client front end', ->
       type '/join #bash'
       type '/join #awesome'
       type '/server dalnet 6697'
-      type '/win 4'
       type '/join #hiphop'
 
     beforeEach ->
@@ -225,7 +234,7 @@ describe 'An IRC client front end', ->
       expect(rooms().length).toBe 4
 
     it "doesn't restore servers that were parted", ->
-      type '/win 1'
+      switchToWindow 0
       type '/quit'
       restart()
       expect(irc 'freenode').not.toBeDefined()
@@ -311,8 +320,8 @@ describe 'An IRC client front end', ->
 
     it "/msg causes the conversation window to be marked with activity", ->
       currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hi there'
-      type '/win 2'
-      type '/win 1'
+      switchToWindow 1 # switch to the new window
+      switchToWindow 0 # switch back to the previous window
       expect(room -1).not.toHaveClass 'mention'
       expect(room -1).not.toHaveClass 'activity'
       expect(room -1).not.toHaveClass 'selected'
@@ -373,33 +382,43 @@ describe 'An IRC client front end', ->
       it "adds another item to the room display", ->
         expect(rooms().length).toBe 2
 
-      it "can switch windows with /win", ->
+      it "can switch channels with /win", ->
+        type '/join #zebra'
+
+        expect(room 1).not.toHaveClass 'selected'
+        expect(room 2).toHaveClass 'selected'
         type "/win 1"
-        expect(client.currentWindow.target).toBe undefined
+        expect(room 1).toHaveClass 'selected'
+        expect(room 2).not.toHaveClass 'selected'
 
       it "marks a window as active if a message is sent and it's not selected", ->
-        type '/server dalnet'
+        type '/server dalnet' # join a third room
         irc2 = client.currentWindow.conn.irc
-        irc2.handle '1', {}, 'ournick' # rpl_welcome
-        type '/win 3'
-        type '/join #bash'
-        currentIRC.handle 'JOIN', {nick: 'ournick'}, '#bash'
+        irc2.handle '1', {}, 'ournick'
 
         currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hi'
         expect(room 1).toHaveClass 'activity'
 
       it "clears activity and mention style when switching to a window", ->
-        type "/win 1"
+        switchToWindow 0
         currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey!'
-        type "/win 2"
-        expect(room -1).not.toHaveClass 'mention'
-        expect(room -1).not.toHaveClass 'activity'
-        expect(room -1).toHaveClass 'selected'
+        switchToWindow 1
+        expect(room 1).not.toHaveClass 'mention'
+        expect(room 1).not.toHaveClass 'activity'
+        expect(room 1).toHaveClass 'selected'
 
       it "clicking on a channel in the channel display switches to that channel", ->
+        switchToWindow 0
+        expect(room 1).not.toHaveClass 'selected'
+
         client.channelDisplay.emit 'clicked', 'freenode', '#bash'
         expect(client.currentWindow.target).toBe '#bash'
-        expect(room -1).toHaveClass 'selected'
+        expect(room 1).toHaveClass 'selected'
+
+      it "hitting tab with empty input fills in the name of the last user to mention the user", ->
+        currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
+        pressTab()
+        expect($("#input")).toHaveValue 'someguy: '
 
       it "can ignore part and join messages with '/ignore part join'", ->
         type '/ignore part join'
@@ -425,7 +444,7 @@ describe 'An IRC client front end', ->
           expect(mocks.Notification.numActive).toBe 1
 
         it "display when the user's nick is mentioned", ->
-          type "/win 1"
+          switchToWindow 0
           currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
           expect(mocks.Notification.numActive).toBe 1
           expect(room -1).toHaveClass 'mention'
@@ -438,7 +457,7 @@ describe 'An IRC client front end', ->
           expect(mocks.Notification.numActive).toBe 1
 
         it "don't group when there are multiple notifications for different channels", ->
-          type "/win 1"
+          switchToWindow 0
           currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, '#bash', 'hey ournick!'
           currentIRC.handle 'PRIVMSG', {nick: 'someguy'}, 'ournick', 'hey!'
           expect(mocks.Notification.numActive).toBe 2
@@ -586,7 +605,7 @@ describe 'An IRC client front end', ->
           expect(room 2).toHaveClass 'disconnected'
           expect(room 3).toHaveClass 'disconnected'
 
-          type '/win 2'
+          type switchToWindow 1
           for name, i in ['bob', 'Sally', 'somenick']
             expect(textOfNick i).toBe name
           expect($('#status').text()).toBe 'somenick' + 'away'

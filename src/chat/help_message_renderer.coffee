@@ -68,6 +68,7 @@ class HelpMessageRenderer
   _groupCommandsByCategory: ->
     categoryToCommands = {}
     for name, command of @_commands
+      continue if command.category is 'hidden'
       category = command.category ? 'misc'
       categoryToCommands[category] ?= []
       categoryToCommands[category].push name

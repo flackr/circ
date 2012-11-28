@@ -206,3 +206,14 @@ describe 'A user command', ->
   it 'removes trailing white space', ->
     modeCommand.setArgs '+o', '', ''
     expect(modeCommand._hasValidArgs).toBe true
+
+  it 'can always run if it has no requirements or params', ->
+    yellDescription =
+      description: 'outputs text to the screen in all caps'
+      run: ->
+    yellCommand = new chat.UserCommand 'yell', yellDescription
+    yellCommand.setChat client
+
+    spyOn yellCommand, 'run'
+    yellCommand.tryToRun {}
+    expect(yellCommand.run).toHaveBeenCalled()
