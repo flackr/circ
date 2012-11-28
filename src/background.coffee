@@ -7,7 +7,7 @@ windowProperties =
 currentApp = null
 
 appIsRunning = ->
-  not currentApp?.contentWindow.closed
+  currentApp and not currentApp.contentWindow.closed
 
 onCreated = (win) ->
   currentApp = win
