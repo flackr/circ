@@ -18,8 +18,20 @@ class Chat extends EventEmitter
     @updateStatus()
 
   init: ->
-    @storage.init()
-    @remoteConnection.init()
+    if api.socketSupported()
+      @storage.init()
+      @remoteConnection.init()
+    else
+      @_displaySocketSupportError()
+
+  ##
+  # Tell the user that they need chrome.socket support to run CIRC.
+  ##
+  _displaySocketSupportError: ->
+    message = "CIRC cannot run on this device. Support for " +
+        "chrome.socket is required to connect to the IRC server. " +
+        "Please update your version of Chrome and try again."
+    @displayMessage 'error', @getCurrentContext(), message
 
   tearDown: ->
     @emit 'tear_down'

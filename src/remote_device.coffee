@@ -43,10 +43,7 @@ class RemoteDevice extends EventEmitter
 
   @getOwnDevice: (callback) ->
     device = new RemoteDevice
-    unless chrome.socket?.getNetworkList
-      @_log 'e', 'chrome.socket.getNetworkList is not supported!'
-      device.possibleAddrs = []
-      device.port = RemoteDevice.NO_PORT
+    unless device.hasGetNetworkListSupport()
       callback device
       return
 
@@ -68,10 +65,18 @@ class RemoteDevice extends EventEmitter
       shortest = addr if addr.length < shortest.length
     shortest
 
+  hasGetNetworkListSupport: ->
+    return true if api.getNetworkListSupported()
+    console.error 'chrome.socket.getNetworkList is not supported!'
+    @possibleAddrs = []
+    @port = RemoteDevice.NO_PORT
+    return false
+
   ##
   # Call chrome.socket.getNetworkList in an attempt to find a valid address.
   ##
   searchForAddress: (callback, timeout=500) ->
+    return unless @hasGetNetworkListSupport()
     timeout = 60000 if timeout > 60000
     setTimeout (=>
       @findPossibleAddrs =>

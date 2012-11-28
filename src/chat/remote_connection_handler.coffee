@@ -74,7 +74,7 @@ class RemoteConnectionHandler
     @_remoteConnection.on 'found_addr', =>
       @determineConnection()
 
-    @_remoteConnection.on 'on_addr', =>
+    @_remoteConnection.on 'no_addr', =>
       @_useOwnConnection()
 
     @_remoteConnection.on 'no_port', =>

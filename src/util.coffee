@@ -8,6 +8,12 @@ exports.api =
   acceptSupported: ->
     chrome.socket?.accept and chrome.experimental
 
+  socketSupported: ->
+    chrome.socket
+
+  getNetworkListSupported: ->
+    chrome.socket?.getNetworkList
+
 exports.isOnline = ->
   window.navigator.onLine
 
