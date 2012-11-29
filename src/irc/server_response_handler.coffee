@@ -166,8 +166,7 @@ class ServerResponseHandler extends MessageHandler
 
     # rpl_channelcreated
     329: (from, to, channel, time) ->
-      readableTime = new Date(parseInt time)
-      message = "Channel created on #{readableTime}"
+      message = "Channel created on #{getReadableTime parseInt time}"
       @irc.emitMessage 'notice', channel, message
 
     # rpl_notopic

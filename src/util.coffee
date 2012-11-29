@@ -14,6 +14,11 @@ exports.api =
   getNetworkListSupported: ->
     chrome.socket?.getNetworkList
 
+exports.getReadableTime = (milliseconds) ->
+  date = new Date()
+  date.setMilliseconds(milliseconds)
+  date.toString()
+
 exports.isOnline = ->
   window.navigator.onLine
 

@@ -68,9 +68,12 @@ class IRCMessageHandler extends MessageHandler
         @_formatter.addStyle 'update'
         @_formatter.setMessage '#from changed the topic to: #content'
 
+    ##
+    # Display when the topic was set and who it was set by.
+    ##
     topic_info: (who, time) ->
       @_formatter.addStyle 'notice'
-      @_formatter.setContent new Date(parseInt time).toString()
+      @_formatter.setContent getReadableTime parseInt time
       @_formatter.setMessage 'Topic set by #from on #content.'
       @_formatter.setPrettyFormat false
 
