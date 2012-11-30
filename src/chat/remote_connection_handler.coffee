@@ -286,11 +286,15 @@ class RemoteConnectionHandler
       @_onUsingOwnConnection()
 
   _onUsingOwnConnection: ->
-    @_chat.switchToWindowByIndex 0
+    @_selectFirstRoom()
     @_chat.messageHandler.replayChatLog()
     @_storage.resume()
     @_onConnected?()
     @_onConnected = undefined
     @_chat.startWalkthrough() unless @_storage.completedWalkthrough
+
+  _selectFirstRoom: ->
+    if @_chat.winList.length > 1
+      @_chat.switchToWindow @_chat.winList.get 0
 
 exports.RemoteConnectionHandler = RemoteConnectionHandler

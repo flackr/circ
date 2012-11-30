@@ -82,14 +82,14 @@ class UserCommandHandler extends MessageHandler
         @chat.removeWindow(@win)
 
     @_addCommand 'win',
-      description: 'switches windows'
+      description: 'switches windows, only channel windows are selected this way'
       category: 'misc'
       params: ['windowNum']
       validateArgs: ->
         @windowNum = parseInt @windowNum
         not isNaN @windowNum
       run: ->
-        @chat.switchToWindowByIndex @windowNum - 1
+        @chat.switchToChannelByIndex @windowNum - 1
 
     @_addCommand 'say',
       description: 'sends text to the current channel'
@@ -407,6 +407,55 @@ class UserCommandHandler extends MessageHandler
       requires: ['connection']
       run: ->
         @handleCTCPRequest @nick, 'VERSION'
+
+    ##
+    # Hidden commands.
+    # These commands don't display in /help or autocomplete. They're used for
+    # scripts and keyboard shortcuts.
+    ##
+    @_addCommand 'next-server',
+      description: "switches to the next server window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        server = winList.getServerForWindow @win
+        return unless server
+        serverIndex = winList.serverIndexOf server
+        nextServer = winList.getServerWindow(serverIndex + 1) ?
+            winList.getServerWindow(0)
+        @chat.switchToWindow nextServer
+
+    @_addCommand 'next-room',
+      description: "switches to the next window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        index = winList.indexOf @win
+        return if index < 0
+        nextWin = winList.get(index + 1) ? winList.get(0)
+        @chat.switchToWindow nextWin
+
+    @_addCommand 'previous-room',
+      description: "switches to the next window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        index = winList.indexOf @win
+        return if index < 0
+        nextWin = winList.get(index - 1) ? winList.get(winList.length - 1)
+        @chat.switchToWindow nextWin
+
+    @_addCommand 'reply',
+      description: "begin replying to the user who last mentioned your nick"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        user = @chat.getLastUserToMention @win.getContext()
+        return unless user
+        @chat.emit 'set_input', "#{user}: "
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

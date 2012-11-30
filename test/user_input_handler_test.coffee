@@ -49,11 +49,13 @@ describe 'A user input handler', ->
 
   context =
     currentWindow:
+      getContext: -> { channel: '#bash', server: 'freenode.net' }
       target: '#bash'
       conn:
         name: 'freenode.net'
         irc:
           channels: {}
+    on: ->
     userCommands:
       getCommands: ->
         return commands
@@ -67,13 +69,19 @@ describe 'A user input handler', ->
     altHeld = false
     onVal.reset()
 
-  it "switches to the given window on 'alt-[0-9]'", ->
+  it "switches to the given window on 'alt-[1-9]'", ->
     altHeld = true
-    keyDown 48 # 0
-    expect(handler.emit).toHaveBeenCalledWith 'switch_window', 0
+    keyDown 49 # 1
+    event = handler.emit.mostRecentCall.args[1]
+    expect(event.type).toBe 'command'
+    expect(event.name).toBe 'win'
+    expect(event.args).toEqual [1]
 
     keyDown 57 # 9
-    expect(handler.emit).toHaveBeenCalledWith 'switch_window', 9
+    event = handler.emit.mostRecentCall.args[1]
+    expect(event.type).toBe 'command'
+    expect(event.name).toBe 'win'
+    expect(event.args).toEqual [9]
 
   it "doesn't switch windows when alt isn't held", ->
     keyDown 48 # 0

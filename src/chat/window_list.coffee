@@ -29,22 +29,22 @@ class WindowList
         num -= server.windows.length
     undefined
 
-  getChannelWindow: (serverName, chan) ->
-    if typeof arguments[0] == 'number'
-      return @_getChannelWindowByNumber arguments[0]
+  ##
+  # The same as get(), but the index excludes server windows.
+  ##
+  getChannelWindow: (index) ->
     for server in @_servers
-      continue unless serverName == server.name
-      for win in server.windows
-        return win if win.target == chan
+      if index < server.windows.length
+        return server.windows[index]
+      else
+        index -= server.windows.length
     undefined
 
-  _getChannelWindowByNumber: (num) ->
-    for server in @_servers
-      if num < server.windows.length
-        return server.windows[num]
-      else
-        num -= server.windows.length
-    undefined
+  ##
+  # The same as get(), but the index excludes channel windows.
+  ##
+  getServerWindow: (index) ->
+    return @_servers[index]?.serverWindow
 
   add: (win) ->
     if win.target?
@@ -73,7 +73,7 @@ class WindowList
   remove: (win) ->
     for server, i in @_servers
       if server.name == win.conn?.name
-        if not win.target?
+        if win.isServerWindow()
           @_servers.splice i, 1
           @length -= server.windows.length + 1
           return server.windows.concat [server.serverWindow]
@@ -84,8 +84,19 @@ class WindowList
             return [candidate]
     return []
 
+  ##
+  # Given a window, returns its corresponding server window.
+  # @param {Window} win
+  # @return {Window|undefined} The server window.
+  ##
+  getServerForWindow: (win) ->
+    return win if win.isServerWindow()
+    for server in @_servers
+      return server.serverWindow if server.name is win.conn?.name
+    return undefined
+
   indexOf: (win) ->
-    assert win.conn?.name?
+    return -1 unless win.conn?.name?
     count = 0
     for server in @_servers
       if win.conn.name == server.name
@@ -98,12 +109,24 @@ class WindowList
         count += server.windows.length + 1
     -1
 
+  ##
+  # Return the index of a channel relative to other channels of the same server.
+  ##
   localIndexOf: (win) ->
-    assert win.conn?.name?
+    return -1 unless win.conn?.name?
     for server in @_servers
       continue unless win.conn.name is server.name
       for candidate, i in server.windows
         return i if candidate.equals win
+    return -1
+
+  ##
+  # Returns the index of a server relative to other servers.
+  ##
+  serverIndexOf: (win) ->
+    return -1 unless win.conn?.name?
+    for server, i in @_servers
+      return i if win.conn.name is server.name
     return -1
 
 exports.WindowList = WindowList

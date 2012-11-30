@@ -67,7 +67,7 @@ class RemoteDevice extends EventEmitter
 
   hasGetNetworkListSupport: ->
     return true if api.getNetworkListSupported()
-    console.error 'chrome.socket.getNetworkList is not supported!'
+    @_log 'w', 'chrome.socket.getNetworkList is not supported!'
     @possibleAddrs = []
     @port = RemoteDevice.NO_PORT
     return false
@@ -111,7 +111,7 @@ class RemoteDevice extends EventEmitter
 
   _onFailedToListen: (callback, port, result) ->
     if port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS
-        @_log 'e', "Couldn't listen to 0.0.0.0 on any attempted ports"
+        @_log 'w', "Couldn't listen to 0.0.0.0 on any attempted ports"
         @port = RemoteDevice.NO_PORT
         @emit 'no_port'
     else
