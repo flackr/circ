@@ -6,7 +6,7 @@ exports = (window.chat ?= {}).window ?= {}
 ##
 class MessageRenderer
 
-  @PROJECT_URL: "http://noahsug.github.com/circ"
+  @PROJECT_URL: "http://flackr.github.com/circ"
 
   # The max number of messages a room can display at once.
   @MAX_MESSAGES: 3500

@@ -1,4 +1,4 @@
-# [CIRC](http://noahsug.github.com/circ)
+# [CIRC](http://flackr.github.com/circ)
 **An IRC client in the shape of a packaged Chrome app**
 
 CIRC uses the chrome.socket API to connect directly to IRC servers without needing a proxy. It has a ton of other killer features as well such as syncing your IRC state accross all your devices and allowing you to use a single IRC connection on multiple devices simultaneously.
