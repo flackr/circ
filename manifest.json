@@ -20,8 +20,7 @@
     "notifications",
     "storage",
     "fileSystem",
-    "unlimitedStorage",
-    "background"
+    "unlimitedStorage"
   ],
 
   "app": {
