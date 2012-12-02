@@ -6,7 +6,7 @@ exports = window.script ?= {}
 class ScriptHandler extends EventEmitter
 
   # A set of events that cannot be intercepted by scripts.
-  @UNINTERCEPTABLE_EVENTS = { 'command help', 'command about' }
+  @UNINTERCEPTABLE_EVENTS = { 'command help', 'command about', 'command load' }
 
   constructor: ->
     super
