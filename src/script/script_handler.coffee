@@ -12,11 +12,6 @@ class ScriptHandler extends EventEmitter
     @_emitters = []
     @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
-    @_loadPrepackagedScripts()
-
-  _loadPrepackagedScripts: ->
-    window.script.loader.loadPrepackagedScripts (script) =>
-      @addScript script
 
   listenToScriptEvents: (emitter) ->
     emitter.on 'script_loaded', @addScript

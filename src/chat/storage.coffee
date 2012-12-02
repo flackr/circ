@@ -3,15 +3,22 @@ exports = window.chat ?= {}
 ##
 # Manages storage.
 ##
-class Storage
+class Storage extends EventEmitter
 
+  # Items loaded from sync storage related to the user's IRC state
   @STATE_ITEMS = ['nick', 'servers', 'channels', 'ignored_messages']
+
+  # Items loaded from sync storage on startup
   @INITIAL_ITEMS = ['password', 'server_device', 'autostart']
-  @INITIAL_ITEMS_LOCAL = ['completed_walkthrough']
+
+  # Items loaded from local storage on startup
+  @INITIAL_ITEMS_LOCAL = ['completed_walkthrough', 'scripts', 'loaded_prepackaged_scripts']
 
   constructor: (chat) ->
+    super
     @_chat = chat
     @_log = getLogger this
+    @_scripts = []
     @_channels = []
     @_servers = []
     @_nick = undefined
@@ -73,6 +80,9 @@ class Storage
   finishedWalkthrough: ->
     @_store 'completed_walkthrough', true, 'local'
 
+  finishedLoadingPrepackagedScripts: ->
+    @_store 'loaded_prepackaged_scripts', true, 'local'
+
   nickChanged: (nick) ->
     return if @_nick is nick
     @_nick = nick
@@ -123,11 +133,21 @@ class Storage
         break
     @_store 'servers', @_servers
 
+
   ignoredMessagesChanged: ->
     @_store 'ignored_messages', @_getIgnoredMessages()
 
   _getIgnoredMessages: ->
     @_chat.messageHandler.getIgnoredMessages()
+
+  scriptAdded: (script) ->
+    return if @_isDuplicateScript script
+    @_scripts.push script
+    @_store 'scripts', @_scripts, 'local'
+
+  _isDuplicateScript: (newScript) ->
+    for script in @_scripts
+      return true if newScript.id is script.id
 
   _store: (key, value, type='sync') ->
     return unless @shouldStore key
@@ -172,6 +192,7 @@ class Storage
 
       chrome.storage.sync.get Storage.INITIAL_ITEMS, (state) =>
         @_initializeSyncItems state
+        @emit 'initialized'
 
   _initializeSyncItems: (state) ->
     @_state = state
@@ -181,6 +202,15 @@ class Storage
 
   _initializeLocalItems: (state) ->
     @completedWalkthrough = state['completed_walkthrough']
+    @loadedPrepackagedScripts = state['loaded_prepackaged_scripts']
+    @_restoreScripts state
+
+  _restoreScripts: (state) =>
+    return unless state.scripts
+    @_log state.scripts.length, 'scripts loaded from storage:', state.scripts
+    script.loader.loadScriptsFromStorage state.scripts, (script) =>
+      @_scripts.push script
+      @_chat.emit 'script_loaded', script
 
   restoreSavedState: (opt_callback) ->
     chrome.storage.sync.get Storage.STATE_ITEMS, (savedState) =>
