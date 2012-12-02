@@ -4,9 +4,11 @@ exports = window.script ?= {}
 # Handles currently running scripts.
 ##
 class ScriptHandler extends EventEmitter
-
   # Script names that are longer this this are truncated.
   @MAX_NAME_LENGTH = 20
+
+  # A set of events that cannot be intercepted by scripts.
+  @UNINTERCEPTABLE_EVENTS = { 'command help', 'command about' }
 
   constructor: ->
     super
@@ -67,9 +69,17 @@ class ScriptHandler extends EventEmitter
 
   _handleEvent: (event) =>
     event.id = @_eventCount++
-    @_forwardEventToScripts event
+    @_forwardEventToScripts event if @_eventCanBeForwarded event
     unless @_eventIsBeingHandled event.id
       @_emitEvent event
+
+  ##
+  # Certain events are not allowed to be intercepted by scripts for security reasons.
+  # @param {Event} event
+  # @return {boolean} Returns true if the event can be forwarded to scripts.
+  ##
+  _eventCanBeForwarded: (event) ->
+    return not (event.hook of ScriptHandler.UNINTERCEPTABLE_EVENTS)
 
   _forwardEventToScripts: (event) ->
     for scriptId, script of @_scripts
