@@ -16,6 +16,10 @@ class ScriptLoader
     for sourceCode in window.script.prepackagedScripts
       callback @_createScript sourceCode
 
+  loadScriptsFromStorage: (scripts, callback) ->
+    for script in scripts
+      callback @_createScript script.sourceCode
+
   createScriptFromFileSystem: (callback) ->
     chrome.fileSystem.chooseFile { type: 'openFile' }, (f) =>
       @_onChosenFileToOpen f, callback
@@ -36,6 +40,10 @@ class ScriptLoader
 
       fileReader.readAsText file
 
+  ##
+  # @param {string} sourceCode The raw JavaScript source code of the script.
+  # @return {Script} Returns a handle to the script.
+  ##
   _createScript: (sourceCode) ->
     frame = @_createIframe()
     script = new window.script.Script sourceCode, frame

@@ -158,7 +158,7 @@ class UserCommandHandler extends MessageHandler
       category: 'misc'
       run: ->
         script.loader.createScriptFromFileSystem (script) =>
-          @chat.emit 'script_loaded', script
+          @chat.addScript script
 
     @_addCommand 'topic',
       description: "sets the topic of the current channel, displays the " +
