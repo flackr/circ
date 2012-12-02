@@ -55,3 +55,14 @@ describe "Util provides the following functions:", ->
       expect(capitalizeString 'bob').toBe 'Bob'
       expect(capitalizeString 'BILL').toBe 'BILL'
       expect(capitalizeString '').toBe ''
+
+  describe "getReadableList", ->
+
+    it "returns the single element when the list has a length of 1", ->
+      expect(getReadableList [5]).toBe '5'
+
+    it "returns the two elements with an 'and' in between when the list has a length of 2", ->
+      expect(getReadableList ['sally', 'joe']).toBe 'sally and joe'
+
+    it "returns a comma seperated list with the last element and'd onto the end when the list has a length > 3", ->
+      expect(getReadableList [1, 2, 3]).toBe '1, 2 and 3'

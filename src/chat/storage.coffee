@@ -5,7 +5,7 @@ exports = window.chat ?= {}
 ##
 class Storage
 
-  @STATE_ITEMS = ['nick', 'servers', 'channels']
+  @STATE_ITEMS = ['nick', 'servers', 'channels', 'ignored_messages']
   @INITIAL_ITEMS = ['password', 'server_device', 'autostart']
   @INITIAL_ITEMS_LOCAL = ['completed_walkthrough']
 
@@ -123,6 +123,12 @@ class Storage
         break
     @_store 'servers', @_servers
 
+  ignoredMessagesChanged: ->
+    @_store 'ignored_messages', @_getIgnoredMessages()
+
+  _getIgnoredMessages: ->
+    @_chat.messageHandler.getIgnoredMessages()
+
   _store: (key, value, type='sync') ->
     return unless @shouldStore key
     @_log 'storing', key, '=>', value, 'to', type
@@ -138,8 +144,13 @@ class Storage
     return not (@_paused and key in Storage.STATE_ITEMS)
 
   getState: ->
-    ircStates = @_createIRCStates()
-    { ircStates, servers: @_servers, channels: @_channels, nick: @_nick }
+    {
+      ircStates: @_createIRCStates(),
+      servers: @_servers,
+      channels: @_channels,
+      nick: @_nick,
+      ignoredMessages: @_getIgnoredMessages()
+    }
 
   _createIRCStates: ->
     ircStates = []
@@ -181,6 +192,7 @@ class Storage
     @_restoreNick()
     @_restoreServers()
     @_restoreChannels()
+    @_restoreIgnoredMessages()
     @_restoreIRCStates()
     @_markItemsAsLoaded Storage.STATE_ITEMS, state
 
@@ -210,6 +222,11 @@ class Storage
         @_chat.createPrivateMessageWindow conn, channel.name
       else
         @_chat.join conn, channel.name
+
+  _restoreIgnoredMessages: ->
+    return unless ignoredMessages = @_state['ignored_messages']
+    @_log 'restoring ignored messages from storage:', ignoredMessages
+    @_chat.messageHandler.setIgnoredMessages ignoredMessages
 
   _restoreNick: ->
     return unless (nick = @_state.nick) and typeof nick is 'string'

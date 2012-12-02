@@ -14,6 +14,19 @@ exports.api =
   getNetworkListSupported: ->
     chrome.socket?.getNetworkList
 
+##
+# Returns a human readable representation of a list.
+# For example, [1, 2, 3] becomes "1, 2 and 3".
+# @param {Array.<Object>} array
+# @return {string}
+##
+exports.getReadableList = (array) ->
+  if array.length is 1
+    array[0].toString()
+  else
+    allButLastElement = array[..array.length-2]
+    allButLastElement.join(', ') + ' and ' + array[array.length-1]
+
 exports.getReadableTime = (milliseconds) ->
   date = new Date()
   date.setMilliseconds(milliseconds)

@@ -401,6 +401,23 @@ describe 'An IRC client front end', ->
         expect(client.currentWindow.target).toBe '#bash'
         expect(room -1).toHaveClass 'selected'
 
+      it "can ignore part and join messages with '/ignore part join'", ->
+        type '/ignore part join'
+        spyOn(client.currentWindow, 'message').andCallThrough()
+        currentIRC.handle 'JOIN', {nick: 'someguy'}, '#bash'
+        expect(client.currentWindow.message).not.toHaveBeenCalled()
+        currentIRC.handle 'PART', {nick: 'someguy'}, '#bash'
+        expect(client.currentWindow.message).not.toHaveBeenCalled()
+
+      it "can unignore part and join messages with '/unignore part join'", ->
+        type '/ignore part join'
+        type '/unignore part join'
+        spyOn(client.currentWindow, 'message').andCallThrough()
+        currentIRC.handle 'JOIN', {nick: 'someguy'}, '#bash'
+        expect(client.currentWindow.message).toHaveBeenCalled()
+        currentIRC.handle 'PART', {nick: 'someguy'}, '#bash'
+        expect(client.currentWindow.message).toHaveBeenCalled()
+
       describe "can display desktop notifications which", ->
 
         it "display when a direct private message is received", ->
