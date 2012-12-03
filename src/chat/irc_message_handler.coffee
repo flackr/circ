@@ -9,7 +9,35 @@ class IRCMessageHandler extends MessageHandler
     @_formatter = new window.chat.MessageFormatter
     @_chatLog = new chat.ChatLog
     @_chatLog.whitelist 'privmsg' # only log private messages
+    @_ignoredMessages = {}
     super
+
+  ##
+  # Ignore messages of a certain type when in the specified room.
+  # @param {Context} context
+  # @param {string} type
+  ##
+  ignoreMessageType: (context, type) ->
+    @_ignoredMessages[context] ?= {}
+    @_ignoredMessages[context][type.toLowerCase()] = true
+    @_chat.storage.ignoredMessagesChanged()
+
+  ##
+  # Stop ignoring messages of a certain type when in the specified room.
+  # @param {Context} context
+  # @param {string} type
+  ##
+  stopIgnoringMessageType: (context, type) ->
+    type = type.toLowerCase()
+    return unless @_ignoredMessages[context][type]
+    delete @_ignoredMessages[context][type]
+    @_chat.storage.ignoredMessagesChanged()
+
+  getIgnoredMessages: ->
+    @_ignoredMessages
+
+  setIgnoredMessages: (ignoredMessages) ->
+    @_ignoredMessages = ignoredMessages
 
   getChatLog: ->
     @_chatLog.getData()
@@ -250,9 +278,12 @@ class IRCMessageHandler extends MessageHandler
       @_formatter.setContent msg
 
   _sendFormattedMessage: ->
-    return unless @_formatter.hasMessage()
+    return if not @_formatter.hasMessage() or @_shouldIgnoreMessage @_win.getContext(), @type
     @_formatter.addStyle @type
     @_win.message @source, @_formatter.format(), @_formatter.getStyle()
+
+  _shouldIgnoreMessage: (context, type) ->
+    return @_ignoredMessages[context]?[type]
 
   _isOwnNick: (nick) ->
     @_win.conn?.irc.isOwnNick nick
