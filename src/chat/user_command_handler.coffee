@@ -388,6 +388,7 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'query',
       description: 'opens a new window for a private conversation with someone'
+      category: 'uncommon'
       params: ['nick']
       requires: ['connection']
       run: ->
@@ -396,6 +397,7 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'kill',
       description: 'kicks a user from the server'
+      category: 'uncommon'
       params: ['nick', 'opt_reason']
       requires: ['connection']
       run: ->
@@ -403,6 +405,7 @@ class UserCommandHandler extends MessageHandler
 
     @_addCommand 'version',
       description: "get the user's IRC version"
+      category: 'uncommon'
       params: ['nick']
       requires: ['connection']
       run: ->
@@ -456,6 +459,45 @@ class UserCommandHandler extends MessageHandler
         user = @chat.getLastUserToMention @win.getContext()
         return unless user
         @chat.emit 'set_input', "#{user}: "
+
+    @_addCommand 'ignore',
+      description: "stop certain message(s) from being displayed in the " +
+          "current channel, for example '/ignore join part' stops join " +
+          "and part messages from being displayed, a list of ignored " +
+          "messages is displayed if no arguments are given"
+      category: 'misc'
+      params: ['opt_types...']
+      requires: ['connection']
+      usage: '[<message type 1> <message type 2> ...]'
+      run: ->
+        context = @win.getContext()
+        if @types
+          types = @types.split ' '
+          for type in types
+            @chat.messageHandler.ignoreMessageType context, type
+          @displayMessage 'notice', "Messages of type " +
+              "#{getReadableList types} will no longer be displayed in this " +
+              "room."
+        else
+          typeObject = @chat.messageHandler.getIgnoredMessages()[context]
+          types = (type for type of typeObject)
+          if types and types.length > 0
+            @displayMessage 'notice', "Messages of type " +
+                "#{getReadableList types} are being ignored in this room."
+          else
+            @displayMessage 'notice', "There are no messages being ignored " +
+                "in this room."
+
+    @_addCommand 'unignore',
+      description: "stop ignoring certain message(s)"
+      extends: 'ignore'
+      run: ->
+        context = @win.getContext()
+        types = @types.split ' '
+        for type in types
+          @chat.messageHandler.stopIgnoringMessageType @win.getContext(), type
+        @displayMessage 'notice', "Messages of type #{getReadableList types} " +
+            "are no longer being ignored."
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription
