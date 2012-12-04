@@ -4,7 +4,7 @@ class Script
   constructor: (@sourceCode, @frame) ->
     @id = Script.getUniqueID()
     @_messagesToHandle = []
-    @_name = "script#{@id}"
+    @_name = "script#{@id + 1}"
 
   postMessage: (msg) ->
     @frame.postMessage msg, '*'

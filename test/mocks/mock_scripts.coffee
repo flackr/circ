@@ -30,4 +30,18 @@ class Scripts
     };
   """
 
+  invalidNameSourceCode: """
+    setName('invalid name');
+    send('hook_command', 'hi');
+  """
+
+  longNameSourceCode: """
+    setName('123456789012345678901234567890');
+    send('hook_command', 'hi');
+  """
+
+  noNameSourceCode: """
+    send('hook_command', 'hi');
+  """
+
 exports.scripts = new Scripts

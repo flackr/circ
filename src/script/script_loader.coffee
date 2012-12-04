@@ -25,6 +25,7 @@ class ScriptLoader
       @_onChosenFileToOpen f, callback
 
   _onChosenFileToOpen: (fileEntry, callback) ->
+    return unless fileEntry
     fileEntry.file (file) =>
       fileReader = new FileReader()
 
@@ -56,5 +57,13 @@ class ScriptLoader
     iframe.style.display = 'none'
     document.body.appendChild(iframe)
     iframe.contentWindow
+
+  ##
+  # Removes the iFrame in which the script is running from the DOM.
+  # @param {Script} script
+  ##
+  unloadScript: (script) ->
+    document.body.removeChild(script.frame)
+    delete script.frame
 
 exports.loader = new ScriptLoader()

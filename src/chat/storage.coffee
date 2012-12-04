@@ -145,6 +145,13 @@ class Storage extends EventEmitter
     @_scripts.push script
     @_store 'scripts', @_scripts, 'local'
 
+  scriptRemoved: (scriptToRemove) ->
+    for script, i in @_scripts
+      if script.id is scriptToRemove.id
+        @_scripts.splice i, 1
+        @_store 'scripts', @_scripts, 'local'
+        return
+
   _isDuplicateScript: (newScript) ->
     for script in @_scripts
       return true if newScript.id is script.id
@@ -210,7 +217,7 @@ class Storage extends EventEmitter
     @_log state.scripts.length, 'scripts loaded from storage:', state.scripts
     script.loader.loadScriptsFromStorage state.scripts, (script) =>
       @_scripts.push script
-      @_chat.emit 'script_loaded', script
+      @_chat.scriptHandler.addScript script
 
   restoreSavedState: (opt_callback) ->
     chrome.storage.sync.get Storage.STATE_ITEMS, (savedState) =>

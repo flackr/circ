@@ -78,7 +78,7 @@ class Chat extends EventEmitter
   # @param {Script} script
   ##
   addScript: (script) ->
-    @emit 'script_loaded', script
+    @scriptHandler.addScript script
     @storage.scriptAdded script
 
   _listenForUpdates: ->
