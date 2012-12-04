@@ -1,7 +1,9 @@
 exports = window.script ?= {}
 
 ##
-# Handles currently running scripts.
+# Handles currently running scripts. Events sent from the user and IRC servers
+# are intercepted by this class, passed to scripts, and then forwarded on to
+# their destination.
 ##
 class ScriptHandler extends EventEmitter
 
