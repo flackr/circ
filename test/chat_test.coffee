@@ -2,7 +2,7 @@
 # Integration tests for the entire IRC client excluding socket logic.
 ##
 describe 'An IRC client front end', ->
-  client = prompt = commandInput = undefined
+  scriptHandler = client = prompt = commandInput = undefined
 
   room = (index) ->
     return rooms().last() if index is -1
@@ -120,6 +120,44 @@ describe 'An IRC client front end', ->
     expect(noticeIsVisible()).toBe false
     mocks.navigator.goOffline()
     expect(noticeIsVisible()).toBe true
+
+  describe "script", ->
+
+    waitsForScriptToLoad = (id) ->
+      waitsFor ->
+        script = scriptHandler._scripts[id]
+        return false unless script
+        return script._messagesToHandle.length > 0
+      , 'the script should have finished loading', 500
+
+    loadScript = (sourceCode) ->
+      script = window.script.loader._createScript sourceCode
+      client.addScript script
+      waitsForScriptToLoad script.id
+
+    beforeEach ->
+      mocks.scripts.useMock()
+      spyOn(scriptHandler, '_handleMessage').andCallThrough()
+
+    afterEach ->
+      $('iframe').remove()
+
+    it "forces scripts to have unique names", ->
+      loadScript mocks.scripts.hiSourceCode
+      loadScript mocks.scripts.hiSourceCode
+      runs ->
+        expect('/hi' in scriptHandler.getScriptNames()).toBe true
+        expect('/hi2' in scriptHandler.getScriptNames()).toBe true
+
+    xit "can be removed with /uninstall", ->
+
+    xit "can be listed with /scripts", ->
+
+    xit "loads automatically on startup if prepackaged", ->
+
+    xit "loads from local storage on subsequent runs if prepackaged", ->
+
+    xit "loads automatically from local storage on startup if previously loaded", ->
 
   describe "walkthrough", ->
     walkthrough = undefined

@@ -1,8 +1,17 @@
+##
+# This class provides convenience functions for scripts which make talking to
+# the IRC client easier.
+##
+
 addEventListener 'message', (e) =>
   @onMessage(e.data) if typeof @onMessage is 'function'
 
+##
+# Set the name of the script. This is the name displayed in /scripts and used with /uninstall.
+# @param {string} name
+##
 @setName = (name) ->
-  # TODO
+  @send 'meta', 'name', name
 
 @setDescription = (description) ->
   # TODO
@@ -10,6 +19,16 @@ addEventListener 'message', (e) =>
 @enableOptionsPage = ->
   # TODO
 
+##
+# Send a message to the IRC server or client.
+# @param {{server: string, channel: string}=} Specifies which room the event
+#     takes place in. Events like registering to handle a command don't need
+#     a context.
+# @param {string} type The type of event (e.g. command, message, etc)
+# @param {string} name The sub-type of the event (e.g. the type of command or
+#     message)
+# @param {Object...} args A variable number of arguments for the event.
+##
 @send = (opt_context, type, name, args...) ->
   if typeof opt_context is 'string' # no context
     args = [name].concat(args)

@@ -74,13 +74,16 @@ class ScriptHandler extends EventEmitter
         type = event.type[5..] # remove 'hook_' prefix
         script.beginHandlingType type, event.name
 
-      when 'propagate'
-        @_handleEventPropagation script, event
-
       when 'command', 'sevrer', 'message'
         # TODO add the script id to a blacklist so we don't go into a loop
         # TODO check args for correctness
         @_handleEvent Event.wrap event
+
+      when 'propagate'
+        @_handleEventPropagation script, event
+
+      when 'meta'
+        @_handleMetaData script, event
 
   _handleEventPropagation: (script, propagatationEvent) ->
     eventId = propagatationEvent.args?[0]
@@ -100,6 +103,28 @@ class ScriptHandler extends EventEmitter
           @_emitEvent event
       else
         @_log 'w', 'received unknown propagation type:', propagatationEvent.name
+
+  ##
+  # Handles a meta data event, such as setting the script name.
+  ##
+  _handleMetaData: (script, event) ->
+    switch event.name
+      when 'name'
+        name = event.args[0]
+        return unless name
+        uniqueName = @_getUniqueName name
+        script.setName uniqueName
+
+  _getUniqueName: (name) ->
+    originalName = name
+    suffix = 1
+    while name in @getScriptNames()
+      suffix++
+      name = originalName + suffix
+    return name
+
+  getScriptNames: ->
+    (script.getName() for id, script of @_scripts)
 
   _emitEvent: (event) ->
     @emit event.type, event
