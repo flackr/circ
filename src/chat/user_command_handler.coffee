@@ -471,6 +471,54 @@ class UserCommandHandler extends MessageHandler
           @chat.messageHandler.stopIgnoringMessageType @win.getContext(), type
         @displayMessage 'notice', "Messages of type #{getReadableList types} " +
             "are no longer being ignored."
+    ##
+    # Hidden commands.
+    # These commands don't display in /help or autocomplete. They're used for
+    # scripts and keyboard shortcuts.
+    ##
+    @_addCommand 'next-server',
+      description: "switches to the next server window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        server = winList.getServerForWindow @win
+        return unless server
+        serverIndex = winList.serverIndexOf server
+        nextServer = winList.getServerWindow(serverIndex + 1) ?
+            winList.getServerWindow(0)
+        @chat.switchToWindow nextServer
+
+    @_addCommand 'next-room',
+      description: "switches to the next window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        index = winList.indexOf @win
+        return if index < 0
+        nextWin = winList.get(index + 1) ? winList.get(0)
+        @chat.switchToWindow nextWin
+
+    @_addCommand 'previous-room',
+      description: "switches to the next window"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        winList = @chat.winList
+        index = winList.indexOf @win
+        return if index < 0
+        nextWin = winList.get(index - 1) ? winList.get(winList.length - 1)
+        @chat.switchToWindow nextWin
+
+    @_addCommand 'reply',
+      description: "begin replying to the user who last mentioned your nick"
+      category: 'hidden'
+      run: ->
+        return if @win is window.chat.NO_WINDOW
+        user = @chat.getLastUserToMention @win.getContext()
+        return unless user
+        @chat.emit 'set_input', "#{user}: "
 
     ##
     # Hidden commands.

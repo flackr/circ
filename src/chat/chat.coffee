@@ -370,7 +370,7 @@ class Chat extends EventEmitter
     document.title = titleList.join ' '
 
   ##
-  # Switch to a window that represents a channel by it's position in the rooms
+  # Switch to a window that represents a channel by its position in the rooms
   # list.
   ##
   switchToChannelByIndex: (winNum) ->
