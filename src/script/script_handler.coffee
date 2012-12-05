@@ -159,7 +159,7 @@ class ScriptHandler extends EventEmitter
     name and /^[a-zA-Z0-9/]+$/.test name
 
   ##
-  # Appends numbers to the end of the scrip name until it is unique.
+  # Appends numbers to the end of the script name until it is unique.
   # @param {string} name
   ##
   _getUniqueName: (name) ->
