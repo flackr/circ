@@ -153,12 +153,33 @@ class UserCommandHandler extends MessageHandler
         command = chat.customCommandParser.parse @chan, @command, @arguments...
         @conn.irc.doCommand command...
 
-    @_addCommand 'load',
+    @_addCommand 'install',
       description: "loads a script by opening a file browser dialog"
-      category: 'misc'
+      category: 'scripts'
       run: ->
         script.loader.createScriptFromFileSystem (script) =>
-          @chat.emit 'script_loaded', script
+          @chat.addScript script
+
+    @_addCommand 'uninstall',
+      description: "uninstalls a script, currently installed scripts can be listed with /scripts"
+      params: ['scriptName']
+      usage: '<script name>'
+      category: 'scripts'
+      run: ->
+        script = @chat.scriptHandler.getScriptByName @scriptName
+        if script
+          @chat.scriptHandler.removeScript script
+          @chat.storage.scriptRemoved script
+          @displayMessage 'notice', "Script #{@scriptName} was successfully uninstalled"
+        else
+          message = "No script by the name '#{@scriptName}' was found. #{@listInstalledScripts()}"
+          @displayMessage 'error', message
+
+    @_addCommand 'scripts',
+      description: "displays a list of installed scripts"
+      category: 'scripts'
+      run: ->
+        @displayMessage 'notice', @listInstalledScripts()
 
     @_addCommand 'topic',
       description: "sets the topic of the current channel, displays the " +
@@ -411,6 +432,46 @@ class UserCommandHandler extends MessageHandler
       run: ->
         @handleCTCPRequest @nick, 'VERSION'
 
+    @_addCommand 'ignore',
+      description: "stop certain message(s) from being displayed in the " +
+          "current channel, for example '/ignore join part' stops join " +
+          "and part messages from being displayed, a list of ignored " +
+          "messages is displayed if no arguments are given"
+      category: 'misc'
+      params: ['opt_types...']
+      requires: ['connection']
+      usage: '[<message type 1> <message type 2> ...]'
+      run: ->
+        context = @win.getContext()
+        if @types
+          types = @types.split ' '
+          for type in types
+            @chat.messageHandler.ignoreMessageType context, type
+          @displayMessage 'notice', "Messages of type " +
+              "#{getReadableList types} will no longer be displayed in this " +
+              "room."
+        else
+          typeObject = @chat.messageHandler.getIgnoredMessages()[context]
+          types = (type for type of typeObject)
+          if types and types.length > 0
+            @displayMessage 'notice', "Messages of type " +
+                "#{getReadableList types} are being ignored in this room."
+          else
+            @displayMessage 'notice', "There are no messages being ignored " +
+                "in this room."
+
+    @_addCommand 'unignore',
+      description: "stop ignoring certain message(s)"
+      extends: 'ignore'
+      usage: '<message type 1> <message type 2> ...'
+      run: ->
+        context = @win.getContext()
+        types = @types.split ' '
+        for type in types
+          @chat.messageHandler.stopIgnoringMessageType @win.getContext(), type
+        @displayMessage 'notice', "Messages of type #{getReadableList types} " +
+            "are no longer being ignored."
+
     ##
     # Hidden commands.
     # These commands don't display in /help or autocomplete. They're used for
@@ -459,45 +520,6 @@ class UserCommandHandler extends MessageHandler
         user = @chat.getLastUserToMention @win.getContext()
         return unless user
         @chat.emit 'set_input', "#{user}: "
-
-    @_addCommand 'ignore',
-      description: "stop certain message(s) from being displayed in the " +
-          "current channel, for example '/ignore join part' stops join " +
-          "and part messages from being displayed, a list of ignored " +
-          "messages is displayed if no arguments are given"
-      category: 'misc'
-      params: ['opt_types...']
-      requires: ['connection']
-      usage: '[<message type 1> <message type 2> ...]'
-      run: ->
-        context = @win.getContext()
-        if @types
-          types = @types.split ' '
-          for type in types
-            @chat.messageHandler.ignoreMessageType context, type
-          @displayMessage 'notice', "Messages of type " +
-              "#{getReadableList types} will no longer be displayed in this " +
-              "room."
-        else
-          typeObject = @chat.messageHandler.getIgnoredMessages()[context]
-          types = (type for type of typeObject)
-          if types and types.length > 0
-            @displayMessage 'notice', "Messages of type " +
-                "#{getReadableList types} are being ignored in this room."
-          else
-            @displayMessage 'notice', "There are no messages being ignored " +
-                "in this room."
-
-    @_addCommand 'unignore',
-      description: "stop ignoring certain message(s)"
-      extends: 'ignore'
-      run: ->
-        context = @win.getContext()
-        types = @types.split ' '
-        for type in types
-          @chat.messageHandler.stopIgnoringMessageType @win.getContext(), type
-        @displayMessage 'notice', "Messages of type #{getReadableList types} " +
-            "are no longer being ignored."
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription

@@ -2,7 +2,7 @@
 # Integration tests for the entire IRC client excluding socket logic.
 ##
 describe 'An IRC client front end', ->
-  client = prompt = commandInput = undefined
+  scriptHandler = client = prompt = commandInput = undefined
 
   room = (index) ->
     return rooms().last() if index is -1
@@ -65,7 +65,6 @@ describe 'An IRC client front end', ->
 
     scriptHandler.addEventsFrom client
     scriptHandler.addEventsFrom commandInput
-    scriptHandler.listenToScriptEvents client
 
     client.listenToCommands scriptHandler
     client.listenToScriptEvents scriptHandler
@@ -73,6 +72,7 @@ describe 'An IRC client front end', ->
     client.init()
 
   useMocks = ->
+    mocks.scripts.useMock()
     mocks.Walkthrough.useMock()
     mocks.Runtime.useMock()
     mocks.storage.useMock()
@@ -120,6 +120,101 @@ describe 'An IRC client front end', ->
     expect(noticeIsVisible()).toBe false
     mocks.navigator.goOffline()
     expect(noticeIsVisible()).toBe true
+
+  describe "script", ->
+
+   getMostRecentScriptId = ->
+     window.script.Script.scriptCount - 1
+
+    waitsForScriptToLoad = (id) ->
+      waitsFor ->
+        script = scriptHandler._scripts[id]
+        return false unless script
+        return script._messagesToHandle.length > 0
+      , 'the script should have finished loading', 500
+
+    loadScript = (sourceCode) ->
+      script = window.script.loader._createScript sourceCode
+      client.addScript script
+      waitsForScriptToLoad script.id
+      return script
+
+    beforeEach ->
+      spyOn(scriptHandler, '_handleMessage').andCallThrough()
+
+    afterEach ->
+      $('iframe').remove()
+
+    it "has its name displayed to the user with /scripts", ->
+      loadScript mocks.scripts.hiSourceCode
+      runs ->
+        spyOn(client.currentWindow, 'message')
+        type '/scripts'
+        message = client.currentWindow.message.mostRecentCall.args[1]
+        expect(message.indexOf '/hi').not.toBe -1
+
+    it "can be removed with /uninstall", ->
+      loadScript mocks.scripts.hiSourceCode
+      runs ->
+        expect('/hi' in scriptHandler.getScriptNames()).toBe true
+        type '/uninstall /hi'
+        expect('/hi' in scriptHandler.getScriptNames()).toBe false
+
+    it "won't automatically load on startup if it was uninstalled", ->
+      loadScript mocks.scripts.hiSourceCode
+      runs ->
+        type '/uninstall /hi'
+        spyOn window.script.loader, 'loadScriptsFromStorage'
+        restart()
+        loadedScripts = window.script.loader.loadScriptsFromStorage.mostRecentCall.args[0]
+        for script in loadedScripts
+          expect(script.sourceCode).not.toBe mocks.scripts.hiSourceCode
+
+    it "loads automatically from local storage on startup if previously loaded", ->
+      loadScript mocks.scripts.hiSourceCode
+      runs ->
+        restart()
+        waitsForScriptToLoad getMostRecentScriptId()
+        runs ->
+          expect('/hi' in scriptHandler.getScriptNames()).toBe true
+
+    it "loads automatically on startup if prepackaged", ->
+      waitsForScriptToLoad 0
+      runs ->
+        expect('/dance' in scriptHandler.getScriptNames()).toBe true
+
+    it "loads from local storage on subsequent runs if prepackaged", ->
+      spyOn window.script.loader, 'loadPrepackagedScripts'
+      restart()
+      expect(window.script.loader.loadPrepackagedScripts).not.toHaveBeenCalled()
+      waitsForScriptToLoad 1
+      runs ->
+        expect('/dance' in scriptHandler.getScriptNames()).toBe true
+
+    describe 'has a name which', ->
+
+      it "is always unique name", ->
+        script1 = loadScript mocks.scripts.hiSourceCode
+        script2 = loadScript mocks.scripts.hiSourceCode
+        runs ->
+          expect(script1.getName()).toBe '/hi'
+          expect(script2.getName()).toBe '/hi2'
+
+      it "can only contain valid characters", ->
+        script = loadScript mocks.scripts.invalidNameSourceCode
+        runs ->
+          expect(script.getName()).not.toBe 'invalid name'
+
+      it "has a max length", ->
+        script = loadScript mocks.scripts.longNameSourceCode
+        runs ->
+          console.log script.getName()
+          expect(script.getName().length <= 20).toBe true
+
+      it "has a default name of script#", ->
+        script = loadScript mocks.scripts.noNameSourceCode
+        runs ->
+          expect(script.getName()).toMatch /script\d+/
 
   describe "walkthrough", ->
     walkthrough = undefined

@@ -10,7 +10,7 @@ class HelpMessageRenderer
   @TOTAL_WIDTH: 50
 
   # The order that command categories are displayed to the user.
-  @CATEGORY_ORDER: ['common', 'uncommon', 'one_identity', 'misc']
+  @CATEGORY_ORDER: ['common', 'uncommon', 'one_identity', 'scripts', 'misc']
 
   @COMMAND_STYLE: 'notice help monospace group'
 
@@ -96,6 +96,7 @@ class HelpMessageRenderer
       when 'common' then 'Basic IRC'
       when 'uncommon' then 'Other IRC'
       when 'one_identity' then 'One Identity'
+      when 'scripts' then 'Script'
       else 'Misc'
 
   ##

@@ -231,4 +231,11 @@ class UserCommand
   isValidMode: (mode) ->
     return mode?[0] in ['+', '-']
 
+  listInstalledScripts: ->
+    names = @chat.scriptHandler.getScriptNames()
+    if names.length is 0
+      "No scripts are currently installed"
+    else
+      "Installed scripts: #{getReadableList names}"
+
 exports.UserCommand = UserCommand
