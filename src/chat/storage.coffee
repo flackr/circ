@@ -133,7 +133,6 @@ class Storage extends EventEmitter
         break
     @_store 'servers', @_servers
 
-
   ignoredMessagesChanged: ->
     @_store 'ignored_messages', @_getIgnoredMessages()
 

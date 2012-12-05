@@ -17,6 +17,9 @@ class ScriptHandler extends EventEmitter
     @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
 
+  listenToScriptEvents: (emitter) ->
+    emitter.on 'script_loaded', @addScript
+
   ##
   # Add a script to the list of currently active scripts. Once added, the script
   # will receive events from the user and IRC server.
