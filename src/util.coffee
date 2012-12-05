@@ -99,10 +99,14 @@ exports.html.escape = (html) ->
   }
   String(html).replace /[&<>"]/g, (character) -> escaped[character] ? character
 
+exports.html.stripColorCodes = (html) ->
+  html.replace /\u0003\d{1,2}(,\d{1,2})?/g, ''
+
 ##
 # Escapes HTML and linkifies
 ##
 exports.html.display = (text) ->
+  text = exports.html.stripColorCodes text
   escapeHTML = exports.html.escape
   # Gruber's url-finding regex
   rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi
