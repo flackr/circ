@@ -14,6 +14,23 @@ describe "Util provides the following functions:", ->
     it "can have the suffix changed", ->
       expect(truncateIfTooLarge 'puppy', 4, '!').toBe 'pup!'
 
+  describe "stripColorCodes", ->
+
+    it "removes color codes that specify a forground color", ->
+      coloredText = "\u000315hey guy\u0003, how's it going?"
+      expect(html.stripColorCodes coloredText).toBe "hey guy\u0003, how's it going?"
+
+      coloredText = "\u00033hey guy\u000388, how's it going?"
+      expect(html.stripColorCodes coloredText).toBe "hey guy, how's it going?"
+
+    it "removes color codes even when they come before a number", ->
+      coloredText = "hi\u0003055"
+      expect(html.stripColorCodes coloredText).toBe "hi5"
+
+    it "removes color codes that specify a forground and background color", ->
+      coloredText = "so \u00038,77how are you?"
+      expect(html.stripColorCodes coloredText).toBe "so how are you?"
+
   describe "pluralize", ->
 
     it "does nothing if there is one of something", ->
