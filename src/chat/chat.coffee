@@ -13,6 +13,7 @@ class Chat extends EventEmitter
     @_initializeUI()
     @_initializeRemoteConnection()
     @_initializeStorage()
+    @_initializeScripts()
     @_listenForUpdates()
 
     @updateStatus()
@@ -59,6 +60,26 @@ class Chat extends EventEmitter
   _initializeStorage: ->
     @storage = new chat.Storage this
     @remoteConnectionHandler.setStorageHandler @storage
+
+  ##
+  # Load prepackaged scripts the first time the app is run. These scripts are
+  # loaded from storage on subsequent runs.
+  ##
+  _initializeScripts: ->
+    @storage.on 'initialized', =>
+      return if @storage.loadedPrepackagedScripts
+      window.script.loader.loadPrepackagedScripts (script) =>
+        @addScript script
+      @storage.finishedLoadingPrepackagedScripts()
+
+  ##
+  # Inform listeners (like ScriptHandler) that a script has been loaded and
+  # save the script to local storage.
+  # @param {Script} script
+  ##
+  addScript: (script) ->
+    @scriptHandler.addScript script
+    @storage.scriptAdded script
 
   _listenForUpdates: ->
     return unless chrome.runtime.reload?

@@ -4,6 +4,10 @@ exports = window.script ?= {}
 # Handles currently running scripts.
 ##
 class ScriptHandler extends EventEmitter
+
+  # Script names that are longer this this are truncated.
+  @MAX_NAME_LENGTH = 20
+
   constructor: ->
     super
     @_scripts = {}
@@ -12,17 +16,34 @@ class ScriptHandler extends EventEmitter
     @_emitters = []
     @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
-    @_loadPrepackagedScripts()
-
-  _loadPrepackagedScripts: ->
-    window.script.loader.loadPrepackagedScripts (script) =>
-      @addScript script
 
   listenToScriptEvents: (emitter) ->
     emitter.on 'script_loaded', @addScript
 
-  addScript: (script) =>
+  ##
+  # Add a script to the list of currently active scripts. Once added, the script
+  # will receive events from the user and IRC server.
+  # @param {Script} script
+  ##
+  addScript: (script) ->
     @_scripts[script.id] = script
+
+  ##
+  # Remove a script to the list of currently active scripts. Once removed, the
+  # script will not longer receive events from the user or IRC server.
+  # @param {Script} script
+  ##
+  removeScript: (script) ->
+    for eventId in @_getPendingEventsForScript script
+      @_stopHandlingEvent script, eventId
+    delete @_scripts[script.id]
+
+  _getPendingEventsForScript: (script) ->
+    pendingEventIds = []
+    for id, pendingEventInfo of @_pendingEvents
+      for scriptWithPendingEvent in pendingEventInfo.scripts
+        pendingEventIds.push id if scriptWithPendingEvent.id is script.id
+    pendingEventIds
 
   on: (ev, cb) ->
     if not (ev in @_hookableEvents)
@@ -79,13 +100,16 @@ class ScriptHandler extends EventEmitter
         type = event.type[5..] # remove 'hook_' prefix
         script.beginHandlingType type, event.name
 
-      when 'propagate'
-        @_handleEventPropagation script, event
-
       when 'command', 'sevrer', 'message'
         # TODO add the script id to a blacklist so we don't go into a loop
         # TODO check args for correctness
         @_handleEvent Event.wrap event
+
+      when 'propagate'
+        @_handleEventPropagation script, event
+
+      when 'meta'
+        @_handleMetaData script, event
 
   _handleEventPropagation: (script, propagatationEvent) ->
     eventId = propagatationEvent.args?[0]
@@ -99,12 +123,47 @@ class ScriptHandler extends EventEmitter
         delete @_pendingEvents[eventId]
       when 'all'
         @_stopHandlingEvent script, eventId
-        unless @_eventIsBeingHandled eventId
-          event = @_pendingEvents[eventId].event
-          delete @_pendingEvents[eventId]
-          @_emitEvent event
       else
         @_log 'w', 'received unknown propagation type:', propagatationEvent.name
+
+  ##
+  # Handles a meta data event, such as setting the script name.
+  ##
+  _handleMetaData: (script, event) ->
+    switch event.name
+      when 'name'
+        name = event.args[0]
+        return unless @_isValidName name
+        uniqueName = @_getUniqueName name
+        script.setName uniqueName
+
+  ##
+  # Returns true if the given script name contains only valid characters.
+  # @param {string} name The script name.
+  # @return {boolean}
+  ##
+  _isValidName: (name) ->
+    name and /^[a-zA-Z0-9/]+$/.test name
+
+  ##
+  # Appends numbers to the end of the scrip name until it is unique.
+  # @param {string} name
+  ##
+  _getUniqueName: (name) ->
+    originalName = name = name[..ScriptHandler.MAX_NAME_LENGTH-1]
+    suffix = 1
+    while name in @getScriptNames()
+      suffix++
+      name = originalName + suffix
+    return name
+
+  getScriptNames: ->
+    (script.getName() for id, script of @_scripts)
+
+  getScriptByName: (name) ->
+    for id, script of @_scripts
+      return script if script.getName() is name
+    return null
 
   _emitEvent: (event) ->
     @emit event.type, event
@@ -112,6 +171,10 @@ class ScriptHandler extends EventEmitter
   _stopHandlingEvent: (script, eventId) ->
     scriptsHandlingEvent = @_pendingEvents[eventId].scripts
     removeFromArray scriptsHandlingEvent, script
+    unless @_eventIsBeingHandled eventId
+      event = @_pendingEvents[eventId].event
+      delete @_pendingEvents[eventId]
+      @_emitEvent event
 
   tearDown: ->
     removeEventListener 'message', @_handleEvent
