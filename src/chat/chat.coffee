@@ -87,7 +87,7 @@ class Chat extends EventEmitter
       @_promptToUpdate()
 
   _promptToUpdate: ->
-    message = "A new versionn of CIRC is available. Would you like to " +
+    message = "A new version of CIRC is available. Would you like to " +
         "restart and update? [update]"
     @notice.prompt message, =>
       chrome.runtime.reload()

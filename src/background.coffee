@@ -9,6 +9,13 @@ currentApp = null
 appIsRunning = ->
   currentApp and not currentApp.contentWindow.closed
 
+checkForUpdates = ->
+  setInterval ->
+    chrome.runtime.requestUpdateCheck? ->
+      # Do nothing. Making this request fires the onUpdateAvailable event if an
+      # update is available.
+  , 10 * 60 * 1000
+
 onCreated = (win) ->
   currentApp = win
   win.onClosed?.addListener ->

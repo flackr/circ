@@ -198,6 +198,8 @@ ul {
   border-radius: 42px;
   width: 21px;
   height: 21px;
+  background: transparent;
+  color: #ECECEC;
 }
 
 #messages-and-input {
