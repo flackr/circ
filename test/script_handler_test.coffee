@@ -1,8 +1,8 @@
 describe 'A script handler', ->
-  script1 = script2 = sh = emitter = onEmit = undefined
+  script1 = script2 = handler = emitter = onEmit = undefined
 
   sendMessage = (script, event) ->
-    sh._handleMessage { source: script.frame, data: event }
+    handler._handleMessage { source: script.frame, data: event }
 
   emit = (type, server, channel, name, args...) ->
     event = new Event(type, name, args...)
@@ -19,31 +19,36 @@ describe 'A script handler', ->
     script2 = new window.script.Script '2', mockFrame2
     spyOn script1, 'postMessage'
     spyOn script2, 'postMessage'
-    sh = new window.script.ScriptHandler()
-    spyOn(sh, 'emit').andCallThrough()
+    handler = new window.script.ScriptHandler()
+    spyOn(handler, 'emit').andCallThrough()
     emitter = new EventEmitter
-    sh.addScript(script1)
-    sh.addScript(script2)
-    sh.addEventsFrom emitter
+    handler.addScript(script1)
+    handler.addScript(script2)
+    handler.addEventsFrom emitter
     onCommand.reset()
     onUnknown.reset()
 
   afterEach ->
-    sh.tearDown()
+    handler.tearDown()
 
   it "intercepts user commands that have been hooked", ->
     sendMessage script1, { type: 'hook_command', name: 'say' }
     emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
-    expect(sh.emit).not.toHaveBeenCalled()
+    expect(handler.emit).not.toHaveBeenCalled()
+
+  it "doesn't intercepts user commands that cannot be intercepted", ->
+    sendMessage script1, { type: 'hook_command', name: 'help' }
+    emit 'command', 'freenode', '#bash', 'help'
+    expect(handler.emit).toHaveBeenCalled()
 
   it "intercepts server messages that have been hooked", ->
     sendMessage script1, { type: 'hook_server', name: 'joined' }
     emit 'server', 'freenode', '', 'joined', '#bash'
-    expect(sh.emit).not.toHaveBeenCalled()
+    expect(handler.emit).not.toHaveBeenCalled()
 
   it "doesn't intercept events that haven't been hooked", ->
-    sh.on 'command', onCommand
-    sh.on 'unknown', onUnknown
+    handler.on 'command', onCommand
+    handler.on 'unknown', onUnknown
     emit 'command', 'freenode', '#bash', 'say', 'hey', 'there!'
     emit 'unknown'
     expect(onCommand).toHaveBeenCalled()
@@ -76,9 +81,9 @@ describe 'A script handler', ->
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
     sendMessage script1, { type: 'propagate', name: 'all', args: [id1] }
-    expect(sh.emit).not.toHaveBeenCalled()
+    expect(handler.emit).not.toHaveBeenCalled()
     sendMessage script2, { type: 'propagate', name: 'all', args: [id2] }
-    expect(sh.emit).toHaveBeenCalled()
+    expect(handler.emit).toHaveBeenCalled()
 
   it "swallows events when received 'propagate: none' from at least one script", ->
     sendMessage script1, { type: 'hook_command', name: 'say' }
@@ -88,21 +93,12 @@ describe 'A script handler', ->
     id2 = script2.postMessage.mostRecentCall.args[0].id
 
     sendMessage script1, { type: 'propagate', name: 'all', args: [id1] }
-    expect(sh.emit).not.toHaveBeenCalled()
+    expect(handler.emit).not.toHaveBeenCalled()
     sendMessage script2, { type: 'propagate', name: 'none', args: [id2] }
-    expect(sh.emit).not.toHaveBeenCalled()
+    expect(handler.emit).not.toHaveBeenCalled()
 
   it "sends 'command' when a registered command is entered", ->
     sendMessage script1, {
       type: 'command', context: { server: 'freenode', channel: '#bash' },
       name: 'say', args: ['hi', 'there!'] }
-    expect(sh.emit).toHaveBeenCalled()
-
-  xit "sends 'message' when a message is sent from a user", ->
-
-  xit "sends 'message' when a message is sent from a server", ->
-
-  xit "sends 'notification_clicked' when a notification is clicked", ->
-
-  xit "sends 'scrolled_out_of_view' when a message scrolls out of view", ->
-
+    expect(handler.emit).toHaveBeenCalled()

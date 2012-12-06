@@ -16,7 +16,7 @@ describe "Util provides the following functions:", ->
 
   describe "stripColorCodes", ->
 
-    it "removes color codes that specify a forground color", ->
+    it "removes color codes that specify a foreground color", ->
       coloredText = "\u000315hey guy\u0003, how's it going?"
       expect(html.stripColorCodes coloredText).toBe "hey guy\u0003, how's it going?"
 
