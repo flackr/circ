@@ -62,6 +62,7 @@ describe 'An IRC client front end', ->
     client = new window.chat.Chat
 
     commandInput.setContext client
+    commandInput.setKeyboardShortcuts client.getKeyboardShortcuts()
 
     scriptHandler.addEventsFrom client
     scriptHandler.addEventsFrom commandInput

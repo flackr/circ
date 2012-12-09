@@ -1,7 +1,8 @@
 exports = (window.chat ?= {}).window ?= {}
 
 ##
-# Given a list of commands, displays them to the user, grouped by category.
+# Displays help messages to the user, such as listing the available commands or
+# keyboard shortcuts.
 ##
 class HelpMessageRenderer
 
@@ -31,11 +32,10 @@ class HelpMessageRenderer
     @_commands = commands
     @_addWhitespace()
     @_printCommands()
-    @_postMessage "Type /help <command> to see details about a specific command.",
+    @_postMessage "Type '/help <command>' to see details about a specific command.",
         'notice help'
-
-  _addWhitespace: ->
-    @_postMessage()
+    @_postMessage "Type '/hotkeys' to see the list of keyboard shortcuts.",
+        'notice help'
 
   _printCommands: ->
     @_determineCommandDimentions()
@@ -118,5 +118,35 @@ class HelpMessageRenderer
   _fillWithWhiteSpace: (command) ->
     space = (' ' for i in [0..@_maxCommandWidth-command.length]).join ''
     return command + space
+
+  ##
+  # Display a help message detailing the available hotkeys.
+  # @param {Object.<string: {description: string, group: string,
+  #     readableName: string}>} hotkeys
+  ##
+  renderHotkeys: (hotkeys) ->
+    @_addWhitespace()
+    @_postMessage "Keyboard Shortcuts:", 'notice help'
+    @_addWhitespace()
+    @_printHotkeys hotkeys
+
+  ##
+  # Displays a list of hotkeys and their descriptions.
+  # @param {Object.<string: {description: string, group: string,
+  #     readableName: string}>} hotkeys
+  ##
+  _printHotkeys: (hotkeys) ->
+    groupsVisited = {}
+    for id, hotkeyInfo of hotkeys
+      if hotkeyInfo.group
+        continue if hotkeyInfo.group of groupsVisited
+        groupsVisited[hotkeyInfo.group] = true
+        name = hotkeyInfo.group
+      else
+        name = hotkeyInfo.readableName
+      @_postMessage "  #{name}: #{hotkeyInfo.description}", 'notice help'
+
+  _addWhitespace: ->
+    @_postMessage()
 
 exports.HelpMessageRenderer = HelpMessageRenderer
