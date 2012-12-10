@@ -157,7 +157,7 @@ class ScriptHandler extends EventEmitter
   # @return {boolean}
   ##
   _isValidName: (name) ->
-    name and /^[a-zA-Z0-9/]+$/.test name
+    name and /^[a-zA-Z0-9/_-]+$/.test name
 
   ##
   # Appends numbers to the end of the script name until it is unique.
