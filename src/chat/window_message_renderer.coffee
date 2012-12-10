@@ -44,12 +44,30 @@ class MessageRenderer
     "Documentation, issues and source code live at " +
         "#{MessageRenderer.PROJECT_URL}."
 
+  ##
+  # Display content and the source it was from with the given style.
+  # @param {string} from
+  # @param {string} msg
+  # @param {string...} style
+  ##
   message: (from='', msg='', style...) ->
-    from = html.escape from
-    msg = html.display msg
+    fromNode = @_createSourceFromText from
+    msgNode = @_createContentFromText msg
     style = style.join ' '
-    @_addMessage from, msg, style
+    @rawMessage fromNode, msgNode, style
     @_updateActivityMarker() if @_shouldUpdateActivityMarker()
+
+  _createContentFromText: (msg) ->
+    return '' unless msg
+    node = $ '<span>'
+    node.html html.display msg
+    node
+
+  _createSourceFromText: (from) ->
+    return '' unless from
+    node = $ '<span>'
+    node.text from
+    node
 
   ##
   # Display a system message to the user. A system message has no from field.
@@ -57,7 +75,10 @@ class MessageRenderer
   systemMessage: (msg='', style='system') =>
     @message '', msg, style
 
-  _addMessage: (from, msg, style) ->
+  ##
+  # Display a message without escaping the from or msg fields.
+  ##
+  rawMessage: (from, msg, style) ->
     message = @_createMessageHTML from, msg, style
     @win.emit 'message', @win.getContext(), style, message[0].outerHTML
     @win.$messages.append message
@@ -67,9 +88,9 @@ class MessageRenderer
   _createMessageHTML: (from, msg, style) ->
     message = $('#templates .message').clone()
     message.addClass style
-    $('.source', message).html from
-    $('.content', message).html msg
-    $('.source', message).addClass('empty') unless from
+    $('.source', message).append from
+    $('.content', message).append msg
+    $('.source', message).addClass('empty') unless from.text?()
     message
 
   ##

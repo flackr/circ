@@ -96,12 +96,18 @@ class Window extends EventEmitter
     @messageRenderer.message from, msg, style...
 
   ##
+  # Display a raw html to the user.
+  # This is useful for scripts to embed images or video.
+  ##
+  rawMessage: (from, node, style...) ->
+    @messageRenderer.rawMessage from, node, style.join ' '
+
+  ##
   # Append raw html to the message list.
-  #
   # This is useful for adding a large number of messages quickly, such as
   # loading chat history.
   ##
-  rawMessage: (html) ->
+  rawHTML: (html) ->
     @$messages.html @$messages.html() + html
     @$messagesContainer.restoreScrollPosition()
 
