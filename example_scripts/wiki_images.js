@@ -1,10 +1,10 @@
-setName('xkcd_embed');
-setDescription('displays the xkcd comic when linked in a message');
+setName('wiki_images');
+setDescription('displays a wikimedia image when one is linked');
 
 send('hook_message', 'privmsg');
 onMessage = function(e) {
   propagate(e);
-  imageRegex = /http:\/\/imgs\.xkcd\.com\/comics\/\S+/i;
+  imageRegex = /http:\/\/upload\.wikimedia\.org\/\S+/i;
   message = e.args[1];
   console.warn("SCRIPT:", message, imageRegex.test(message), e);
   matches = message.match(imageRegex);
