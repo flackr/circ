@@ -30,7 +30,7 @@ class HelpMessageRenderer
   ##
   render: (commands) ->
     @_commands = commands
-    @_addWhitespace()
+    @_postMessage()
     @_printCommands()
     @_postMessage "Type '/help <command>' to see details about a specific command.",
         'notice help'
@@ -42,9 +42,9 @@ class HelpMessageRenderer
     for group in @_groupCommandsByCategory()
       @_postMessage "#{@_getCommandGroupName group.category} Commands:",
           HelpMessageRenderer.COMMAND_STYLE
-      @_addWhitespace()
+      @_postMessage()
       @_printCommandGroup group.commands.sort()
-      @_addWhitespace()
+      @_postMessage()
 
   _determineCommandDimentions: ->
     totalWidth = HelpMessageRenderer.TOTAL_WIDTH
@@ -125,17 +125,9 @@ class HelpMessageRenderer
   #     readableName: string}>} hotkeys
   ##
   renderHotkeys: (hotkeys) ->
-    @_addWhitespace()
+    @_postMessage()
     @_postMessage "Keyboard Shortcuts:", 'notice help'
-    @_addWhitespace()
-    @_printHotkeys hotkeys
-
-  ##
-  # Displays a list of hotkeys and their descriptions.
-  # @param {Object.<string: {description: string, group: string,
-  #     readableName: string}>} hotkeys
-  ##
-  _printHotkeys: (hotkeys) ->
+    @_postMessage()
     groupsVisited = {}
     for id, hotkeyInfo of hotkeys
       if hotkeyInfo.group
@@ -145,8 +137,5 @@ class HelpMessageRenderer
       else
         name = hotkeyInfo.readableName
       @_postMessage "  #{name}: #{hotkeyInfo.description}", 'notice help'
-
-  _addWhitespace: ->
-    @_postMessage()
 
 exports.HelpMessageRenderer = HelpMessageRenderer
