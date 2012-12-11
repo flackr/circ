@@ -6,7 +6,6 @@ onMessage = function(e) {
   propagate(e);
   imageRegex = /http:\/\/upload\.wikimedia\.org\/\S+/i;
   message = e.args[1];
-  console.warn("SCRIPT:", message, imageRegex.test(message), e);
   matches = message.match(imageRegex);
   if (matches) {
     send(e.context, 'command', 'image', matches[0]);
