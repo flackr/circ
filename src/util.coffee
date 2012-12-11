@@ -15,6 +15,23 @@ exports.api =
     chrome.socket?.getNetworkList
 
 ##
+# Download an asset at the given URL and a return a local url to it that can be
+# embeded in CIRC. A remote asset can not be directly embeded because of
+# packaged apps content security policy.
+# @param {string} url
+# @param {function(string)} The callback which is passed the new url
+##
+exports.getEmbedableUrl = (url, onload) ->
+  xhr = new XMLHttpRequest()
+  xhr.open('GET', url)
+  xhr.responseType = 'blob'
+  xhr.onload = (e) ->
+    onload window.webkitURL.createObjectURL @response
+  xhr.onerror = ->
+    console.error 'Failed to get embedable url for asset:', url, arguments...
+  xhr.send();
+
+##
 # Returns a human readable representation of a list.
 # For example, [1, 2, 3] becomes "1, 2 and 3".
 # @param {Array.<Object>} array

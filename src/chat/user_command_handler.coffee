@@ -481,7 +481,6 @@ class UserCommandHandler extends MessageHandler
       description: "switches to the next server window"
       category: 'hidden'
       run: ->
-        return if @win is window.chat.NO_WINDOW
         winList = @chat.winList
         server = winList.getServerForWindow @win
         return unless server
@@ -494,7 +493,6 @@ class UserCommandHandler extends MessageHandler
       description: "switches to the next window"
       category: 'hidden'
       run: ->
-        return if @win is window.chat.NO_WINDOW
         winList = @chat.winList
         index = winList.indexOf @win
         return if index < 0
@@ -505,7 +503,6 @@ class UserCommandHandler extends MessageHandler
       description: "switches to the next window"
       category: 'hidden'
       run: ->
-        return if @win is window.chat.NO_WINDOW
         winList = @chat.winList
         index = winList.indexOf @win
         return if index < 0
@@ -516,10 +513,23 @@ class UserCommandHandler extends MessageHandler
       description: "begin replying to the user who last mentioned your nick"
       category: 'hidden'
       run: ->
-        return if @win is window.chat.NO_WINDOW
         user = @chat.getLastUserToMention @win.getContext()
         return unless user
         @chat.emit 'set_input', "#{user}: "
+
+    @_addCommand 'image',
+      description: "embed an image in a message"
+      category: 'hidden'
+      params: ['src']
+      run: ->
+        win = @win
+        getEmbedableUrl @src, (url) ->
+          img = $ '<img>'
+          img.on 'load', ->
+            img.css 'max-width', "#{img[0].width}px"
+            img.css 'width', '100%'
+            win.rawMessage '', img[0].outerHTML
+          img.attr 'src', url
 
   _addCommand: (name, commandDescription) ->
     command = new chat.UserCommand name, commandDescription
