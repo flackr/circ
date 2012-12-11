@@ -28,9 +28,11 @@ package: package-scripts build
 	-rm -rf package
 	mkdir package
 	cp -r bin package
-	cp -r static package
-	rm package/static/icon/icon_large.png
-	rm -r package/static/logo
+	mkdir package/static
+	mkdir package/static/icon
+	cp static/icon/icon16.png package/static/icon/
+	cp static/icon/icon48.png package/static/icon/
+	cp static/icon/icon128.png package/static/icon/
 	cp manifest.json package
 
 pub: package
