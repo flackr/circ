@@ -54,7 +54,7 @@ class IRCMessageHandler extends MessageHandler
     for context in @_chatLog.getContextList()
       win = @_chat.winList.get context.server, context.channel
       continue unless win
-      win.rawMessage @_chatLog.get context
+      win.rawHTML @_chatLog.get context
 
   ##
   # Sets which window messages will be displayed on.

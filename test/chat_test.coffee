@@ -850,11 +850,11 @@ describe 'An IRC client front end', ->
 
           becomeClient()
           win = client.winList.get('freenode', '#bash')
-          spyOn win, 'rawMessage'
+          spyOn win, 'rawHTML'
           receiveChatHistory chatHistory
 
           expect(client.remoteConnection.isClient()).toBe true
-          expect(win.rawMessage).toHaveBeenCalled()
+          expect(win.rawHTML).toHaveBeenCalled()
 
         it "connects to a server even when the server connection takes a long time", ->
           chrome.storage.sync.set { server_device:  { addr: '1.1.1.2', port: 1 } }
