@@ -4,6 +4,17 @@ class Scripts
 
   useMock: ->
     window.script.Script.scriptCount = 0
+    window.script.prepackagedScripts = [
+      """
+      setName('/dance');
+      send('hook_command', 'dance');
+      dance = \"(>'-')> <('-'<) ^(' - ')^ <('-'<) (>'-')>\";
+      onMessage = function(e) {
+        send(e.context, 'command', 'say', dance);
+        propagate(e, 'none');
+      };
+      """
+    ]
 
   simpleSourceCode: """
     var data = { msg: 'hi!', script: window.script };
