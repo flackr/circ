@@ -11,7 +11,6 @@ class UserInputHandler extends EventEmitter
     @input.focus()
     @_inputStack = new InputStack
     @_autoComplete = new AutoComplete
-    @_keyboardShortcutMap = new KeyboardShortcutMap()
     @input.keydown @_handleKeydown
     @window.keydown @_handleGlobalKeydown
 
@@ -19,6 +18,9 @@ class UserInputHandler extends EventEmitter
     @_autoComplete.setContext @_context
     @_context.on 'set_input', (text) =>
       @input.val text unless @input.val()
+
+  setKeyboardShortcuts: (keyboardShortcuts) ->
+    @_keyboardShortcutMap = keyboardShortcuts
 
   _handleGlobalKeydown: (e) =>
     @text = @input.val()

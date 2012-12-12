@@ -140,6 +140,12 @@ class UserCommandHandler extends MessageHandler
           commands = @chat.userCommands.getCommands()
           @win.messageRenderer.displayHelp commands
 
+    @_addCommand 'hotkeys',
+      description: "lists keyboard shortcuts"
+      category: 'misc'
+      run: ->
+        @win.messageRenderer.displayHotkeys @chat.getKeyboardShortcuts().getMap()
+
     @_addCommand 'raw',
       description: "sends a raw event to the IRC server, use the -c flag to " +
           "make the command apply to the current channel"

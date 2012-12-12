@@ -15,6 +15,7 @@ class Chat extends EventEmitter
     @_initializeStorage()
     @_initializeScripts()
     @_listenForUpdates()
+    @_keyboardShortcutMap = new KeyboardShortcutMap
 
     @updateStatus()
 
@@ -24,6 +25,9 @@ class Chat extends EventEmitter
       @remoteConnection.init()
     else
       @_displaySocketSupportError()
+
+  getKeyboardShortcuts: ->
+    @_keyboardShortcutMap
 
   ##
   # Tell the user that they need chrome.socket support to run CIRC.

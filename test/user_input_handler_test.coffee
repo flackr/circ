@@ -62,6 +62,7 @@ describe 'A user input handler', ->
 
   beforeEach ->
     handler = new UserInputHandler input, window
+    handler.setKeyboardShortcuts new KeyboardShortcutMap
     handler._setCursorPosition = ->
     context.currentWindow.conn.irc.channels['#bash'] = {names}
     handler.setContext context
