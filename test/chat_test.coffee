@@ -126,6 +126,11 @@ describe 'An IRC client front end', ->
    getMostRecentScriptId = ->
      window.script.Script.scriptCount - 1
 
+    waitsForScriptToRespond = (event) ->
+      waitsFor ->
+        return scriptHandler[event].calls.length > 0
+      , 'the script should have sent the given response', 500
+
     waitsForScriptToLoad = (id) ->
       waitsFor ->
         script = scriptHandler._scripts[id]
@@ -190,6 +195,31 @@ describe 'An IRC client front end', ->
       waitsForScriptToLoad 1
       runs ->
         expect('/dance' in scriptHandler.getScriptNames()).toBe true
+
+    it "can save and load information to sync storage", ->
+      loadScript mocks.scripts.storageSourceCode
+      runs ->
+        spyOn scriptHandler, '_emitEvent'
+        event = undefined
+        add = (amount, onFinish) ->
+          type '/add ' + amount
+          waitsForScriptToRespond '_emitEvent'
+          runs ->
+            event = scriptHandler._emitEvent.mostRecentCall.args[0]
+            scriptHandler._emitEvent.reset()
+            onFinish?()
+
+        add 5, ->
+          expect(event.args[0]).toBe 'Sum so far: ' + 5
+          add 7, ->
+            expect(event.args[0]).toBe 'Sum so far: ' + 12
+            $('iframe').remove()
+            restart()
+            waitsForScriptToLoad window.script.prepackagedScripts.length + 1
+            runs ->
+              spyOn scriptHandler, '_emitEvent'
+              add 8, ->
+                expect(event.args[0]).toBe 'Sum so far: ' + 20
 
     describe 'has a name which', ->
 

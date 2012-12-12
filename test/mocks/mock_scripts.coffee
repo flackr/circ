@@ -44,4 +44,36 @@ class Scripts
     send('hook_command', 'hi');
   """
 
+  storageSourceCode: """
+    var sum = 0;
+    setName('sum');
+    loadFromStorage();
+
+    var addToSum = function(amount) {
+      amount = parseInt(amount);
+      if (!isNaN(amount)) {
+        sum += amount;
+        saveToStorage(sum);
+        return true;
+      }
+      return false;
+    };
+
+    onMessage = function(e) {
+      propagate(e, 'none');
+
+      if (e.type == 'system' && e.name == 'loaded') {
+        addToSum(e.args[0]);
+
+      } else if (e.type == 'command' && e.name == 'add') {
+        success = addToSum(e.args[0]);
+        if (success) {
+          send(e.context, 'message', 'notice', 'Sum so far: ' + sum);
+        }
+      }
+    };
+
+    send('hook_command', 'add');
+  """
+
 exports.scripts = new Scripts
