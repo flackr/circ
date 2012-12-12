@@ -9,7 +9,7 @@ class KeyboardShortcutMap
   # Returns the stringified name for the given keyboard shortcut.
   # @param {KeyboardEvent} e
   ##
-  @getShortcutName: (e) ->
+  @getKeyCombination: (e) ->
     name = []
     name.push 'Ctrl' if e.ctrlKey
     name.push 'Meta' if e.metaKey
@@ -19,21 +19,29 @@ class KeyboardShortcutMap
     return name.join '-'
 
   ##
-  # These keys can be mapped to shortcuts without needing a modifier key to be
+  # These keys can be mapped to hotkeys without needing a modifier key to be
   # down.
   ##
-  @SHORTCUT_KEYS = keyCodes.toKeyCode 'PAGEUP', 'PAGEDOWN', 'CAPSLOCK', 'INSERT',
+  @NO_MODIFIER_HOTKEYS = keyCodes.toKeyCode 'PAGEUP', 'PAGEDOWN', 'CAPSLOCK', 'INSERT',
       'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
 
   ##
-  # These keys can be mapped to shortcuts without needing a modifier key to be
+  # These keys can be mapped to hotkeys without needing a modifier key to be
   # down, but only if there is no input entered.
   ##
-  @SHORTCUT_KEYS_WHEN_NO_INPUT = [keyCodes.toKeyCode 'TAB']
+  @NO_INPUT_HOTKEYS = [keyCodes.toKeyCode 'TAB']
 
   constructor: ->
-    @_shortcutMap = {}
-    @_mapShortcuts()
+    @_hotkeyMap = {}
+    @_mapHotkeys()
+
+  ##
+  # Returns the mapping of hotkeys to commands.
+  # @param {Object.<string: {description: string, group: string,
+  #     readableName: string, command: string, args: Array<Object>}>} hotkeys
+  ##
+  getMap: ->
+    @_hotkeyMap
 
   ##
   # Get the command for the given shortcut if it is valid.
@@ -44,10 +52,10 @@ class KeyboardShortcutMap
   ##
   getMappedCommand: (shortcut, hasInput) ->
     return [] unless @_isValidShortcut shortcut, hasInput
-    shortcutName = KeyboardShortcutMap.getShortcutName shortcut
-    return [] unless @_isMapped shortcutName
-    command = @_shortcutMap[shortcutName].command
-    args = @_shortcutMap[shortcutName].args
+    keyCombination = KeyboardShortcutMap.getKeyCombination shortcut
+    return [] unless @_isMapped keyCombination
+    command = @_hotkeyMap[keyCombination].command
+    args = @_hotkeyMap[keyCombination].args
     [command, args]
 
   ##
@@ -59,69 +67,82 @@ class KeyboardShortcutMap
   _isValidShortcut: (keyEvent, hasInput) ->
     if keyEvent.metaKey or keyEvent.ctrlKey or keyEvent.altKey
       true
-    else if keyEvent.which in KeyboardShortcutMap.SHORTCUT_KEYS
+    else if keyEvent.which in KeyboardShortcutMap.NO_MODIFIER_HOTKEYS
       true
     else
       not hasInput and keyEvent.which in
-          KeyboardShortcutMap.SHORTCUT_KEYS_WHEN_NO_INPUT
+          KeyboardShortcutMap.NO_INPUT_HOTKEYS
 
   ##
   # Returns true if the given shortcut has a command mapped to it.
   # @param {string} shortcutName
   # @return {boolean}
   ##
-  _isMapped: (shortcutName) ->
-    shortcutName of @_shortcutMap
+  _isMapped: (keyCombination) ->
+    keyCombination of @_hotkeyMap
 
   ##
-  # Maps shortcuts to commands and their arguments.
+  # Maps hotkeys to commands and their arguments.
   # Note: The modifier key order is important and must be consistant with
-  # getShortcutName().
+  # getKeyCombination().
+  # * command: What command the hotkey maps to.
+  # * group: What group of hotkeys the hotkey belongs to.
+  # * description: A quick description of the command. The command name is used by default.
+  # * args: What args should be passed in to the command.
   ##
-  _mapShortcuts: ->
+  _mapHotkeys: ->
     for windowNumber in [1..9]
-      @_addShortcut "Alt-#{windowNumber}",
+      @_addHotkey "Alt-#{windowNumber}",
         command: 'win'
+        group: 'Alt-#'
+        description: 'switch channels'
         args: [windowNumber]
 
-    @_addShortcut 'Alt-S',
+    @_addHotkey 'Alt-S',
       command: 'next-server'
 
-    @_addShortcut 'Alt-DOWN',
+    @_addHotkey 'Alt-DOWN',
       command: 'next-room'
 
-    @_addShortcut 'Alt-UP',
+    @_addHotkey 'Alt-UP',
       command: 'previous-room'
 
-    @_addShortcut 'TAB',
+    @_addHotkey 'TAB',
       command: 'reply'
+      description: 'autocomplete or reply to last mention'
 
-    @_addShortcut 'PAGEUP',
-      command: 'pageup'
+# TODO: Implement the following commands:
+#
+#    @_addHotkey 'PAGEUP',
+#      command: 'pageup'
+#
+#    @_addHotkey 'PAGEDOWN',
+#      command: 'pageup'
+#
+#    @_addHotkey 'Ctrl-F',
+#      command: 'search'
+#
+#    @_addHotkey 'Ctrl-HOME',
+#      command: 'scroll-to-top'
+#
+#    @_addHotkey 'Ctrl-END',
+#      command: 'scroll-to-bottom'
 
-    @_addShortcut 'PAGEDOWN',
-      command: 'pageup'
-
-    @_addShortcut 'Ctrl-F',
-      command: 'search'
-
-    @_addShortcut 'Ctrl-HOME',
-      command: 'scroll-to-top'
-
-    @_addShortcut 'Ctrl-END',
-      command: 'scroll-to-bottom'
-
-  _addShortcut: (name, description) ->
-    name = @_charToKeyCode name
+  _addHotkey: (keyCombination, description) ->
+    hotkeyCode = @_getHotkeyCode keyCombination
     description.args ?= []
-    @_shortcutMap[name] = description
-
+    @_hotkeyMap[hotkeyCode] = description
+    @_hotkeyMap[hotkeyCode].readableName = keyCombination
+    if description.description
+      @_hotkeyMap[hotkeyCode].description = description.description
+    else
+      @_hotkeyMap[hotkeyCode].description = description.command.replace /-/g, ' '
   ##
-  # Convert a readable command name to a key code command name.
+  # Convert a readable key combination into its key code value.
   # (e.g. 'Alt-S' becomes 'Alt-115').
   ##
-  _charToKeyCode: (name) ->
-    parts = name.split '-'
+  _getHotkeyCode: (keyCombination) ->
+    parts = keyCombination.split '-'
     char = parts[parts.length - 1]
     parts[parts.length - 1] = keyCodes.toKeyCode char
     parts.join '-'

@@ -31,6 +31,9 @@ class MessageRenderer
   displayHelp: (commands) ->
     @_helpMessageRenderer.render commands
 
+  displayHotkeys: (hotkeys) ->
+    @_helpMessageRenderer.renderHotkeys hotkeys
+
   displayAbout: ->
     @_addWhitespace()
     @systemMessage "CIRC is a packaged Chrome app developed by Google Inc. " +
