@@ -5,21 +5,19 @@ send('hook_message', 'privmsg');
 
 loadFromStorage();
 
+// Keeps a list of the last NickServ passwords used in each server.
 var serverPasswords = {};
 
 var handleOutgoingMessage = function(context, words) {
   if (words.length != 3) { return; }
-  if (words[0].toLowerCase() == 'nickserv' &&
-      words[1].toLowerCase() == 'identify' &&
-      words[2]) {
+  if (words[0].toLowerCase() == 'nickserv' && words[1].toLowerCase() == 'identify') {
     serverPasswords[context.server] = words[2];
     saveToStorage(serverPasswords);
   }
 };
 
 var handleIncomingMessage = function(context, from, message) {
-  if (!from || !message || from != 'NickServ') { return; }
-  if (message.indexOf('nickname is registered') >= 0) {
+  if (from == 'NickServ' && message.indexOf('nickname is registered') >= 0) {
     pw = serverPasswords[context.server];
     send(context, 'message', 'notice', 'Automatically identifying nickname with NickServ...');
     send(context, 'command', 'raw', 'PRIVMSG', 'NickServ', '"identify', pw + '"');
