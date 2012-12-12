@@ -196,30 +196,41 @@ describe 'An IRC client front end', ->
       runs ->
         expect('/dance' in scriptHandler.getScriptNames()).toBe true
 
+    add = (amount, onFinish) ->
+      type '/add ' + amount
+      waitsForScriptToRespond '_emitEvent'
+      runs ->
+        event = scriptHandler._emitEvent.mostRecentCall.args[0]
+        scriptHandler._emitEvent.reset()
+        onFinish? event
+
     it "can save and load information to sync storage", ->
       loadScript mocks.scripts.storageSourceCode
       runs ->
         spyOn scriptHandler, '_emitEvent'
-        event = undefined
-        add = (amount, onFinish) ->
-          type '/add ' + amount
-          waitsForScriptToRespond '_emitEvent'
-          runs ->
-            event = scriptHandler._emitEvent.mostRecentCall.args[0]
-            scriptHandler._emitEvent.reset()
-            onFinish?()
-
-        add 5, ->
+        add 5, (event) ->
           expect(event.args[0]).toBe 'Sum so far: ' + 5
-          add 7, ->
+          add 7, (event) ->
             expect(event.args[0]).toBe 'Sum so far: ' + 12
             $('iframe').remove()
             restart()
             waitsForScriptToLoad window.script.prepackagedScripts.length + 1
             runs ->
               spyOn scriptHandler, '_emitEvent'
-              add 8, ->
+              add 8, (event) ->
                 expect(event.args[0]).toBe 'Sum so far: ' + 20
+
+    it "has its sync storage data erased when uninstalled", ->
+      loadScript mocks.scripts.storageSourceCode
+      runs ->
+        spyOn(scriptHandler, '_emitEvent').andCallThrough()
+        add 5, (event) ->
+          expect(event.args[0]).toBe 'Sum so far: ' + 5
+          chrome.storage.sync.get 'script_sum', (state) ->
+            expect(state.script_sum).toBe 5
+            type '/uninstall sum'
+            chrome.storage.sync.get 'script_sum', (state) ->
+              expect(state.script_sum).not.toBeDefined()
 
     describe 'has a name which', ->
 
