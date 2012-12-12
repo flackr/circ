@@ -21,49 +21,7 @@
 
 @font-face {
   font-family: 'Roboto';
-  src: url('font/Roboto-ThinItalic.ttf') format('truetype');
-  font-weight: 200;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'Roboto';
   src: url('font/Roboto-BoldItalic.ttf') format('truetype');
   font-weight: bold;
   font-style: italic;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('font/Roboto-Light.ttf') format('truetype');
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('font/Roboto-Thin.ttf') format('truetype');
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('font/Roboto-LightItalic.ttf') format('truetype');
-  font-weight: 100;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('font/Roboto-MediumItalic.ttf') format('truetype');
-  font-weight: 300;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('font/Roboto-Medium.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
 }
