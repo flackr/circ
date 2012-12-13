@@ -1,11 +1,11 @@
 setName('auto_identify');
 setDescription('snoops /msg NickServ messages and automatically calls /msg NickServ identify <pw>');
+
 send('hook_command', 'msg');
 send('hook_message', 'privmsg');
-
 loadFromStorage();
 
-// Keeps a list of the last NickServ passwords used in each server.
+// Keeps track of the last NickServ password used in each server.
 var serverPasswords = {};
 
 var handleOutgoingMessage = function(context, words) {
@@ -24,11 +24,19 @@ var handleIncomingMessage = function(context, from, message) {
   }
 };
 
+updatePasswords = function(loadedPasswords) {
+  for (server in loadedPasswords) {
+    if (!serverPasswords[server]) {
+      serverPasswords[server] = loadedPasswords[server];
+    }
+  }
+};
+
 onMessage = function(e) {
   propagate(e);
   if (e.type == 'system' && e.name == 'loaded') {
     if (e.args[0]) {
-      serverPasswords = e.args[0];
+      updatePasswords(e.args[0]);
     }
   } else if (e.type == 'command' && e.name == 'msg') {
     handleOutgoingMessage(e.context, e.args);
