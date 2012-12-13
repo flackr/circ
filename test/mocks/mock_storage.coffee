@@ -17,11 +17,16 @@ class Storage
     (@_storageMap[k] = v for k, v of obj)
 
   get: (keys, callback) ->
-    if typeof keys is 'string'
-      return @get [keys], callback
+    keys = [keys] if typeof keys is 'string'
     result = {}
-    (result[k] = v for k, v of @_storageMap)
+    for k, v of @_storageMap
+      result[k] = v if k in keys
     callback result
+
+  remove: (keys) ->
+    keys = [keys] if typeof keys is 'string'
+    for k in keys
+      delete @_storageMap[k]
 
   clear: ->
     @_storageMap = {}
