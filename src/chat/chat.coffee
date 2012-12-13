@@ -122,9 +122,11 @@ class Chat extends EventEmitter
     @userCommands.listenTo commandEmitter
 
   listenToScriptEvents: (@scriptHandler) ->
-    # TODO - allow scripts to create notifications and plain text
-    #scriptHandler.on 'notify', @createNotification
-    #scriptHandler.on 'print', @printText
+    scriptHandler.on 'save', (id, item) =>
+      @storage.saveItemForScript id, item
+
+    scriptHandler.on 'load', (id, onLoaded) =>
+      @storage.loadItemForScript id, onLoaded
 
   listenToIRCEvents: (ircEvents) ->
     @_ircEvents = ircEvents

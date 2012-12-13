@@ -174,6 +174,7 @@ class UserCommandHandler extends MessageHandler
       run: ->
         script = @chat.scriptHandler.getScriptByName @scriptName
         if script
+          @chat.storage.clearScriptStorage @scriptName
           @chat.scriptHandler.removeScript script
           @chat.storage.scriptRemoved script
           @displayMessage 'notice', "Script #{@scriptName} was successfully uninstalled"

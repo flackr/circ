@@ -29,6 +29,36 @@ class Storage extends EventEmitter
     @pause()
 
   ##
+  # Save an object to sync storage for the script with the given id.
+  # @param {string} id A unique ID representing the script.
+  # @param {Object} item The item to store.
+  ##
+  saveItemForScript: (id, item) ->
+    @_store @_getScriptStorageHandle(id), item
+
+  ##
+  # Load an object from sync storage for the script with the given id.
+  # @param {string} id A unique ID representing the script.
+  # @param {function(Object)} onLoaded The function that is called once the item
+  #     is loaded.
+  ##
+  loadItemForScript: (id, onLoaded) ->
+    storageHandle = @_getScriptStorageHandle(id)
+    chrome.storage.sync.get storageHandle, (state) =>
+      onLoaded state[storageHandle]
+
+  ##
+  # Clears the item stored for the given script. This is called after a script
+  # is uninstalled.
+  # @param {string} id A unique ID representing the script.
+  ##
+  clearScriptStorage: (id) ->
+    chrome.storage.sync.remove @_getScriptStorageHandle(id)
+
+  _getScriptStorageHandle: (id) ->
+    'script_' + id
+
+  ##
   # Listen for storage changes.
   # If the password updated then change our own. If the password was cleared
   # then restore it.
@@ -45,7 +75,7 @@ class Storage extends EventEmitter
     return if passwordChange.newValue is @password
     if passwordChange.newValue
       @password = passwordChange.newValue
-      @chat.setPassword @password
+      @_chat.setPassword @password
     else
       @_log 'password was cleared. Setting password back to', @password
       @_store 'password', @password

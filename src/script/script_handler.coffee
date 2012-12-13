@@ -14,13 +14,18 @@ class ScriptHandler extends EventEmitter
   @UNINTERCEPTABLE_EVENTS = { 'command help', 'command about',
       'command install', 'command uninstall', 'command scripts' }
 
+  # Events that a script can listen for.
+  @HOOKABLE_EVENTS = [ 'command', 'server', 'message' ]
+
+  # Events that are generated and sent by the script handler.
+  @SCRIPTING_EVENTS = [ 'save', 'load' ]
+
   constructor: ->
     super
     @_scripts = {}
     @_pendingEvents = {}
     @_eventCount = 0
     @_emitters = []
-    @_hookableEvents = [ 'command', 'server', 'message' ]
     addEventListener 'message', @_handleMessage
 
   listenToScriptEvents: (emitter) ->
@@ -52,10 +57,11 @@ class ScriptHandler extends EventEmitter
     pendingEventIds
 
   on: (ev, cb) ->
-    if not (ev in @_hookableEvents)
-      @_forwardEvent ev, cb
-    else
+    if (ev in ScriptHandler.HOOKABLE_EVENTS) or
+        (ev in ScriptHandler.SCRIPTING_EVENTS)
       super ev, cb
+    else
+      @_forwardEvent ev, cb
 
   _forwardEvent: (ev, cb) ->
     for emitter in @_emitters
@@ -63,12 +69,12 @@ class ScriptHandler extends EventEmitter
 
   addEventsFrom: (emitter) ->
     @_emitters.push emitter
-    for event in @_hookableEvents
+    for event in ScriptHandler.HOOKABLE_EVENTS
       emitter.on event, @_handleEvent
 
   removeEventsFrom: (emitter) ->
     @_emitters.splice @_emitters.indexOf(emitter), 1
-    for event in @_hookableEvents
+    for event in ScriptHandler.HOOKABLE_EVENTS
       emitter.removeListener event, @_handleEvent
 
   _handleEvent: (event) =>
@@ -115,15 +121,16 @@ class ScriptHandler extends EventEmitter
         script.beginHandlingType type, event.name
 
       when 'command', 'sevrer', 'message'
-        # TODO add the script id to a blacklist so we don't go into a loop
-        # TODO check args for correctness
-        @_handleEvent Event.wrap event
+        @_emitEvent Event.wrap event
 
       when 'propagate'
         @_handleEventPropagation script, event
 
       when 'meta'
         @_handleMetaData script, event
+
+      when 'storage'
+        @_handleStorageRequest script, event
 
   _handleEventPropagation: (script, propagatationEvent) ->
     eventId = propagatationEvent.args?[0]
@@ -142,6 +149,8 @@ class ScriptHandler extends EventEmitter
 
   ##
   # Handles a meta data event, such as setting the script name.
+  # @param {Script} script
+  # @param {Event} event
   ##
   _handleMetaData: (script, event) ->
     switch event.name
@@ -170,6 +179,21 @@ class ScriptHandler extends EventEmitter
       suffix++
       name = originalName + suffix
     return name
+
+  ##
+  # Handles loading or saving information to storage for the given script.
+  # @param {Script} script The script wishing to use the storage.
+  # @param {Event} event The event which contains the object to save.
+  ##
+  _handleStorageRequest: (script, event) ->
+    switch event.name
+      when 'save'
+        itemToSave = event.args[0]
+        @emit 'save', script.getName(), itemToSave
+      when 'load'
+        @emit 'load', script.getName(), (item) =>
+          event = new Event 'system', 'loaded', item
+          script.postMessage event
 
   getScriptNames: ->
     (script.getName() for id, script of @_scripts)

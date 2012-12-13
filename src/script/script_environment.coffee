@@ -16,8 +16,18 @@ addEventListener 'message', (e) =>
 @setDescription = (description) ->
   # TODO
 
-@enableOptionsPage = ->
-  # TODO
+##
+# Retrieve the script's saved information, if any, from sync storage.
+##
+@loadFromStorage = ->
+  @send {}, 'storage', 'load'
+
+##
+# Save the script's information to sync storage.
+# @param {Object} item The item to save to storage.
+##
+@saveToStorage = (item) ->
+  @send {}, 'storage', 'save', item
 
 ##
 # Send a message to the IRC server or client.
