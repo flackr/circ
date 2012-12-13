@@ -28,8 +28,7 @@ package: package-scripts build
 	-rm -rf package
 	mkdir package
 	cp -r bin package
-	mkdir package/static
-	mkdir package/static/icon
+	mkdir -p package/static/icon
 	cp static/icon/icon16.png package/static/icon/
 	cp static/icon/icon48.png package/static/icon/
 	cp static/icon/icon128.png package/static/icon/
