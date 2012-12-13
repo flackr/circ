@@ -76,6 +76,11 @@ class Scripts
       if (e.type == 'system' && e.name == 'loaded') {
         addToSum(e.args[0]);
 
+      } else if (e.type == 'system' && e.name == 'storage_changed') {
+        if (sum == 0) {
+          addToSum(e.args[0].newValue);
+        }
+
       } else if (e.type == 'command' && e.name == 'add') {
         success = addToSum(e.args[0]);
         if (success) {

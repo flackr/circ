@@ -195,6 +195,10 @@ class ScriptHandler extends EventEmitter
           event = new Event 'system', 'loaded', item
           script.postMessage event
 
+  storageChanged: (script, change) ->
+    event = new Event 'system', 'storage_changed', change
+    script.postMessage event
+
   getScriptNames: ->
     (script.getName() for id, script of @_scripts)
 

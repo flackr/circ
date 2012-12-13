@@ -232,6 +232,14 @@ describe 'An IRC client front end', ->
             chrome.storage.sync.get 'script_sum', (state) ->
               expect(state.script_sum).not.toBeDefined()
 
+    it "is notified when its storage changes", ->
+      loadScript mocks.scripts.storageSourceCode
+      runs ->
+        spyOn(scriptHandler, '_emitEvent').andCallThrough()
+        window.chrome.storage.update {script_sum: {newValue: 15, oldValue: 0}}
+        add 5, (event) ->
+          expect(event.args[0]).toBe 'Sum so far: ' + 20
+
     describe 'has a name which', ->
 
       it "is always unique name", ->

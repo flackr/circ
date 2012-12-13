@@ -29,34 +29,34 @@ class Storage extends EventEmitter
     @pause()
 
   ##
-  # Save an object to sync storage for the script with the given id.
-  # @param {string} id A unique ID representing the script.
+  # Save an object to sync storage for the script with the given name.
+  # @param {string} name A unique name representing the script.
   # @param {Object} item The item to store.
   ##
-  saveItemForScript: (id, item) ->
-    @_store @_getScriptStorageHandle(id), item
+  saveItemForScript: (name, item) ->
+    @_store @_getScriptStorageHandle(name), item
 
   ##
-  # Load an object from sync storage for the script with the given id.
-  # @param {string} id A unique ID representing the script.
+  # Load an object from sync storage for the script with the given name.
+  # @param {string} name A unique name representing the script.
   # @param {function(Object)} onLoaded The function that is called once the item
   #     is loaded.
   ##
-  loadItemForScript: (id, onLoaded) ->
-    storageHandle = @_getScriptStorageHandle(id)
+  loadItemForScript: (name, onLoaded) ->
+    storageHandle = @_getScriptStorageHandle(name)
     chrome.storage.sync.get storageHandle, (state) =>
       onLoaded state[storageHandle]
 
   ##
   # Clears the item stored for the given script. This is called after a script
   # is uninstalled.
-  # @param {string} id A unique ID representing the script.
+  # @param {string} name A unique name representing the script.
   ##
-  clearScriptStorage: (id) ->
-    chrome.storage.sync.remove @_getScriptStorageHandle(id)
+  clearScriptStorage: (name) ->
+    chrome.storage.sync.remove @_getScriptStorageHandle(name)
 
-  _getScriptStorageHandle: (id) ->
-    'script_' + id
+  _getScriptStorageHandle: (name) ->
+    'script_' + name
 
   ##
   # Listen for storage changes.
@@ -68,6 +68,9 @@ class Storage extends EventEmitter
       @_onPasswordChange changeMap.password
     if changeMap.server_device
       @_onServerDeviceChange changeMap.server_device
+    for script in @_scripts
+      change = changeMap[@_getScriptStorageHandle script.getName()]
+      @_chat.scriptHandler.storageChanged script, change if change
 
   _onPasswordChange: (passwordChange) ->
     @_log 'password changed from', passwordChange.oldValue,
