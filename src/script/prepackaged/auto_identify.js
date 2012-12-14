@@ -18,7 +18,7 @@ onMessage = function(e) {
 var handlePrivateMessage = function(event) {
   var source = event.args[0];
   var message = event.args[1];
-  if (source != 'NickServ') {
+  if (source.toLowerCase() != 'nickserv') {
     propagate(event);
   } else if (shouldAutoIdentify(event.context, message)) {
     propagate(event);
