@@ -48,6 +48,9 @@ addEventListener 'message', (e) =>
   else
     context = opt_context
   event = {context, type, name, args}
+  @sendEvent event
+
+@sendEvent = (event) ->
   window.parent.postMessage(event, '*')
 
 @propagate = (event, propagation='all') ->
