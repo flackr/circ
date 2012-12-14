@@ -156,3 +156,22 @@ exports.html.display = (text) ->
     textIndex = m.index + m[0].length
   res += escape(text.substr(textIndex))
   return res
+
+##
+# Opens a file browser and returns the contents of the selected file.
+# @param {function(string)} The function to call after the file content has be
+#     retrieved.
+##
+exports.loadFromFileSystem = (callback) ->
+  chrome.fileSystem.chooseFile { type: 'openFile' }, (fileEntry) =>
+    return unless fileEntry
+    fileEntry.file (file) =>
+      fileReader = new FileReader()
+
+      fileReader.onload = (e) =>
+        callback e.target.result
+
+      fileReader.onerror = (e) ->
+        console.error 'Read failed:', e
+
+      fileReader.readAsText file

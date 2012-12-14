@@ -21,25 +21,11 @@ class ScriptLoader
       callback @_createScript script.sourceCode
 
   createScriptFromFileSystem: (callback) ->
-    chrome.fileSystem.chooseFile { type: 'openFile' }, (f) =>
-      @_onChosenFileToOpen f, callback
-
-  _onChosenFileToOpen: (fileEntry, callback) ->
-    return unless fileEntry
-    fileEntry.file (file) =>
-      fileReader = new FileReader()
-
-      fileReader.onload = (e) =>
-        sourceCode = e.target.result
-        try
-          callback @_createScript sourceCode
-        catch error
-          console.error 'failed to eval:', error.toString()
-
-      fileReader.onerror = (e) ->
-        console.error 'Read failed:', e.toString()
-
-      fileReader.readAsText file
+    loadFromFileSystem (sourceCode) =>
+      try
+        callback @_createScript sourceCode
+      catch error
+        console.error 'failed to eval:', error.toString()
 
   ##
   # @param {string} sourceCode The raw JavaScript source code of the script.
