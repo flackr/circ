@@ -62,11 +62,11 @@ hideNickServPassword = function(event) {
 };
 
 getHiddenPasswordText = function(length) {
-  var chars = [length];
+  hiddenPasswordText = '';
   for (var i = 0; i < length; i++) {
-    chars[i] = '*';
+    hiddenPasswordText += '*';
   }
-  return chars.join('');
+  return hiddenPasswordText;
 };
 
 updatePasswords = function(loadedPasswords) {
