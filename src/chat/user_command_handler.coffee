@@ -479,6 +479,20 @@ class UserCommandHandler extends MessageHandler
         @displayMessage 'notice', "Messages of type #{getReadableList types} " +
             "are no longer being ignored."
 
+    @_addCommand 'theme',
+      description: "upload and use a custom CSS file, opens a file browser"
+      category: 'misc'
+      run: ->
+        loadFromFileSystem (content) =>
+          webkitRequestFileSystem TEMPORARY, 50 * 1024, (fileSystem) =>
+            fileSystem.root.getFile 'custom_style.css', {create: true}, (fileEntry) =>
+              fileEntry.createWriter (writer) =>
+                writer.onwriteend = =>
+                  $('#main-style').attr 'href', fileEntry.toURL()
+                blob = new Blob [content], {type: 'text/css'}
+                writer.write blob
+
+
     ##
     # Hidden commands.
     # These commands don't display in /help or autocomplete. They're used for
