@@ -15,20 +15,7 @@ exports = window.script ?= {}
 exports.prepackagedScripts = [
 
   "
-setName('/dance');
-setDescription('Type /dance have a Kirby dance');
-
-send('hook_command', 'dance');
-
-dance = \"(>'-')> <('-'<) ^(' - ')^ <('-'<) (>'-')>\";
-onMessage = function(e) {
-  send(e.context, 'command', 'say', dance);
-  propagate(e, 'none');
-};
-
-  ",
-
-  "setName('auto_identify');
+setName('auto_identify');
 setDescription('hides NickServ password and automatically identifies on startup');
 
 send('hook_message', 'privmsg');
@@ -48,7 +35,7 @@ onMessage = function(e) {
 var handlePrivateMessage = function(event) {
   var source = event.args[0];
   var message = event.args[1];
-  if (source != 'NickServ') {
+  if (source.toLowerCase() != 'nickserv') {
     propagate(event);
   } else if (shouldAutoIdentify(event.context, message)) {
     propagate(event);
@@ -92,11 +79,11 @@ hideNickServPassword = function(event) {
 };
 
 getHiddenPasswordText = function(length) {
-  var chars = [length];
+  hiddenPasswordText = '';
   for (var i = 0; i < length; i++) {
-    chars[i] = '*';
+    hiddenPasswordText += '*';
   }
-  return chars.join('');
+  return hiddenPasswordText;
 };
 
 updatePasswords = function(loadedPasswords) {
@@ -105,6 +92,19 @@ updatePasswords = function(loadedPasswords) {
       serverPasswords[server] = loadedPasswords[server];
     }
   }
+};
+
+  ",
+
+  "setName('/dance');
+setDescription('Type /dance have a Kirby dance');
+
+send('hook_command', 'dance');
+
+dance = \"(>'-')> <('-'<) ^(' - ')^ <('-'<) (>'-')>\";
+onMessage = function(e) {
+  send(e.context, 'command', 'say', dance);
+  propagate(e, 'none');
 };
 
   "
