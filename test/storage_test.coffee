@@ -58,10 +58,12 @@ describe 'IRC sync storage', ->
   it 'restores the stored servers', ->
     sync.set { servers: [
         {name: 'freenode', port: 6667},
-        {name: 'dalnet', port: 6697}]}
+        {name: 'dalnet', port: 6697},
+        {name: 'oftc', port: 6667, password: 'password'}]}
     ss.restoreSavedState()
-    expect(chat.connect).toHaveBeenCalledWith('freenode', 6667)
-    expect(chat.connect).toHaveBeenCalledWith('dalnet', 6697)
+    expect(chat.connect).toHaveBeenCalledWith('freenode', 6667, undefined)
+    expect(chat.connect).toHaveBeenCalledWith('dalnet', 6697, undefined)
+    expect(chat.connect).toHaveBeenCalledWith('oftc', 6667, 'password')
 
   it 'restores the stored channels', ->
     sync.set { channels: [
@@ -90,6 +92,10 @@ describe 'IRC sync storage', ->
   it 'stores the joined server on serverJoined()', ->
     ss.serverJoined 'freenode', 6667
     expect(sync._storageMap.servers).toEqual [{name: 'freenode', port: 6667}]
+
+  it 'stores the joined server password on serverJoined()', ->
+    ss.serverJoined 'freenode', 6667, 'test1234'
+    expect(sync._storageMap.servers).toEqual [{name: 'freenode', port: 6667, password: 'test1234'}]
 
   it 'removes the stored server on serverParted()', ->
     ss.serverJoined 'freenode', 6697

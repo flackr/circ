@@ -27,10 +27,10 @@ class IRC extends EventEmitter
     @socket.on 'end', (err) => @onEnd err
     @socket.on 'close', (err) => @onClose err
 
-  setPreferredNick: (@preferredNick, @password) ->
+  setPreferredNick: (@preferredNick) ->
 
   # user-facing
-  connect: (@server=@server, @port=@port) ->
+  connect: (@server=@server, @port=@port, @password=@password) ->
     return if @state not in ['disconnected', 'reconnecting']
     clearTimeout @reconnectTimeout
     @socket.connect(@server, @port)

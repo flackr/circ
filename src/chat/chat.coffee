@@ -133,14 +133,14 @@ class Chat extends EventEmitter
     @_ircEvents.on 'server', @onIRCEvent
     @_ircEvents.on 'message', @onIRCEvent
 
-  connect: (server, port) ->
+  connect: (server, port, password) ->
     if server of @connections
       # TODO disconnect and reconnect if port changed
       return if @connections[server].irc.state in ['connected', 'connecting']
     else
       @_createConnection server
-      @_createWindowForServer server, port
-    @connections[server].irc.connect(server, port)
+      @_createWindowForServer server, port, password
+    @connections[server].irc.connect(server, port, password)
 
   _createConnection: (server) ->
     irc = new window.irc.IRC
@@ -149,13 +149,13 @@ class Chat extends EventEmitter
     @_ircEvents?.addEventsFrom irc
     @connections[server] = {irc:irc, name: server, windows:{}}
 
-  _createWindowForServer: (server, port) ->
+  _createWindowForServer: (server, port, password) ->
     conn = @connections[server]
     win = @_makeWin conn
     @_replaceEmptyWindowIfExists win
     win.message '', "Connecting to #{conn.name}..."
     @channelDisplay.addServer conn.name
-    @storage.serverJoined conn.name, port
+    @storage.serverJoined conn.name, port, password
     @switchToWindow win
 
   _replaceEmptyWindowIfExists: (win) ->
