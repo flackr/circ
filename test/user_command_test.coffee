@@ -30,8 +30,8 @@ describe 'A user command', ->
 
   serverCommandDescription =
     description: 'joins a server'
-    params: ['opt_server', 'opt_port']
-    run: -> onRun @server, @port
+    params: ['opt_server', 'opt_port', 'opt_password']
+    run: -> onRun @server, @port, @password
 
   getWindow = ->
     target: '#bash'
@@ -172,15 +172,21 @@ describe 'A user command', ->
     expect(serverCommand._hasValidArgs).toBe true
 
     serverCommand.run()
-    expect(onRun).toHaveBeenCalledWith 'freenode', undefined
+    expect(onRun).toHaveBeenCalledWith 'freenode', undefined, undefined
 
     serverCommand.setArgs('freenode', '6667')
     expect(serverCommand._hasValidArgs).toBe true
 
     serverCommand.run()
-    expect(onRun).toHaveBeenCalledWith 'freenode', '6667'
+    expect(onRun).toHaveBeenCalledWith 'freenode', '6667', undefined
 
-    serverCommand.setArgs('freenode', '6667', 'extraparam')
+    serverCommand.setArgs('freenode', '6667', 'password')
+    expect(serverCommand._hasValidArgs).toBe true
+
+    serverCommand.run()
+    expect(onRun).toHaveBeenCalledWith 'freenode', '6667', 'password'
+
+    serverCommand.setArgs('freenode', '6667', undefined, 'extraparam')
     expect(serverCommand._hasValidArgs).toBe false
 
   it 'can extend other commands', ->
