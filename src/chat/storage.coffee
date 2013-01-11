@@ -133,9 +133,9 @@ class Storage extends EventEmitter
       return true if chan.server is server and chan.name is name
     false
 
-  serverJoined: (name, port) ->
+  serverJoined: (name, port, password) ->
     return if @_isDuplicateServer name, port
-    @_servers.push { name, port }
+    @_servers.push { name, port, password }
     @_store 'servers', @_servers
 
   _isDuplicateServer: (name, port) ->
@@ -279,7 +279,7 @@ class Storage extends EventEmitter
     return unless servers = @_state.servers
     @_servers = servers
     for server in servers
-      @_chat.connect server.name, server.port
+      @_chat.connect server.name, server.port, server.password
 
   _restoreChannels: ->
     return unless channels = @_state.channels

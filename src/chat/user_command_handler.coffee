@@ -49,7 +49,7 @@ class UserCommandHandler extends MessageHandler
       description: 'connects to the server, port 6667 is used by default, ' +
           "reconnects to the current server if no server is specified"
       category: 'common'
-      params: ['opt_server', 'opt_port']
+      params: ['opt_server', 'opt_port', 'opt_password']
       requires: ['online']
       validateArgs: ->
         if @port then @port = parseInt @port
@@ -57,7 +57,7 @@ class UserCommandHandler extends MessageHandler
         @server ?= @conn?.name
         return @server and not isNaN @port
       run: ->
-        @chat.connect @server, @port
+        @chat.connect @server, @port, @password
 
     @_addCommand 'join',
       description: 'joins the channel, reconnects to the current channel ' +
