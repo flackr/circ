@@ -95,7 +95,7 @@ string2ArrayBuffer = (string, callback) ->
 
 arrayBuffer2String = (buf, callback) ->
   exports.arrayBufferConversionCount++
-  blob = new Blob [new DataView buf]
+  blob = new Blob [buf]
   f = new FileReader()
   f.onload = (e) ->
     exports.arrayBufferConversionCount--
