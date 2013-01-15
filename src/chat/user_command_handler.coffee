@@ -157,7 +157,13 @@ class UserCommandHandler extends MessageHandler
         @arguments = if @arguments then @arguments.split ' ' else []
       run: ->
         command = chat.customCommandParser.parse @chan, @command, @arguments...
-        @conn.irc.doCommand command...
+        if command[0] is 'PASS' and @conn.irc.state is 'connecting'
+          @conn.irc.send command...
+        else 
+          @conn.irc.doCommand command...
+
+    @_addCommand 'quote',
+      extends: 'raw'
 
     @_addCommand 'install',
       description: "loads a script by opening a file browser dialog"
