@@ -169,6 +169,6 @@ class IRC extends EventEmitter
     irc.util.nicksEqual @nick, nick
 
 # Our IRC version - should match the version in the manifest.
-exports.VERSION = "0.5.7"
+exports.VERSION = "0.5.8"
 
 exports.IRC = IRC
