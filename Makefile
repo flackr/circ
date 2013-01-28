@@ -1,6 +1,6 @@
 all: test
 
-build: clean
+build: package-scripts clean
 	mkdir -p bin
 	cp src/*.* bin/
 	cp src/chat/* bin/
@@ -24,7 +24,7 @@ test: build
 package-scripts:
 	python src/script/prepackaged/prepackage_scripts.py
 
-package: package-scripts build
+package: build
 	-rm -rf package
 	mkdir package
 	cp -r bin package
