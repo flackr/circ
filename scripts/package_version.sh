@@ -11,17 +11,13 @@ fi
 
 VERSION="$1"
 sed -i 's/"version": "[^"]*",/"version": "'"$VERSION"'",/g' \
-  manifest.json manifest_public.json
+  manifest.json
 sed -i 's/exports\.VERSION = "[^"]*"/exports.VERSION = "'"$VERSION"'"/g' \
   src/irc/irc.coffee
 
 mkdir -p packages
 make package
 
-# Make public app
-cp manifest_public.json package/manifest.json
-(cd package && zip -r "../packages/circ-public.zip" *)
-
-# Make private app
+# Make app
 grep -v "\"key\":" manifest.json > package/manifest.json
-(cd package && zip -r "../packages/circ-internal.zip" *)
+(cd package && zip -r "../packages/circ.zip" *)
