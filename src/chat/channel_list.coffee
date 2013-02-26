@@ -40,7 +40,7 @@ class ChannelList extends EventEmitter
     server = $ '.server', html
     channels = @_createChannelList html
     @_handleMouseEvents serverName, server, channels
-    @roomsByServer[serverName] = { html, server, channels }
+    @roomsByServer[serverName.toLowerCase()] = { html, server, channels }
     @disconnect serverName
 
   _createServerHTML: (serverName) ->
@@ -67,13 +67,13 @@ class ChannelList extends EventEmitter
 
   _addClass: (server, channel, c) ->
     if channel?
-      @roomsByServer[server].channels.addClass channel, c
+      @roomsByServer[server].channels.addClass channel.toLowerCase(), c
     else
       @roomsByServer[server].server.addClass c
 
   _removeClass: (server, channel, c) ->
     if channel?
-      @roomsByServer[server].channels.removeClass channel, c
+      @roomsByServer[server].channels.removeClass channel.toLowerCase(), c
     else
       @roomsByServer[server].server.removeClass c
 

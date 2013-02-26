@@ -229,16 +229,16 @@ class Chat extends EventEmitter
     chan = e.context.channel
     if @_isDirectMessageToUser(conn, chan, e.name)
       from = e.args?[0]
-      unless conn.windows[from]
+      unless conn.windows[from.toLowerCase()]
         @createPrivateMessageWindow conn, from
-      return conn.windows[from]
+      return conn.windows[from.toLowerCase()]
 
     if not chan or chan is chat.SERVER_WINDOW
       return conn.serverWindow
     if chan is chat.CURRENT_WINDOW
       return @currentWindow
-    if conn.windows[chan]
-      return conn.windows[chan]
+    if conn.windows[chan.toLowerCase()]
+      return conn.windows[chan.toLowerCase()]
     return chat.NO_WINDOW
 
   ##
@@ -248,9 +248,9 @@ class Chat extends EventEmitter
     conn?.irc.isOwnNick(chan) and type is 'privmsg'
 
   createPrivateMessageWindow: (conn, from) ->
-    return conn.windows[from] if conn.windows[from]
+    return conn.windows[from.toLowerCase()] if conn.windows[from.toLowerCase()]
     @storage.channelJoined conn.name, from, 'private'
-    win = conn.windows[from] = @_createWindowForChannel conn, from
+    win = conn.windows[from.toLowerCase()] = @_createWindowForChannel conn, from
     win.makePrivate()
     win.message '', "You're in a private conversation with #{from}.", 'notice'
     @channelDisplay.connect conn.name, from
@@ -290,7 +290,7 @@ class Chat extends EventEmitter
     win.nicks.clear()
 
   _createWindowForChannel: (conn, chan) ->
-    win = conn.windows[chan]
+    win = conn.windows[chan.toLowerCase()]
     if not win
       win = @_makeWin conn, chan
       i = @winList.localIndexOf win
@@ -342,8 +342,8 @@ class Chat extends EventEmitter
     win = new chat.Window conn.name, opt_chan
     win.conn = conn
     if opt_chan
-      conn.windows[opt_chan] = win
-      win.setTarget opt_chan
+      conn.windows[opt_chan.toLowerCase()] = win
+      win.setTarget opt_chan.toLowerCase()
     else
       conn.serverWindow = win
     @winList.add win
