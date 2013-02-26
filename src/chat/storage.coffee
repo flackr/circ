@@ -121,17 +121,17 @@ class Storage extends EventEmitter
     @_nick = nick
     @_store 'nick', nick
 
-  channelJoined: (server, name, type='normal') ->
-    return if @_isDuplicateChannel server, name
-    channelObj = { server, name }
+  channelJoined: (server, name, type='normal', key) ->
+    for chan, i in @_channels
+        if chan.server is server and chan.name is name
+          if chan.key isnt key
+            @_channels.splice i, 1
+            break
+          return
+    channelObj = { server, name, key }
     channelObj.type = type unless type is 'normal'
     @_channels.push channelObj
     @_store 'channels', @_channels
-
-  _isDuplicateChannel: (server, name) ->
-    for chan in @_channels
-      return true if chan.server is server and chan.name is name
-    false
 
   serverJoined: (name, port, password) ->
     return if @_isDuplicateServer name, port
@@ -290,7 +290,7 @@ class Storage extends EventEmitter
       if channel.type is 'private'
         @_chat.createPrivateMessageWindow conn, channel.name
       else
-        @_chat.join conn, channel.name
+        @_chat.join conn, channel.name, channel.key
 
   _restoreIgnoredMessages: ->
     return unless ignoredMessages = @_state['ignored_messages']

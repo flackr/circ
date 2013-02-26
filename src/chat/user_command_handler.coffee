@@ -60,16 +60,16 @@ class UserCommandHandler extends MessageHandler
         @chat.connect @server, @port, @password
 
     @_addCommand 'join',
-      description: 'joins the channel, reconnects to the current channel ' +
+      description: 'joins the channel with the key if provided, reconnects to the current channel ' +
           'if no channel is specified'
       category: 'common'
-      params: ['opt_channel']
+      params: ['opt_channel', 'opt_key']
       requires: ['connection']
       validateArgs: ->
         @channel ?= @chan # use the current channel if no channel is specified
         @channel = @channel.toLowerCase()
       run: ->
-        @chat.join @conn, @channel
+        @chat.join @conn, @channel, @key
 
     @_addCommand 'part',
       description: "closes the current window and disconnects from the channel"
