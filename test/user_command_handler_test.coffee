@@ -48,10 +48,10 @@ describe 'A user command handler', ->
     expect(onMe).not.toHaveBeenCalled()
 
   it "displays a help message when a command is run with invalid args", ->
-    handle 'join', 'channel', 'extra_arg'
+    handle 'join', 'channel', 'key', 'extra_arg'
     expect(onJoin).not.toHaveBeenCalled()
-    expect(onMessage.mostRecentCall.args[1]).toBe 'JOIN [channel], joins the ' +
-        'channel, reconnects to the current channel if no channel is specified.'
+    expect(onMessage.mostRecentCall.args[1]).toBe 'JOIN [channel] [key], joins the ' +
+        'channel with the key if provided, reconnects to the current channel if no channel is specified.'
 
   it "allows commands to extend eachother for easy aliasing", ->
     handle 'me', 'hey guy!'

@@ -163,10 +163,11 @@ class Chat extends EventEmitter
       @channelDisplay.remove @emptyWindow.name
       win.messageRenderer.displayWelcome()
 
-  join: (conn, channel) ->
+  join: (conn, channel, opt_key) ->
     win = @_createWindowForChannel conn, channel
     @switchToWindow win
-    conn.irc.join channel
+    @storage.channelJoined conn.name, channel, null, opt_key
+    conn.irc.join channel, opt_key
 
   setNick: (opt_server, nick) ->
     unless nick
@@ -295,7 +296,6 @@ class Chat extends EventEmitter
       win = @_makeWin conn, chan
       i = @winList.localIndexOf win
       @channelDisplay.insertChannel i, conn.name, chan
-      @storage.channelJoined conn.name, chan
     win
 
   onNames: (e, nicks) ->
