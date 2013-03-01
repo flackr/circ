@@ -7,6 +7,12 @@ describe 'A nick mentioned notifier', ->
     expect(notification.shouldNotify('sallyjoe', 'bill and sallyjoe and thragtusk')).toBe true
     expect(notification.shouldNotify('sallyjoe', 'bobsallyjoe is a sallyjoe of sorts')).toBe true
 
+  it 'should notify when a nick containing regular expression characters in mentioned', ->
+    expect(notification.shouldNotify('sallyjoe[circ]', 'sallyjoe[circ]: hey')).toBe true
+
+  it 'should not evaluate nick as a regular expression', ->
+    expect(notification.shouldNotify('[ab]*', 'aaaaab')).toBe false
+
   it 'should be case insensitive ', ->
     expect(notification.shouldNotify('sallyjoe', 'Sallyjoe')).toBe true
     expect(notification.shouldNotify('thragtusk', 'tHrAgTuSk')).toBe true

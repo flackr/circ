@@ -27,6 +27,7 @@ class NickMentionedNotification
   @shouldNotify: (nick, msg) ->
     return false if not nick?
     nick = nick.replace /_+$/, '' # remove trailing underscores
+    nick = @_escapeTextForRegex nick
     msgToTest = @_prepMessageForRegex msg, nick
     ///
       \#nick\#     # the nickname
@@ -35,6 +36,9 @@ class NickMentionedNotification
       [-:;~\*]?)   # or one ending punctuation
       (?!\S)       # can't be followed by a letter
     ///i.test msgToTest
+
+  @_escapeTextForRegex: (text) ->
+    return text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
   @_prepMessageForRegex: (msg, nick) ->
     msg = msg.replace(/,/g, ' ') # treat commas as whitespace
