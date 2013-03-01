@@ -10,3 +10,10 @@ describe "A chat window", ->
     win = new chat.Window 'name'
     win.attach()
     expect($ '#rooms-and-nicks').toHaveClass 'no-nicks'
+
+  it "clears all messages when the clear command is issued", ->
+    win = new chat.Window 'name'
+    win.attach()
+    win.rawHTML('<p>Some text</p>')
+    win.clear()
+    expect(win.$messages.html()).toBe('')

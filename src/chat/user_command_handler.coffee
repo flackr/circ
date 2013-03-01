@@ -127,6 +127,20 @@ class UserCommandHandler extends MessageHandler
           msg = "Users in #{@chan}: #{JSON.stringify names}"
         @win.message '', msg, 'notice names'
 
+    @_addCommand 'clear',
+      description: 'clears messages in the current window or from all windows if all is passed'
+      category: 'uncommon'
+      params: ["opt_all"]
+      validateArgs: ->
+        return true if not @all or @all is 'all'
+      run: ->
+        if @all is 'all'
+          winList = @chat.winList
+          for index in [0..winList.length - 1]
+            winList.get(index).clear()
+        else
+          @win.clear()
+
     @_addCommand 'help',
       description: "displays information about a command, lists all commands " +
           "if no command is specified"

@@ -111,4 +111,7 @@ class Window extends EventEmitter
     @$messages.html @$messages.html() + html
     @$messagesContainer.restoreScrollPosition()
 
+  clear: ->
+    @$messages.html ''
+
 exports.Window = Window
