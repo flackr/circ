@@ -139,9 +139,17 @@ class MessageFormatter
   _incorporateContext: ->
     msg = @_message
     msg = @_fixGrammer '#from', msg
-    msg = msg.replace '#from', if @_fromUs then 'you' else @_from
-    msg = msg.replace '#to', if @_toUs then 'you' else @_to
-    msg.replace '#content', @_content
+    msg = msg.replace '#from', if @_fromUs then 'you' else @_escapeDollarSign @_from
+    msg = msg.replace '#to', if @_toUs then 'you' else @_escapeDollarSign @_to
+    msg.replace '#content', @_escapeDollarSign @_content
+
+  ##
+  # Escapes dollar signs in text so that they are not interpreted when doing
+  # string replacements.
+  # @return {string} Returns the escaped string
+  ##
+  _escapeDollarSign: (text) ->
+    return if text then text.replace('$', '$$$$') else text
 
   ##
   # Handles adding periods, perentheses and capitalization.

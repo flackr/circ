@@ -132,6 +132,11 @@ describe "A message formatter", ->
     formatter.setMessage '#content'
     expect(formatter.format()).toBe 'This is the topic!!!!'
 
+  it "escapes special characters and prints them correctly", ->
+    formatter.setContent 'The $ must be escaped.'
+    formatter.setMessage '#content'
+    expect(formatter.format()).toBe 'The $ must be escaped.'
+
   it "uses clear() to reset state and format another message", ->
     formatter.setContext 'othernick', 'ournick', 'spamming /dance'
     formatter.setMessage '#from kicked #to for #content'
