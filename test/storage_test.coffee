@@ -69,12 +69,12 @@ describe 'IRC sync storage', ->
     sync.set { channels: [
         {name: '#bash', server: 'freenode'},
         {name: '#awesome', server: 'freenode'},
-        {name: '#hiphop', server: 'dalnet'}]}
+        {name: '#hiphop', server: 'dalnet', key: 'password'}]}
 
     ss.restoreSavedState()
-    expect(chat.join).toHaveBeenCalledWith('f', '#bash')
-    expect(chat.join).toHaveBeenCalledWith('f', '#awesome')
-    expect(chat.join).toHaveBeenCalledWith('d', '#hiphop')
+    expect(chat.join).toHaveBeenCalledWith('f', '#bash', undefined)
+    expect(chat.join).toHaveBeenCalledWith('f', '#awesome', undefined)
+    expect(chat.join).toHaveBeenCalledWith('d', '#hiphop', 'password')
 
   it 'stores the new nick on nickChanged()', ->
     ss.nickChanged 'newnick'

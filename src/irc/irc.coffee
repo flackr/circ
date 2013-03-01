@@ -52,11 +52,14 @@ class IRC extends EventEmitter
     clearTimeout @reconnectTimeout
     @state = 'disconnected'
 
-  join: (channel) ->
+  join: (channel, key) ->
     if @state is 'connected'
-      @doCommand 'JOIN', channel
+      if key
+        @doCommand 'JOIN', channel, key
+      else
+        @doCommand 'JOIN', channel
     else if not @channels[channel]
-      @channels[channel] = {names:[]}
+      @channels[channel] = {names:[], key: key}
 
   part: (channel, reason) ->
     if @state is 'connected'
