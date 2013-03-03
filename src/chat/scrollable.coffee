@@ -22,7 +22,9 @@ class Scrollable
     @_wasScrolledDown = true
     $(window).resize @_restoreScrollPosition
     $(node).scroll @_onScroll
-    return node
+
+  node: ->
+    return @_node
 
   ##
   # Restore the scroll position to where the user last scrolled. If the node

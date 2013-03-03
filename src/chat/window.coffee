@@ -39,7 +39,7 @@ class Window extends EventEmitter
     @$roomsAndNicks = $ '#rooms-and-nicks'
 
   _addMessageUI: ->
-    @$messagesContainer = new chat.Scrollable $ '#messages-container'
+    @$messagesContainer = (new chat.Scrollable $ '#messages-container').node()
     @$messages = $('#templates .messages').clone()
 
   _addNickUI: ->
