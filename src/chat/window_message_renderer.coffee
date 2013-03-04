@@ -40,6 +40,8 @@ class MessageRenderer
         @_getWebsiteBlurb(), 'notice about'
     @systemMessage "Version: #{irc.VERSION}", 'notice about'
     @systemMessage "Contributors:", 'notice about group'
+    @systemMessage "    * Icon by Michael Cook (themichaelcook@gmail.com)",
+        'notice about group'
     @systemMessage "    * UI mocks by Fravic Fernando (fravicf@gmail.com)",
         'notice about group'
 
