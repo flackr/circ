@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CURRENT_VERSION=`egrep "\"version\": \"[^\"]*\"" manifest.json | cut -d\" -f 4`
+CURRENT_VERSION=`egrep "\"version\": \"[^\"]*\"" package/manifest.json | cut -d\" -f 4`
 
 if [ $# -lt 1 ]
 then
@@ -11,13 +11,9 @@ fi
 
 VERSION="$1"
 sed -i 's/"version": "[^"]*",/"version": "'"$VERSION"'",/g' \
-  manifest.json
+  package/manifest.json
 sed -i 's/exports\.VERSION = "[^"]*"/exports.VERSION = "'"$VERSION"'"/g' \
-  src/irc/irc.coffee
-
-mkdir -p packages
-make package
+  package/bin/irc/irc.js
 
 # Make app
-grep -v "\"key\":" manifest.json > package/manifest.json
-(cd package && zip -r "../packages/circ.zip" *)
+grep -v "\"key\":" package/manifest.json > package/manifest.json

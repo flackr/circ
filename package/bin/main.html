@@ -1,0 +1,134 @@
+<head>
+  <meta charset="utf-8">
+
+  <!-- generic -->
+  <script src="util.js"></script>
+  <script src="keycodes.js"></script>
+  <script src="message_handler.js"></script>
+  <script src="event_emitter.js"></script>
+  <script src="chat/notification.js"></script>
+  <script src="chat/notification_group.js"></script>
+  <script src="net/abstract_tcp_socket.js"></script>
+  <script src="event.js"></script>
+  <script src="timer.js"></script>
+  <script src="context.js"></script>
+
+  <!-- net -->
+  <script src="net/chrome_socket.js"></script>
+  <script src="net/remote_socket.js"></script>
+
+  <!-- irc protocol -->
+  <script src="irc/irc.js"></script>
+  <script src="irc/irc_util.js"></script>
+  <script src="irc/ctcp_handler.js"></script>
+  <script src="irc/server_response_handler.js"></script>
+
+  <!-- scripting -->
+  <script src="script/script.js"></script>
+  <script src="script/prepackaged/source_array.js"></script>
+  <script src="script/script_handler.js"></script>
+  <script src="script/script_loader.js"></script>
+
+  <!-- one identity -->
+  <script src="remote_connection.js"></script>
+  <script src="chat/remote_connection_handler.js"></script>
+  <script src="remote_device.js"></script>
+
+  <!-- user input -->
+  <script src="chat/custom_command_parser.js"></script>
+  <script src="input_stack.js"></script>
+  <script src="completion_finder.js"></script>
+  <script src="auto_complete.js"></script>
+  <script src="keyboard_shortcut_map.js"></script>
+  <script src="user_input_handler.js"></script>
+  <script src="chat/user_command_handler.js"></script>
+  <script src="chat/user_command.js"></script>
+  <script src="chat/developer_commands.js"></script>
+
+  <!-- client and UI -->
+  <script src="chat/chat.js"></script>
+  <script src="chat/walkthrough.js"></script>
+  <script src="chat/storage.js"></script>
+  <script src="chat/chat_log.js"></script>
+  <script src="chat/notice.js"></script>
+  <script src="chat/message_formatter.js"></script>
+  <script src="chat/html_list.js"></script>
+  <script src="chat/nick_mentioned_notification.js"></script>
+  <script src="chat/irc_message_handler.js"></script>
+  <script src="chat/window.js"></script>
+  <script src="chat/window_message_renderer.js"></script>
+  <script src="chat/scrollable.js"></script>
+  <script src="chat/help_message_renderer.js"></script>
+  <script src="chat/nick_list.js"></script>
+  <script src="chat/channel_list.js"></script>
+  <script src="chat/window_list.js"></script>
+
+  <!-- third party -->
+  <script src="third_party/jquery.js"></script>
+  <script src="third_party/md5.js"></script>
+
+  <link id="main-style" rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="message_style.css">
+  <link rel="stylesheet" href="roboto_font.css">
+</head>
+
+<body>
+  <!-- templates -->
+  <div id="templates">
+
+    <div class="server-channels">
+      <div class="server room">
+        <div class="content-item"></div>
+      </div>
+      <ul class="channels"></ul>
+    </div>
+
+    <li class="channel room">
+      <div class="content-item"></div>
+    </li>
+
+    <ul class="nicks"></ul>
+
+    <li class="nick">
+      <div class="content-item"></div>
+    </li>
+
+    <ul class="messages"></ul>
+
+    <li class="message">
+      <div class="source"></div>
+      <div class="content"></div>
+    </li>
+
+  </div>
+
+  <!-- main -->
+  <div id="main">
+    <div id="main-top-border"></div>
+    <div id="rooms-and-nicks" class="no-nicks">
+      <div id="rooms-container">
+        <h1>rooms</h1>
+        <div class="rooms"></div>
+      </div>
+      <div id="nicks-container">
+        <h1>members</h1>
+      </div>
+    </div>
+
+    <div id="messages-and-input">
+      <div id="notice">
+        <div class="content"></div>
+        <button class="close">X</button>
+        <button class="option2 hidden"></button>
+        <button class="option1 hidden"></button>
+      </div>
+      <div id="messages-container"></div>
+      <div id="status-and-input">
+        <div id="status" class="content-item"></div>
+        <input id="input"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>

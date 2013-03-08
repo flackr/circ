@@ -10,76 +10,84 @@
   <script src="jasmine-1.2.0/jasmine-html.js"></script>
 
   <!-- third party -->
-  <script src="jquery.js"></script>
+  <script src="../package/bin/third_party/jquery.js"></script>
   <script src="jasmine-jquery-1.3.1.js"></script>
-  <script src="md5.js"></script>
+  <script src="../package/bin/third_party/md5.js"></script>
 
-  <!-- source files -->
-  <script src="util.js"></script>
-  <script src="keycodes.js"></script>
-  <script src="message_handler.js"></script>
-  <script src="event_emitter.js"></script>
-  <script src="abstract_tcp_socket.js"></script>
-  <script src="event.js"></script>
-  <script src="timer.js"></script>
-  <script src="context.js"></script>
+  <!-- generic -->
+  <script src="../package/bin/util.js"></script>
+  <script src="../package/bin/keycodes.js"></script>
+  <script src="../package/bin/message_handler.js"></script>
+  <script src="../package/bin/event_emitter.js"></script>
+  <script src="../package/bin/chat/notification.js"></script>
+  <script src="../package/bin/chat/notification_group.js"></script>
+  <script src="../package/bin/net/abstract_tcp_socket.js"></script>
+  <script src="../package/bin/event.js"></script>
+  <script src="../package/bin/timer.js"></script>
+  <script src="../package/bin/context.js"></script>
 
-  <script src="irc_util.js"></script>
-  <script src="ctcp_handler.js"></script>
-  <script src="server_response_handler.js"></script>
-  <script src="irc.js"></script>
+  <!-- net -->
+  <script src="../package/bin/net/chrome_socket.js"></script>
+  <script src="../package/bin/net/remote_socket.js"></script>
 
-  <script src="notification.js"></script>
-  <script src="notification_group.js"></script>
-  <script src="nick_mentioned_notification.js"></script>
-  <script src="window_list.js"></script>
+  <!-- irc protocol -->
+  <script src="../package/bin/irc/irc.js"></script>
+  <script src="../package/bin/irc/irc_util.js"></script>
+  <script src="../package/bin/irc/ctcp_handler.js"></script>
+  <script src="../package/bin/irc/server_response_handler.js"></script>
 
-  <script src="remote_connection.js"></script>
-  <script src="remote_connection_handler.js"></script>
-  <script src="remote_device.js"></script>
-  <script src="remote_socket.js"></script>
+  <!-- scripting -->
+  <script src="../package/bin/script/script.js"></script>
+  <script src="../package/bin/script/prepackaged/source_array.js"></script>
+  <script src="../package/bin/script/script_handler.js"></script>
+  <script src="../package/bin/script/script_loader.js"></script>
 
-  <script src="script.js"></script>
-  <script src="source_array.js"></script>
-  <script src="script_loader.js"></script>
-  <script src="script_handler.js"></script>
+  <!-- one identity -->
+  <script src="../package/bin/remote_connection.js"></script>
+  <script src="../package/bin/chat/remote_connection_handler.js"></script>
+  <script src="../package/bin/remote_device.js"></script>
 
-  <script src="custom_command_parser.js"></script>
-  <script src="input_stack.js"></script>
-  <script src="keyboard_shortcut_map.js"></script>
-  <script src="completion_finder.js"></script>
-  <script src="auto_complete.js"></script>
-  <script src="user_input_handler.js"></script>
+  <!-- user input -->
+  <script src="../package/bin/chat/custom_command_parser.js"></script>
+  <script src="../package/bin/input_stack.js"></script>
+  <script src="../package/bin/completion_finder.js"></script>
+  <script src="../package/bin/auto_complete.js"></script>
+  <script src="../package/bin/keyboard_shortcut_map.js"></script>
+  <script src="../package/bin/user_input_handler.js"></script>
+  <script src="../package/bin/chat/user_command_handler.js"></script>
+  <script src="../package/bin/chat/user_command.js"></script>
+  <script src="../package/bin/chat/developer_commands.js"></script>
 
-  <script src="storage.js"></script>
-  <script src="walkthrough.js"></script>
-  <script src="html_list.js"></script>
-  <script src="nick_list.js"></script>
-  <script src="channel_list.js"></script>
-  <script src="message_formatter.js"></script>
-  <script src="developer_commands.js"></script>
-  <script src="user_command.js"></script>
-  <script src="user_command_handler.js"></script>
-  <script src="window.js"></script>
-  <script src="window_message_renderer.js"></script>
-  <script src="scrollable.js"></script>
-  <script src="help_message_renderer.js"></script>
-  <script src="irc_message_handler.js"></script>
-  <script src="notice.js"></script>
-  <script src="chat_log.js"></script>
-  <script src="chat.js"></script>
+  <!-- client and UI -->
+  <script src="../package/bin/chat/chat.js"></script>
+  <script src="../package/bin/chat/walkthrough.js"></script>
+  <script src="../package/bin/chat/storage.js"></script>
+  <script src="../package/bin/chat/chat_log.js"></script>
+  <script src="../package/bin/chat/notice.js"></script>
+  <script src="../package/bin/chat/message_formatter.js"></script>
+  <script src="../package/bin/chat/html_list.js"></script>
+  <script src="../package/bin/chat/nick_mentioned_notification.js"></script>
+  <script src="../package/bin/chat/irc_message_handler.js"></script>
+  <script src="../package/bin/chat/window.js"></script>
+  <script src="../package/bin/chat/window_message_renderer.js"></script>
+  <script src="../package/bin/chat/scrollable.js"></script>
+  <script src="../package/bin/chat/help_message_renderer.js"></script>
+  <script src="../package/bin/chat/nick_list.js"></script>
+  <script src="../package/bin/chat/channel_list.js"></script>
+  <script src="../package/bin/chat/window_list.js"></script>
 
-  <script src="mock_scripts.js"></script>
-  <script src="mock_storage.js"></script>
-  <script src="mock_walkthrough.js"></script>
-  <script src="mock_navigator.js"></script>
-  <script src="mock_notification.js"></script>
-  <script src="mock_chrome_socket.js"></script>
-  <script src="mock_runtime.js"></script>
-  <script src="mock_chat.js"></script>
-  <script src="mock_message_handler.js"></script>
-  <script src="mock_dom.js"></script>
-  <script src="mock_remote_device.js"></script>
+  <!-- mocks -->
+  <script src="mocks/mock_scripts.js"></script>
+  <script src="mocks/mock_storage.js"></script>
+  <script src="mocks/mock_walkthrough.js"></script>
+  <script src="mocks/mock_navigator.js"></script>
+  <script src="mocks/mock_notification.js"></script>
+  <script src="mocks/mock_chrome_socket.js"></script>
+  <script src="mocks/mock_runtime.js"></script>
+  <script src="mocks/mock_chat.js"></script>
+  <script src="mocks/mock_message_handler.js"></script>
+  <script src="mocks/mock_dom.js"></script>
+  <script src="mocks/mock_remote_device.js"></script>
 
   <!-- spec files -->
   <script src="window_message_renderer_test.js"></script>
