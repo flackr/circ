@@ -798,8 +798,8 @@
             return {
               '#bash': {
                 names: {
-                  sally: 'Sally',
                   bob: 'bob',
+                  sally: 'Sally',
                   somenick: 'somenick'
                 }
               }

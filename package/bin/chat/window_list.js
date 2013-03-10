@@ -18,28 +18,25 @@
     }
 
     WindowList.prototype.get = function(serverName, chan) {
-      var server, win, _i, _j, _len, _len1, _ref1, _ref2;
       if (typeof arguments[0] === 'number') {
         return this._getByNumber(arguments[0]);
       }
-      _ref1 = this._servers;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        server = _ref1[_i];
+      for (var i = 0; i < this._servers.length; i++) {
+        var server = this._servers[i];
         if (serverName !== server.name) {
           continue;
         }
         if (chan == null) {
           return server.serverWindow;
         }
-        _ref2 = server.windows;
-        for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-          win = _ref2[_j];
-          if (win.target === chan) {
+        for (var j = 0; j < server.windows.length; j++) {
+          var win = server.windows[j];
+          if (win.target === chan.toLowerCase()) {
             return win;
           }
         }
       }
-      return void 0;
+      return null;
     };
 
     WindowList.prototype._getByNumber = function(num) {

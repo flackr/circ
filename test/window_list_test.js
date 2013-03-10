@@ -80,8 +80,8 @@
       joinMultipleServersAndChannels();
       wl.remove(windows[0]);
       wl.remove(windows[4]);
-      expect(wl.get('freenode')).toBeUndefined();
-      return expect(wl.get('dalnet', '#bash')).toBeUndefined();
+      expect(wl.get('freenode')).toBeNull();
+      return expect(wl.get('dalnet', '#bash')).toBeNull();
     });
     it("deletes all channel windows when their server window is deleted", function() {
       var i, window, _i, _len, _ref, _results;

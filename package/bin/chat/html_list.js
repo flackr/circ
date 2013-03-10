@@ -29,7 +29,8 @@
 
     HTMLList.prototype.insert = function(index, name) {
       var newNode;
-      if (name in this.nodes) {
+      var key = name.toLowerCase();
+      if (key in this.nodes) {
         return;
       }
       if (index < 0 || index > this.nodeNames.length) {
@@ -37,7 +38,7 @@
       }
       newNode = this._createNode(name);
       this._insertHTML(index, newNode);
-      this.nodes[name] = newNode;
+      this.nodes[key] = newNode;
       return this.nodeNames.splice(index, 0, name);
     };
 
@@ -69,10 +70,11 @@
 
     HTMLList.prototype.remove = function(name) {
       var node;
-      if (node = this.nodes[name]) {
+      var key = name.toLowerCase();
+      if (node = this.nodes[key]) {
         node.html.remove();
-        delete this.nodes[name];
-        return removeFromArray(this.nodeNames, name);
+        delete this.nodes[key];
+        return removeFromArray(this.nodeNames, key);
       }
     };
 
