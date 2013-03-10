@@ -12,7 +12,6 @@
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDwi17PnlCWAHUvLhT+eMKZ4kJExfxtiRgWTBamyFdR0pMRO2sPmMD2lJSe1n6zZ4f52kuGzLPVLfexG1Exlgyfl6C+OGfHAhvBc6cUDmWSzCwjKAf1jFBQmDI5En1Oo+2eE3CcOefxIRTLl5Ug6QnbUQcAZQx3ChiFi05DL9ldBwIDAQAB",
 
   "permissions": [
-    "experimental",
     {"socket": [
       "tcp-connect",
       "tcp-listen"
