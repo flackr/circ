@@ -191,10 +191,10 @@
   /*
    * Escapes HTML and linkifies
   */
-  exports.html.display = function(text) {
-    var canonicalise, escape, escapeHTML, m, res, rurl, textIndex;
+  exports.html.display = function(text, allowHtml) {
+    var canonicalise, escape, m, res, rurl, textIndex;
     text = exports.html.stripColorCodes(text);
-    escapeHTML = exports.html.escape;
+    var escapeHTML = exports.html.escape;
 
     // Gruber's url-finding regex
     rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi;
@@ -207,6 +207,8 @@
       }
     };
     escape = function(str) {
+      if (allowHtml)
+        return str;
       // long words need to be extracted before escaping so escape HTML characters
       // don't scew the word length
       var longWords, replacement, result, word, _i, _len, _ref;

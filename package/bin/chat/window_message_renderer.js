@@ -9,18 +9,14 @@
   /*
    * Handles outputing text to the window and provides functions to display
    * some specific messages like help and about.
-  */
+   */
 
 
   MessageRenderer = (function() {
 
     MessageRenderer.PROJECT_URL = "http://flackr.github.com/circ";
 
-    /*
-       * The max number of messages a room can display at once.
-    */
-
-
+    // The max number of messages a room can display at once.
     MessageRenderer.MAX_MESSAGES = 3500;
 
     function MessageRenderer(win) {
@@ -43,11 +39,9 @@
     };
 
     /*
-       * Display available commands, grouped by category.
-       * @param {Object.<string: {category: string}>} commands
-    */
-
-
+     * Display available commands, grouped by category.
+     * @param {Object.<string: {category: string}>} commands
+     */
     MessageRenderer.prototype.displayHelp = function(commands) {
       return this._helpMessageRenderer.render(commands);
     };
@@ -70,24 +64,18 @@
     };
 
     /*
-       * Display content and the source it was from with the given style.
-       * @param {string} from
-       * @param {string} msg
-       * @param {string...} style
-    */
-
-
-    MessageRenderer.prototype.message = function() {
-      var from, fromNode, msg, msgNode, style;
-      from = arguments[0], msg = arguments[1], style = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-      if (from == null) {
-        from = '';
-      }
-      if (msg == null) {
-        msg = '';
-      }
-      fromNode = this._createSourceFromText(from);
-      msgNode = this._createContentFromText(msg);
+     * Display content and the source it was from with the given style.
+     * @param {string} from
+     * @param {string} msg
+     * @param {string...} style
+     */
+    MessageRenderer.prototype.message = function(from, msg, styles) {
+      from = from || '';
+      msg = msg || '';
+      style = __slice.call(arguments, 2);
+      var isHelpMessage = styles && styles.split(' ').indexOf('help') != -1;
+      var fromNode = this._createSourceFromText(from);
+      var msgNode = this._createContentFromText(msg, /* allowHtml */ isHelpMessage);
       style = style.join(' ');
       this.rawMessage(fromNode, msgNode, style);
       if (this._shouldUpdateActivityMarker()) {
@@ -95,13 +83,12 @@
       }
     };
 
-    MessageRenderer.prototype._createContentFromText = function(msg) {
-      var node;
+    MessageRenderer.prototype._createContentFromText = function(msg, allowHtml) {
       if (!msg) {
         return '';
       }
-      node = $('<span>');
-      node.html(html.display(msg));
+      var node = $('<span>');
+      node.html(html.display(msg, allowHtml));
       return node;
     };
 
@@ -116,10 +103,8 @@
     };
 
     /*
-       * Display a system message to the user. A system message has no from field.
-    */
-
-
+     * Display a system message to the user. A system message has no from field.
+     */
     MessageRenderer.prototype.systemMessage = function(msg, style) {
       if (msg == null) {
         msg = '';
@@ -131,10 +116,8 @@
     };
 
     /*
-       * Display a message without escaping the from or msg fields.
-    */
-
-
+     * Display a message without escaping the from or msg fields.
+     */
     MessageRenderer.prototype.rawMessage = function(from, msg, style) {
       var message;
       message = this._createMessageHTML(from, msg, style);
@@ -157,10 +140,8 @@
     };
 
     /*
-       * Trim chat messages when there are too many in order to save on memory.
-    */
-
-
+     * Trim chat messages when there are too many in order to save on memory.
+     */
     MessageRenderer.prototype._trimMessagesIfTooMany = function() {
       var i, messages, _i, _results;
       messages = this.win.$messagesContainer.children().children();
@@ -179,11 +160,9 @@
     };
 
     /*
-       * Update the activity marker when the user has seen the most recent messages
-       * and then received a message while the window wasn't focused.
-    */
-
-
+     * Update the activity marker when the user has seen the most recent messages
+     * and then received a message while the window wasn't focused.
+     */
     MessageRenderer.prototype._shouldUpdateActivityMarker = function() {
       return !this.win.isFocused() && this._userSawMostRecentMessage;
     };
