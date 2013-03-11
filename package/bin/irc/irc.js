@@ -148,7 +148,7 @@
         this.send('PASS', this.password);
       }
       this.send('NICK', this.preferredNick);
-      this.send('USER', this.preferredNick, '0', '*', 'A CIRC user');
+      this.send('USER', this.preferredNick.replace(/[^a-zA-Z0-9]/,''), '0', '*', 'A CIRC user');
       return this.socket.setTimeout(60000, this.onTimeout);
     };
 

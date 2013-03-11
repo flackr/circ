@@ -49,6 +49,22 @@
         return expect(socket.received).not.toHaveBeenCalled();
       });
     });
+    describe('that is connecting with invalid username', function() {
+      beforeEach(function() {
+        irc.setPreferredNick('_ournick');
+        irc.connect('irc.freenode.net', 6667);
+        expect(irc.state).toBe('connecting');
+        socket.respond('connect');
+        return waitsForArrayBufferConversion();
+      });
+      it('strips invalid chars from USER', function() {
+        return runs(function() {
+          expect(socket.received.callCount).toBe(2);
+          expect(socket.received.argsForCall[0]).toMatch(/NICK _ournick\s*/);
+          return expect(socket.received.argsForCall[1]).toMatch(/USER ournick 0 \* :.+/);
+        });
+      });
+    });
     return describe('that is connecting', function() {
       beforeEach(function() {
         irc.setPreferredNick('ournick');
