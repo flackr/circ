@@ -15,5 +15,7 @@ sed -i 's/"version": "[^"]*",/"version": "'"$VERSION"'",/g' \
 sed -i 's/exports\.VERSION = "[^"]*"/exports.VERSION = "'"$VERSION"'"/g' \
   package/bin/irc/irc.js
 
+cp -rv package circ
 # Make app
-grep -v "\"key\":" package/manifest.json > package/manifest.json
+grep -v "\"key\":" package/manifest.json > circ/manifest.json
+(cd circ; zip -r ../circ.zip *)
