@@ -269,4 +269,17 @@
     });
   };
 
+  exports.registerSocketConnection = function(socketId, remove) {
+    if (window.chrome && chrome.runtime) {
+      chrome.runtime.getBackgroundPage(function(page) {
+        if (!page || !page.registerSocketId || !page.unregisterSocketId)
+          return;
+        if (remove)
+          page.unregisterSocketId(socketId);
+        else
+          page.registerSocketId(socketId);
+      });
+    }
+  };
+
 }).call(this);

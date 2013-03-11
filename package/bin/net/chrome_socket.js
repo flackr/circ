@@ -29,6 +29,7 @@
       return chrome.socket.create('tcp', {}, function(si) {
         _this.socketId = si.socketId;
         if (_this.socketId > 0) {
+          registerSocketConnection(si.socketId);
           return chrome.socket.connect(_this.socketId, addr, port, _this._onConnect);
         } else {
           return _this.emit('error', "couldn't create socket");
@@ -85,6 +86,8 @@
     ChromeSocket.prototype.close = function() {
       if (this.socketId != null) {
         chrome.socket.disconnect(this.socketId);
+        chrome.socket.destroy(this.socketId);
+        registerSocketConnection(this.socketId, true);
       }
       return this.emit('close');
     };

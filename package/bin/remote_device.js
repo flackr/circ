@@ -178,6 +178,7 @@
         _this = this;
       return (_ref = chrome.socket) != null ? _ref.create('tcp', {}, function(socketInfo) {
         _this._socketId = socketInfo.socketId;
+        registerSocketConnection(socketInfo.socketId);
         if (api.listenSupported()) {
           return _this._listenOnValidPort(callback);
         }
@@ -231,6 +232,7 @@
           return;
         }
         _this._log('Connected to a client device', _this._socketId);
+        registerSocketConnection(_this._socketId);
         device = new RemoteDevice(acceptInfo.socketId);
         device.getAddr(function() {
           return callback(device);
@@ -309,13 +311,10 @@
     RemoteDevice.prototype.close = function() {
       var _ref, _ref1;
       if (this._socketId) {
-        if ((_ref = chrome.socket) != null) {
-          _ref.disconnect(this._socketId);
-        }
-        if ((_ref1 = chrome.socket) != null) {
-          _ref1.destroy(this._socketId);
-        }
-        this._socketId = void 0;
+        registerSocketConnection(this._socketId, true);
+        chrome.socket.disconnect(this._socketId);
+        chrome.socket.destroy(this._socketId);
+        this._socketId = undefined;
         return this.emit('closed', this);
       }
     };
