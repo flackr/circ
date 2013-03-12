@@ -261,7 +261,7 @@
       _ref1 = this._channels;
       for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
         channel = _ref1[i];
-        if (channel.server === server && channel.name === name) {
+        if (channel.server == server && channel.name.toLowerCase() == name.toLowerCase()) {
           this._channels.splice(i, 1);
           break;
         }
@@ -274,7 +274,7 @@
       _ref1 = this._servers;
       for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
         server = _ref1[i];
-        if (server.name === name) {
+        if (server.name == name) {
           this._servers.splice(i, 1);
           break;
         }

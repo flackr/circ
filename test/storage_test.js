@@ -131,6 +131,11 @@
       ss.parted('freenode', '#bash');
       return expect(sync._storageMap.channels).toEqual([]);
     });
+    it('removes the stored lowercase username on channelParted()', function() {
+      ss.channelJoined('freenode', 'sally');
+      ss.parted('freenode', 'Sally');
+      return expect(sync._storageMap.channels).toEqual([]);
+    });
     it('stores the joined server on serverJoined()', function() {
       ss.serverJoined('freenode', 6667);
       return expect(sync._storageMap.servers).toEqual([
