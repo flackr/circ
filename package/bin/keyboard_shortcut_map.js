@@ -136,9 +136,9 @@
     KeyboardShortcutMap.prototype._mapHotkeys = function() {
       var windowNumber, _i;
       for (windowNumber = _i = 1; _i <= 9; windowNumber = ++_i) {
-        this._addHotkey("Alt-" + windowNumber, {
+        this._addHotkey("Ctrl-" + windowNumber, {
           command: 'win',
-          group: 'Alt-#',
+          group: 'Ctrl-#',
           description: 'switch channels',
           args: [windowNumber]
         });
