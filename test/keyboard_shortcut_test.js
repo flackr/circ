@@ -8,22 +8,22 @@
       return map = new KeyboardShortcutMap();
     });
     it("maps a keyboard event to a command with certain arguments", function() {
-      var alt1, args, command, _ref;
-      alt1 = {
-        altKey: true,
-        which: 49
-      };
-      _ref = map.getMappedCommand(alt1), command = _ref[0], args = _ref[1];
-      expect(command).toBe('win');
-      return expect(args).toEqual([1]);
-    });
-    it("returns an undefined command when the shortcut doesn't match any command", function() {
-      var args, command, ctrl1, _ref;
+      var ctrl1, args, command, _ref;
       ctrl1 = {
         ctrlKey: true,
         which: 49
       };
       _ref = map.getMappedCommand(ctrl1), command = _ref[0], args = _ref[1];
+      expect(command).toBe('win');
+      return expect(args).toEqual([1]);
+    });
+    it("returns an undefined command when the shortcut doesn't match any command", function() {
+      var args, command, alt1, _ref;
+      alt1 = {
+        altKey: true,
+        which: 49
+      };
+      _ref = map.getMappedCommand(alt1), command = _ref[0], args = _ref[1];
       return expect(command).not.toBeDefined();
     });
     it("maps Tab to a command when the input field is empty", function() {

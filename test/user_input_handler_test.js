@@ -2,15 +2,16 @@
 (function() {
 
   describe('A user input handler', function() {
-    var altHeld, commands, context, ctrl, cursor, handler, input, inputKeyDown, keyDown, names, numlock, onVal, space, tab, type, val, window, windowKeyDown,
+    var altHeld, commands, context, ctrl, ctrlHeld, cursor, handler, input, inputKeyDown, keyDown, names, numlock, onVal, space, tab, type, val, window, windowKeyDown,
       _this = this;
-    handler = altHeld = val = inputKeyDown = windowKeyDown = void 0;
+    handler = altHeld = ctrlHeld = val = inputKeyDown = windowKeyDown = void 0;
     onVal = jasmine.createSpy('onVal');
     keyDown = function(code) {
       var e;
       e = {
         which: code,
         altKey: altHeld,
+        ctrlKey: ctrlHeld,
         isDefaultPrevented: function() {},
         preventDefault: function() {}
       };
@@ -103,9 +104,9 @@
       altHeld = false;
       return onVal.reset();
     });
-    it("switches to the given window on 'alt-[1-9]'", function() {
+    it("switches to the given window on 'ctrl-[1-9]'", function() {
       var event;
-      altHeld = true;
+      ctrlHeld = true;
       keyDown(49);
       event = handler.emit.mostRecentCall.args[1];
       expect(event.type).toBe('command');
@@ -117,8 +118,9 @@
       expect(event.name).toBe('win');
       return expect(event.args).toEqual([9]);
     });
-    it("doesn't switch windows when alt isn't held", function() {
+    it("doesn't switch windows when ctrl isn't held", function() {
       keyDown(48);
+      altHeld = true;
       keyDown(57);
       return expect(handler.emit).not.toHaveBeenCalled();
     });
