@@ -502,15 +502,21 @@
         expect(room(-1)).toHaveClass('selected');
         return expect(room(-1)).toHaveClass('disconnected');
       });
-      it('automatically joins queued channels when connected', function() {
+      it('removes queued channels on /part', function() {
         type('/join #bash');
         type('/part');
         spyOn(irc('freenode'), 'send');
         irc('freenode').handle('1', {}, 'ournick');
         return expect(irc('freenode').send).not.toHaveBeenCalled();
       });
-      return it('removes queued channels on /part', function() {
+      it('automatically joins queued channels when connected', function() {
         type('/join #bash');
+        spyOn(irc('freenode'), 'send');
+        irc('freenode').handle('1', {}, 'ournick');
+        return expect(irc('freenode').send).toHaveBeenCalledWith('JOIN', '#bash');
+      });
+      return it('adds channel character if not provided', function() {
+        type('/join bash');
         spyOn(irc('freenode'), 'send');
         irc('freenode').handle('1', {}, 'ournick');
         return expect(irc('freenode').send).toHaveBeenCalledWith('JOIN', '#bash');

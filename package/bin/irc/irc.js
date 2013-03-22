@@ -42,6 +42,7 @@ ArrayBuffer.prototype.slice = ArrayBuffer.prototype.slice || ArrayBuffer.prototy
       this.channels = {};
       this.serverResponseHandler = new irc.ServerResponseHandler(this);
       this.state = 'disconnected';
+      this.support = {};
     }
 
     IRC.prototype.setSocket = function(socket) {
@@ -315,6 +316,11 @@ ArrayBuffer.prototype.slice = ArrayBuffer.prototype.slice || ArrayBuffer.prototy
 
     IRC.prototype.isOwnNick = function(nick) {
       return irc.util.nicksEqual(this.nick, nick);
+    };
+
+    IRC.prototype.isValidChannelPrefix = function(channel) {
+      var prefixes = this.support['chantypes'] || '#&';
+      return prefixes.indexOf(channel.substr(0, 1)) != -1;
     };
 
     return IRC;

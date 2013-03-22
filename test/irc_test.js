@@ -120,6 +120,16 @@
             return expect(chat.onIRCMessage).toHaveBeenCalledWith(SERVER_WINDOW, 'welcome', 'Welcome');
           });
         });
+        it("parses and stores isupport response", function() {
+          var cmd, data;
+          socket.respondWithData(":someserver.example.com 005 ournick CHANTYPES=&#+ EXCEPTS INVEX PREFIX=(ov)@+ :are supported by this server");
+          waitsForArrayBufferConversion();
+          return runs(function() {
+            expect(irc.support['chantypes']).toBe('&#+');
+            expect(irc.support['invex']).toBe(true);
+            return expect(irc.isValidChannelPrefix('+foo')).toBe(true);
+          });
+        });
         it("properly parses commands with parseCommand()", function() {
           var cmd, data;
           data = ":ournick!ournick@name.corp.company.com JOIN :#bash";

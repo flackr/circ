@@ -78,6 +78,25 @@
         }
         return _results;
       },
+
+      /*
+       * rpl_isupport.
+       *
+       * We might get multiple, so this just adds to the support object.
+       */
+      5: function() {
+        // Parameters passed in arguments, pull out the parts we want.
+        var m = Array.prototype.slice.call(arguments, 2, arguments.length - 1);
+        for (var i = 0; i < m.length; i++) {
+          var param = m[i].split(/=/, 2);
+          var k = param[0].toLowerCase();
+          if (param.length == 1)
+            this.irc.support[k] = true;
+          else
+            this.irc.support[k] = param[1];
+        }
+      },
+
       /*
            * rpl_namreply
       */
