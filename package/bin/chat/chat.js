@@ -258,6 +258,9 @@
 
     Chat.prototype.join = function(conn, channel, opt_key) {
       var win;
+      if (!conn.irc.isValidChannelPrefix(channel)) {
+        channel = '#' + channel;
+      }
       win = this._createWindowForChannel(conn, channel);
       this.switchToWindow(win);
       this.storage.channelJoined(conn.name, channel, null, opt_key);

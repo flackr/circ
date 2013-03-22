@@ -121,10 +121,11 @@
         });
         it("parses and stores isupport reseponse", function() {
           var cmd, data;
-          socket.respondWithData(":someserver.example.com 005 ournick CHANTYPES=&# EXCEPTS INVEX PREFIX=(ov)@+ :are supported by this server");
+          socket.respondWithData(":someserver.example.com 005 ournick CHANTYPES=&#+ EXCEPTS INVEX PREFIX=(ov)@+ :are supported by this server");
           waitsForArrayBufferConversion();
           return runs(function() {
-            return expect(irc.support['chantypes']).toBe('&#');
+            expect(irc.support['chantypes']).toBe('&#+');
+            return expect(irc.isValidChannelPrefix('+foo')).toBe(true);
           });
         });
         it("properly parses commands with parseCommand()", function() {

@@ -307,6 +307,14 @@
       return irc.util.nicksEqual(this.nick, nick);
     };
 
+    IRC.prototype.isValidChannelPrefix = function(channel) {
+      var prefixes = '#&';
+      if ('chantypes' in this.support) {
+        prefixes = this.support['chantypes'];
+      }
+      return prefixes.split('').indexOf(channel.substr(0, 1)) != -1;
+    };
+
     return IRC;
 
   })(EventEmitter);
