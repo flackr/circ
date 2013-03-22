@@ -119,6 +119,14 @@
             return expect(chat.onIRCMessage).toHaveBeenCalledWith(SERVER_WINDOW, 'welcome', 'Welcome');
           });
         });
+        it("parses and stores isupport reseponse", function() {
+          var cmd, data;
+          socket.respondWithData(":someserver.example.com 005 ournick CHANTYPES=&# EXCEPTS INVEX PREFIX=(ov)@+ :are supported by this server");
+          waitsForArrayBufferConversion();
+          return runs(function() {
+            return expect(irc.support['chantypes']).toBe('&#');
+          });
+        });
         it("properly parses commands with parseCommand()", function() {
           var cmd, data;
           data = ":ournick!ournick@name.corp.company.com JOIN :#bash";

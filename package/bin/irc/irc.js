@@ -31,6 +31,7 @@
       this.channels = {};
       this.serverResponseHandler = new irc.ServerResponseHandler(this);
       this.state = 'disconnected';
+      this.support = {};
     }
 
     IRC.prototype.setSocket = function(socket) {
