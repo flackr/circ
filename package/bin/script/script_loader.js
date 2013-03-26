@@ -4,7 +4,7 @@
   var ScriptLoader, exports, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  exports = (_ref = window.script) != null ? _ref : window.script = {};
+  var exports = (_ref = window.script) != null ? _ref : window.script = {};
 
   ScriptLoader = (function() {
 

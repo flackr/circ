@@ -3,7 +3,7 @@
   "use strict";
   var CompletionFinder, exports;
 
-  exports = window;
+  var exports = window;
 
   /*
    * Finds completions for a partial word.

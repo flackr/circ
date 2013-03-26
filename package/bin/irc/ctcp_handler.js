@@ -4,7 +4,7 @@
   var CTCPHandler, exports, _ref,
     __slice = [].slice;
 
-  exports = (_ref = window.irc) != null ? _ref : window.irc = {};
+  var exports = (_ref = window.irc) != null ? _ref : window.irc = {};
 
   /*
    * Handles CTCP requests such as VERSION, PING, etc.

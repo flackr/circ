@@ -3,7 +3,7 @@
   "use strict";
   var Timer, exports;
 
-  exports = window;
+  var exports = window;
 
   /*
    * Utility class for determining the time between events.

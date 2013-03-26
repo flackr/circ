@@ -4,7 +4,7 @@
   var _ref, _ref1, _ref2, _this = this;
   var openConnections = [];
   var currentApp = null;
-  exports = window || {};
+  var exports = window || {};
 
   var appIsRunning = function() {
     return currentApp && !currentApp.contentWindow.closed;

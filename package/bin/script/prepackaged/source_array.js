@@ -18,7 +18,7 @@
   "use strict";
   var exports, _ref;
 
-  exports = (_ref = window.script) != null ? _ref : window.script = {};
+  var exports = (_ref = window.script) != null ? _ref : window.script = {};
 
   exports.prepackagedScripts = ["  "];
 

@@ -4,7 +4,7 @@
   var Event, exports,
     __slice = [].slice;
 
-  exports = window;
+  var exports = window;
 
   /*
    * A generic event often used in conjuction with emit().

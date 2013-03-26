@@ -4,7 +4,7 @@
   var MockChat, exports, _ref,
     __slice = [].slice;
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   MockChat = (function() {
 

@@ -4,7 +4,7 @@
   var AutoComplete, exports,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  exports = window;
+  var exports = window;
 
   /*
    * Takes a string and replaces a word with its completion based on the cursor position.

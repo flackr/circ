@@ -4,7 +4,7 @@
   var CustomCommandParser, exports, _ref,
     __slice = [].slice;
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   /*
    * Parses raw commands from the user. Used with the /raw command.

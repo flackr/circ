@@ -4,7 +4,7 @@
   var Script, exports, _ref,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  exports = (_ref = window.script) != null ? _ref : window.script = {};
+  var exports = (_ref = window.script) != null ? _ref : window.script = {};
 
   Script = (function() {
 

@@ -4,7 +4,7 @@
   var Notice, exports, _ref,
     __slice = [].slice;
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   /*
    * A UI element to inform and/or prompt the user.

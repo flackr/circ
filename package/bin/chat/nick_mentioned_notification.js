@@ -3,7 +3,7 @@
   "use strict";
   var NickMentionedNotification, exports, _ref;
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   /*
    * A notification used when the user's nick is mentioned.

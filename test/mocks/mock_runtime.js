@@ -4,7 +4,7 @@
   var Runtime, exports, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  exports = (_ref = window.mocks) != null ? _ref : window.mocks = {};
+  var exports = (_ref = window.mocks) != null ? _ref : window.mocks = {};
 
   Runtime = (function() {
 

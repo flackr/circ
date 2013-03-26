@@ -5,7 +5,7 @@
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __slice = [].slice;
 
-  exports = (_ref = (_base = ((_ref1 = window.chat) != null ? _ref1 : window.chat = {})).window) != null ? _ref : _base.window = {};
+  var exports = (_ref = (_base = ((_ref1 = window.chat) != null ? _ref1 : window.chat = {})).window) != null ? _ref : _base.window = {};
 
   /*
    * Handles outputing text to the window and provides functions to display

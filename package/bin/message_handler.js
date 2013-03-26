@@ -4,7 +4,7 @@
   var MessageHandler, exports,
     __slice = [].slice;
 
-  exports = window;
+  var exports = window;
 
   /*
    * Generic message handling class.

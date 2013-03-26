@@ -3,7 +3,7 @@
   var exports, getLoggerForType,
     __slice = [].slice;
 
-  exports = window;
+  var exports = window;
 
   /*
    * determine API support

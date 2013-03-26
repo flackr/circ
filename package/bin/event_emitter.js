@@ -4,7 +4,7 @@
   var EventEmitter, exports,
     __slice = [].slice;
 
-  exports = window;
+  var exports = window;
 
   /*
    * Manages the sending and receiving of events.

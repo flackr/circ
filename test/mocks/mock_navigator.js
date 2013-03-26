@@ -3,7 +3,7 @@
   "use strict";
   var Navigator, exports, _ref;
 
-  exports = (_ref = window.mocks) != null ? _ref : window.mocks = {};
+  var exports = (_ref = window.mocks) != null ? _ref : window.mocks = {};
 
   Navigator = (function() {
 

@@ -4,7 +4,7 @@
   var Scrollable, exports, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   /*
    * Indicates that a dom element can be scrolled and provides scroll utility

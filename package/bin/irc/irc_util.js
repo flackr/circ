@@ -4,7 +4,7 @@
   var arrayBuffer2String, concatArrayBuffers, exports, normaliseNick, string2ArrayBuffer, _base, _ref, _ref1,
     __slice = [].slice;
 
-  exports = (_ref = (_base = ((_ref1 = window.irc) != null ? _ref1 : window.irc = {})).util) != null ? _ref : _base.util = {};
+  var exports = (_ref = (_base = ((_ref1 = window.irc) != null ? _ref1 : window.irc = {})).util) != null ? _ref : _base.util = {};
 
   exports.parseCommand = function(data) {
     var parts, str;

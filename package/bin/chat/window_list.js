@@ -3,7 +3,7 @@
   "use strict";
   var WindowList, exports, _ref;
 
-  exports = (_ref = window.chat) != null ? _ref : window.chat = {};
+  var exports = (_ref = window.chat) != null ? _ref : window.chat = {};
 
   /*
    * An ordered list of windows with channels sorted by server then alphebetically

@@ -4,7 +4,7 @@
   var KeyCodes, exports,
     __slice = [].slice;
 
-  exports = window;
+  var exports = window;
 
   /*
    * A mapping of characters to their ascii values.

@@ -3,7 +3,7 @@
   "use strict";
   var Context, exports;
 
-  exports = window;
+  var exports = window;
 
   Context = (function() {
 

@@ -3,7 +3,7 @@
   "use strict";
   var InputStack, exports;
 
-  exports = window;
+  var exports = window;
 
   /*
    * A traversable stack of all input entered by the user.
