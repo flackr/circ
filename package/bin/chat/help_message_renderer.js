@@ -1,4 +1,5 @@
 (function() {
+  "use strict";
   var HelpMessageRenderer, exports, _base, _ref, _ref1;
 
   exports = (_ref = (_base = ((_ref1 = window.chat) != null ? _ref1 : window.chat = {})).window) != null ? _ref : _base.window = {};
