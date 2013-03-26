@@ -90,7 +90,7 @@
           var param = m[i].split(/=/, 2);
           var k = param[0].toLowerCase();
           if (param.length == 1)
-            v = true;
+            this.irc.support[k] = true;
           else
             this.irc.support[k] = param[1];
         }
