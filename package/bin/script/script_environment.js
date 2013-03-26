@@ -8,6 +8,7 @@
 
 
 (function() {
+  "use strict";
   var _this = this,
     __slice = [].slice;
 

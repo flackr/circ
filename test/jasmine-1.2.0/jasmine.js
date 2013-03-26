@@ -1725,6 +1725,7 @@ jasmine.MultiReporter.prototype.addReporter = function(reporter) {
 };
 
 (function() {
+  "use strict";
   var functionNames = [
     "reportRunnerStarting",
     "reportRunnerResults",
