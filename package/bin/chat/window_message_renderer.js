@@ -72,7 +72,7 @@
     MessageRenderer.prototype.message = function(from, msg, styles) {
       from = from || '';
       msg = msg || '';
-      style = __slice.call(arguments, 2);
+      var style = __slice.call(arguments, 2);
       var isHelpMessage = styles && styles.split(' ').indexOf('help') != -1;
       var fromNode = this._createSourceFromText(from);
       var msgNode = this._createContentFromText(msg, /* allowHtml */ isHelpMessage);
