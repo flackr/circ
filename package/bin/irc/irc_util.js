@@ -139,6 +139,16 @@
     return result;
   };
 
+  function createBlob(src) {
+    var BB = window.BlobBuilder || window.WebKitBlobBuilder;
+    if (BB) {
+      bb = new BB();
+      bb.append(src);
+      return bb.getBlob();
+    }
+    return new Blob([src]);
+  }
+
   concatArrayBuffers = function(a, b) {
     var result, resultView;
     result = new ArrayBuffer(a.byteLength + b.byteLength);
@@ -151,7 +161,7 @@
   string2ArrayBuffer = function(string, callback) {
     var blob, f;
     exports.arrayBufferConversionCount++;
-    blob = new Blob([string]);
+    blob = createBlob(string);
     f = new FileReader();
     f.onload = function(e) {
       exports.arrayBufferConversionCount--;
@@ -163,7 +173,7 @@
   arrayBuffer2String = function(buf, callback) {
     var blob, f;
     exports.arrayBufferConversionCount++;
-    blob = new Blob([buf]);
+    blob = createBlob(buf);
     f = new FileReader();
     f.onload = function(e) {
       exports.arrayBufferConversionCount--;
