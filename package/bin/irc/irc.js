@@ -183,7 +183,8 @@
 
     IRC.prototype.onEnd = function() {
       console.error("remote peer closed connection");
-      if (this.state === 'connected') {
+      if (this.state === 'connecting' || this.state === 'connected') {
+        this.emit('disconnect');
         return this.setReconnect();
       }
     };
