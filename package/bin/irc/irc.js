@@ -215,7 +215,7 @@
           d = dataView[i];
           if (d === 0x0d) {
             cr = true;
-          } else if (cr && d === 0x0a) {
+          } else if (d === 0x0a) {
             crlf = i;
             break;
           } else {
@@ -223,7 +223,7 @@
           }
         }
         if (crlf != null) {
-          line = this.data.slice(0, crlf - 1);
+          line = this.data.slice(0, cr ? crlf - 1 : crlf);
           this.data = this.data.slice(crlf + 1);
           dataView = new Uint8Array(this.data);
           _results.push(this.util.fromSocketData(line, function(lineStr) {
