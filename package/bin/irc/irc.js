@@ -163,6 +163,9 @@
     };
 
     IRC.prototype.onTimeout = function() {
+      if (this.state === 'connected' && this.exponentialBackoff > 0) {
+        this.exponentialBackoff--;
+      }
       this.send('PING', +(new Date));
       return this.socket.setTimeout(60000, this.onTimeout);
     };
