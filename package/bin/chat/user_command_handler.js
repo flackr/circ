@@ -127,6 +127,28 @@
           return this.chat.removeWindow(this.win);
         }
       });
+      this._addCommand('invite', {
+         description: "invites the specified nick to the current or specified channel",
+         category: 'common',
+         params: ['nick...', 'opt_channel'],
+         requires: ['connection'],
+         usage: '<nick> [channel]',
+         run: function() {
+             if (!this.channel) {
+                 if (this.chan) {
+                    this.channel = this.chan;
+                 } else {
+                    return this.displayMessage('error','you must be in a channel or specify one');
+                 }
+             }
+             if (!this.conn.irc.channels[this.channel]) {
+                 // according to spec you can invite users to a channel that you are not a member of if it doesn't exist
+                 return this.displayMessage('error', 'you must be in ' + this.channel + ' to invite someone to it');
+             }
+             this.displayMessage('notice', 'inviting ' + this.nick + ' to join ' + this.channel);
+             return this.conn.irc.doCommand('INVITE', this.nick, this.channel);
+         }
+      });
       this._addCommand('win', {
         description: 'switches windows, only channel windows are selected this way',
         category: 'misc',
