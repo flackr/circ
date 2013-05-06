@@ -186,6 +186,9 @@
           return console.warn("Got TOPIC for a channel we're not in: " + chan);
         }
       },
+      INVITE: function(from, target, channel) {
+        return this.irc.emitMessage('notice', chat.CURRENT_WINDOW, from.nick + ' invites you to join ' + channel);
+      },
       QUIT: function(from, reason) {
         var chan, chanName, normNick, _ref1, _results;
         normNick = irc.util.normaliseNick(from.nick);
