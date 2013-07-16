@@ -153,6 +153,12 @@
       this._addHotkey('Alt-UP', {
         command: 'previous-room'
       });
+      this._addHotkey('Alt-PAGEDOWN', {
+        command: 'next-room'
+      });
+      this._addHotkey('Alt-PAGEUP', {
+        command: 'previous-room'
+      });
       return this._addHotkey('TAB', {
         command: 'reply',
         description: 'autocomplete or reply to last mention'
