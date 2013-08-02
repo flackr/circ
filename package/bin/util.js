@@ -186,7 +186,56 @@
   };
 
   exports.html.stripColorCodes = function(html) {
-    return html.replace(/\u0003\d{1,2}(,\d{1,2})?/g, '');
+    return html.replace(/\u0003\d{1,2}(,\d{1,2})?/g, '').replace(/\x0F/g, '');
+  };
+
+  /*
+   * Somewhat naive implementation of parsing color codes that does not respect
+   * proper order of HTML open and close tags. Chrome doesn't seem to mind, though.
+  */
+  exports.html.parseColorCodes = function(html) {
+    var colors = [
+      "rgb(255, 255, 255)",
+      "rgb(0, 0, 0)",
+      "rgb(0, 0, 128)",
+      "rgb(0, 128, 0)",
+      "rgb(255, 0, 0)",
+      "rgb(128, 0, 64)",
+      "rgb(128, 0, 128)",
+      "rgb(255, 128, 64)",
+      "rgb(255, 255, 0)",
+      "rgb(128, 255, 0)",
+      "rgb(0, 128, 128)",
+      "rgb(0, 255, 255)",
+      "rgb(0, 0, 255)",
+      "rgb(255, 0, 255)",
+      "rgb(128, 128, 128)",
+      "rgb(192, 192, 192)"
+    ];
+
+    var color = null,
+        background = null;
+    var res = html.replace(/(\x0F|\u0003(\d{0,2})(?:,(\d{1,2}))?)([^\x0F\u0003]*)/g, function(match, gr1, gr2, gr3, gr4) {
+      if(gr1 == "\x0F") {
+        color = null;
+        background = null;
+      }else{
+        if(gr2)
+          color = colors[parseInt(gr2)];
+
+        if(gr3)
+          background = colors[parseInt(gr3)];
+      }
+
+      return "<font style='" +
+              (color ? "color: " + color + ";" : "") +
+              (background ? "background-color: " + background + ";" : "") +
+              "'>" +
+              gr4 +
+              "</font>";
+    });
+
+    return res;
   };
 
   /*
@@ -194,12 +243,12 @@
   */
   exports.html.display = function(text, allowHtml) {
     var canonicalise, escape, m, res, rurl, textIndex;
-    text = exports.html.stripColorCodes(text);
     var escapeHTML = exports.html.escape;
 
     // Gruber's url-finding regex
     rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi;
     canonicalise = function(url) {
+      url = exports.html.stripColorCodes(url);
       url = escapeHTML(url);
       if (url.match(/^[a-z][\w-]+:/i)) {
         return url;
@@ -242,6 +291,8 @@
       textIndex = m.index + m[0].length;
     }
     res += escape(text.substr(textIndex));
+    res = exports.html.parseColorCodes(res);
+
     return res;
   };
 
