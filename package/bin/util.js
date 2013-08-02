@@ -186,7 +186,7 @@
   };
 
   exports.html.stripColorCodes = function(html) {
-    return html.replace(/\u0003\d{1,2}(,\d{1,2})?/g, '').replace(/\x0F/g, '');
+    return html.replace(/\u0003\d{1,2}(,\d{1,2})?/g, '').replace(/[\x0F\x02\x1F\x1D]/g, '');
   };
 
   /*
@@ -214,11 +214,24 @@
     ];
 
     var color = null,
-        background = null;
-    var res = html.replace(/(\x0F|\u0003(\d{0,2})(?:,(\d{1,2}))?)([^\x0F\u0003]*)/g, function(match, gr1, gr2, gr3, gr4) {
+        background = null,
+        bold = false,
+        italics = false,
+        underline = false;
+
+    var res = html.replace(/(\x0F|\x02|\x1F|\x1D|\u0003(\d{0,2})(?:,(\d{1,2}))?)([^\x0F\x02\x1F\x1D\u0003]*)/g, function(match, gr1, gr2, gr3, gr4) {
       if(gr1 == "\x0F") {
         color = null;
         background = null;
+        bold = false;
+        italics = false;
+        underline = false;
+      }else if(gr1 == "\x02") {
+        bold = !bold;
+      }else if(gr1 == "\x1F") {
+        underline = !underline;
+      }else if(gr1 == "\x1D") {
+        italics = !italics;
       }else{
         if(gr2)
           color = colors[parseInt(gr2)];
@@ -227,9 +240,15 @@
           background = colors[parseInt(gr3)];
       }
 
+      if(!gr4)
+        return "";
+
       return "<font style='" +
               (color ? "color: " + color + ";" : "") +
               (background ? "background-color: " + background + ";" : "") +
+              (bold ? "font-weight: bold;" : "") +
+              (underline ? "text-decoration: underline;" : "") +
+              (italics ? "font-style: italic;" : "") +
               "'>" +
               gr4 +
               "</font>";
