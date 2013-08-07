@@ -29,10 +29,35 @@
         coloredText = "hi\u0003055";
         return expect(html.stripColorCodes(coloredText)).toBe("hi5");
       });
-      return it("removes color codes that specify a forground and background color", function() {
+      it("removes color codes that specify a forground and background color", function() {
         var coloredText;
         coloredText = "so \u00038,77how are you?";
         return expect(html.stripColorCodes(coloredText)).toBe("so how are you?");
+      });
+      return it("removes control codes that affect the style", function() {
+        var coloredText;
+        coloredText = "what \x0F\x02\x1F\x1Dup";
+        return expect(html.stripColorCodes(coloredText)).toBe("what up");
+      });
+    });
+    describe("parseColorCodes", function() {
+      it("parses color codes", function() {
+        var coloredText;
+        coloredText = "\u000315hey guy\u0003, how's it going?";
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(192, 192, 192);'>hey guy</font><font style='color: rgb(192, 192, 192);'>, how's it going?</font>");
+        coloredText = "\u00033hey guy\u00032, how's it going?";
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 128);'>, how's it going?</font>");
+        coloredText = "\u00033hey guy\u00031,2, how's it going?";
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going?</font>");
+        coloredText = "\u00033hey guy\u00031,2, how's it going\u00031?";
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>?</font>");
+        coloredText = "\u00033hey guy\u00031,2, how's it going\u00031?\x0F!";
+        return expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>?</font><font style=''>!</font>");
+      });
+      it("parses underline/italics/bold", function() {
+        var coloredText;
+        coloredText = "\x02Bold \x1FUnderline \x1DItalics \x0F\x1FUnderline \x0FNone";
+        return expect(html.parseColorCodes(coloredText)).toBe("<font style='font-weight: bold;'>Bold </font><font style='font-weight: bold;text-decoration: underline;'>Underline </font><font style='font-weight: bold;text-decoration: underline;font-style: italic;'>Italics </font><font style='text-decoration: underline;'>Underline </font><font style=''>None</font>");
       });
     });
     describe("pluralize", function() {
