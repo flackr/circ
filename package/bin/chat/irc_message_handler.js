@@ -157,8 +157,8 @@
       */
 
       topic_info: function(who, time) {
-	//For some reason it truncates the last 3 digits (the acutal milliseconds)
-	var time = time * 1000;
+        //For some reason it truncates the last 3 digits (the acutal milliseconds)
+        var time = time * 1000;
         this._formatter.addStyle('notice');
         this._formatter.setContent(getReadableTime(parseInt(time)));
         this._formatter.setMessage('Topic set by #from on #content.');
