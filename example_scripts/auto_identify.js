@@ -7,7 +7,7 @@ loadFromStorage();
 // Keeps track of the last NickServ password used in each server.
 var serverPasswords = {};
 
-onMessage = function(e) {
+this.onMessage = function(e) {
   if (e.type == 'system' && e.name == 'loaded' && e.args[0]) {
     updatePasswords(e.args[0]);
   } else if (e.type == 'message' && e.name == 'privmsg') {
@@ -38,38 +38,38 @@ var shouldAutoIdentify = function(context, message) {
 };
 
 var autoIdentify = function(context, message) {
-  pw = serverPasswords[context.server];
+  var pw = serverPasswords[context.server];
   send(context, 'message', 'notice', 'Automatically identifying nickname with NickServ...');
   send(context, 'command', 'raw', 'PRIVMSG', 'NickServ', '"identify', pw + '"');
 };
 
-nickServPasswordIsVisible = function(message) {
-  words = message.split(' ');
+var nickServPasswordIsVisible = function(message) {
+  var words = message.split(' ');
   return words.length == 2 && words[0].toLowerCase() == 'identify';
 };
 
 var snoopPassword = function(context, message) {
-  password = message.split(' ')[1];
+  var password = message.split(' ')[1];
   serverPasswords[context.server] = password;
   saveToStorage(serverPasswords);
 };
 
-hideNickServPassword = function(event) {
-  words = event.args[1].split(' ');
+var hideNickServPassword = function(event) {
+  var words = event.args[1].split(' ');
   words[1] = getHiddenPasswordText(words[1].length);
   event.args[1] = words.join(' ');
   sendEvent(event);
 };
 
-getHiddenPasswordText = function(length) {
-  hiddenPasswordText = '';
+var getHiddenPasswordText = function(length) {
+  var hiddenPasswordText = '';
   for (var i = 0; i < length; i++) {
     hiddenPasswordText += '*';
   }
   return hiddenPasswordText;
 };
 
-updatePasswords = function(loadedPasswords) {
+var updatePasswords = function(loadedPasswords) {
   for (server in loadedPasswords) {
     if (!serverPasswords[server]) {
       serverPasswords[server] = loadedPasswords[server];

@@ -25,7 +25,7 @@
 
 
   this.setName = function(name) {
-    return this.send('meta', 'name', name);
+    return _this.send('meta', 'name', name);
   };
 
   this.setDescription = function(description) {
@@ -41,7 +41,7 @@
 
 
   this.loadFromStorage = function() {
-    return this.send({}, 'storage', 'load');
+    return _this.send({}, 'storage', 'load');
   };
 
   /*
@@ -51,7 +51,7 @@
 
 
   this.saveToStorage = function(item) {
-    return this.send({}, 'storage', 'save', item);
+    return _this.send({}, 'storage', 'save', item);
   };
 
   /*
@@ -85,7 +85,7 @@
       name: name,
       args: args
     };
-    return this.sendEvent(event);
+    return _this.sendEvent(event);
   };
 
   this.sendEvent = function(event) {
@@ -96,7 +96,7 @@
     if (propagation == null) {
       propagation = 'all';
     }
-    return this.send(event.context, 'propagate', propagation, event.id);
+    return _this.send(event.context, 'propagate', propagation, event.id);
   };
 
 }).call(this);
