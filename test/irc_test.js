@@ -343,7 +343,7 @@
             waitsForArrayBufferConversion();
             return runs(function() {
               var versionResponse;
-              versionResponse = /NOTICE\sfrigg\s:\u0001VERSION\sCIRC\s\d{1,3}\.\d{1,3}\.\d{1,3}\sChrome\u0001\s*/;
+              versionResponse = /NOTICE\sfrigg\s:\u0001VERSION\sCIRC\s[0-9.]*\sChrome\u0001\s*/;
               return expect(socket.received.mostRecentCall.args).toMatch(versionResponse);
             });
           });

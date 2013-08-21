@@ -11,14 +11,14 @@
 
     Scripts.prototype.useMock = function() {
       window.script.Script.scriptCount = 0;
-      return window.script.prepackagedScripts = ["setName('/dance');\nsend('hook_command', 'dance');\ndance = \"(>'-')> <('-'<) ^(' - ')^ <('-'<) (>'-')>\";\nonMessage = function(e) {\n  send(e.context, 'command', 'say', dance);\n  propagate(e, 'none');\n};"];
+      return window.script.prepackagedScripts = ["setName('/dance');\nsend('hook_command', 'dance');\nvar dance = \"(>'-')> <('-'<) ^(' - ')^ <('-'<) (>'-')>\";\nthis.onMessage = function(e) {\n  send(e.context, 'command', 'say', dance);\n  propagate(e, 'none');\n};"];
     };
 
     Scripts.prototype.simpleSourceCode = "var data = { msg: 'hi!', script: window.script };\nparent.window.postMessage(data, '*');\naddEventListener('message', function(e) {\n  e.source.postMessage(e.data, '*');\n});";
 
-    Scripts.prototype.maliciousSourceCode = "chromeAPI = 'none';\ntry {\n  chromeAPI = window.parent.chrome;\n} catch (ex) { }\nparent.window.postMessage({chromeAPI: chromeAPI}, '*');";
+    Scripts.prototype.maliciousSourceCode = "var chromeAPI = 'none';\ntry {\n  chromeAPI = window.parent.chrome;\n} catch (ex) { }\nparent.window.postMessage({chromeAPI: chromeAPI}, '*');";
 
-    Scripts.prototype.hiSourceCode = "setName('/hi');\nsend('hook_command', 'hi');\nonMessage = function(e) {\n  send(e.context, 'command', 'say', 'hello world');\n  propagate(e, 'none');\n};";
+    Scripts.prototype.hiSourceCode = "setName('/hi');\nsend('hook_command', 'hi');\nthis.onMessage = function(e) {\n  send(e.context, 'command', 'say', 'hello world');\n  propagate(e, 'none');\n};";
 
     Scripts.prototype.invalidNameSourceCode = "setName('invalid name');\nsend('hook_command', 'hi');";
 
@@ -26,7 +26,7 @@
 
     Scripts.prototype.noNameSourceCode = "send('hook_command', 'hi');";
 
-    Scripts.prototype.storageSourceCode = "var sum = 0;\nsetName('sum');\nloadFromStorage();\n\nvar addToSum = function(amount) {\n  amount = parseInt(amount);\n  if (!isNaN(amount)) {\n    sum += amount;\n    saveToStorage(sum);\n    return true;\n  }\n  return false;\n};\n\nonMessage = function(e) {\n  propagate(e, 'none');\n\n  if (e.type == 'system' && e.name == 'loaded') {\n    addToSum(e.args[0]);\n\n  } else if (e.type == 'system' && e.name == 'storage_changed') {\n    if (sum == 0) {\n      addToSum(e.args[0].newValue);\n    }\n\n  } else if (e.type == 'command' && e.name == 'add') {\n    success = addToSum(e.args[0]);\n    if (success) {\n      send(e.context, 'message', 'notice', 'Sum so far: ' + sum);\n    }\n  }\n};\n\nsend('hook_command', 'add');";
+    Scripts.prototype.storageSourceCode = "var sum = 0;\nsetName('sum');\nloadFromStorage();\n\nvar addToSum = function(amount) {\n  amount = parseInt(amount);\n  if (!isNaN(amount)) {\n    sum += amount;\n    saveToStorage(sum);\n    return true;\n  }\n  return false;\n};\n\nthis.onMessage = function(e) {\n  propagate(e, 'none');\n\n  if (e.type == 'system' && e.name == 'loaded') {\n    addToSum(e.args[0]);\n\n  } else if (e.type == 'system' && e.name == 'storage_changed') {\n    if (sum == 0) {\n      addToSum(e.args[0].newValue);\n    }\n\n  } else if (e.type == 'command' && e.name == 'add') {\n    var success = addToSum(e.args[0]);\n    if (success) {\n      send(e.context, 'message', 'notice', 'Sum so far: ' + sum);\n    }\n  }\n};\n\nsend('hook_command', 'add');";
 
     return Scripts;
 
