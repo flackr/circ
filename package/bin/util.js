@@ -63,7 +63,8 @@
   exports.getReadableTime = function(milliseconds) {
     var date;
     date = new Date();
-    date.setMilliseconds(milliseconds);
+    //The time coming from the server here is actually epoc time, so we need to set it accordingly.
+    date.setTime(milliseconds);
     return date.toString();
   };
 
