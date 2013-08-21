@@ -60,10 +60,11 @@
     }
   };
 
-  exports.getReadableTime = function(milliseconds) {
+  exports.getReadableTime = function(epochMilliseconds) {
     var date;
     date = new Date();
-    date.setMilliseconds(milliseconds);
+    //The time coming from the server here is actually epoc time, so we need to set it accordingly.
+    date.setTime(epochMilliseconds);
     return date.toString();
   };
 
@@ -177,9 +178,10 @@
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
-      '"': '&quot;'
+      '"': '&quot;',
+      '\'': '&apos;'
     };
-    return String(html).replace(/[&<>"]/g, function(character) {
+    return String(html).replace(/[&<>"\']/g, function(character) {
       var _ref;
       return (_ref = escaped[character]) != null ? _ref : character;
     });
