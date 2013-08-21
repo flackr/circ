@@ -177,9 +177,10 @@
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
-      '"': '&quot;'
+      '"': '&quot;',
+      '\'': '&rsquo;' 
     };
-    return String(html).replace(/[&<>"]/g, function(character) {
+    return String(html).replace(/[&<>"\']/g, function(character) {
       var _ref;
       return (_ref = escaped[character]) != null ? _ref : character;
     });
