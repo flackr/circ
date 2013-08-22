@@ -156,11 +156,16 @@
            * Display when the topic was set and who it was set by.
       */
 
+<<<<<<< HEAD
       topic_info: function(who, time) {
         //For some reason it truncates the last 3 digits (the acutal milliseconds)
         var time = time * 1000;
+=======
+      topic_info: function(who, secondsSinceEpoch) {
+>>>>>>> Fix bug #144
         this._formatter.addStyle('notice');
-        this._formatter.setContent(getReadableTime(parseInt(time)));
+        //The time needs converted to milliseconds since javascript doesn't have a way to set the clock in seconds from epoch
+        this._formatter.setContent(getReadableTime(parseInt(secondsSinceEpoch * 1000)));
         this._formatter.setMessage('Topic set by #from on #content.');
         return this._formatter.setPrettyFormat(false);
       },

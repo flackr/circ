@@ -60,11 +60,15 @@
     }
   };
 
-  exports.getReadableTime = function(milliseconds) {
+  exports.getReadableTime = function(epochMilliseconds) {
     var date;
     date = new Date();
+<<<<<<< HEAD
     //The time coming from the server here is actually epoc time, so we need to set it accordingly.
     date.setTime(milliseconds);
+=======
+    date.setTime(epochMilliseconds);
+>>>>>>> Fix bug #144
     return date.toString();
   };
 
