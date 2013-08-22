@@ -79,7 +79,12 @@
         if (writeInfo.bytesWritten === data.byteLength) {
           return _this.emit('drain');
         } else {
-          return console.error("Waaah can't handle non-complete writes");
+          if (writeInfo.bytesWritten >= 0) {
+            console.error("Can't handle non-complete writes: wrote " +
+              writeInfo.bytesWritten + " expected " + data.byteLength);
+          }
+          return _this.emit('error',
+              "Invalid write on socket, code: " + writeInfo.bytesWritten);
         }
       });
     };
