@@ -132,6 +132,7 @@
       var message;
       message = $('#templates .message').clone();
       message.addClass(style);
+      $('.timestamp', message).append(new Date().toLocaleTimeString());
       $('.source', message).append(from);
       $('.content', message).append(msg);
       if (!(typeof from.text === "function" ? from.text() : void 0)) {
