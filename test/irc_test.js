@@ -44,6 +44,7 @@
       irc.giveup();
       irc.doCommand('NICK', 'ournick');
       irc.doCommand('JOIN', '#bash');
+      irc.doCommand('WHOIS', 'ournick');
       waitsForArrayBufferConversion();
       return runs(function() {
         expect(irc.state).toBe('disconnected');
@@ -147,6 +148,7 @@
           irc.doCommand('JOIN', '#awesome');
           irc.doCommand('PRIVMSG', '#awesome', 'hello world');
           irc.doCommand('NICK', 'ournick');
+          irc.doCommand('WHOIS', 'ournick');
           irc.doCommand('PART', '#awesome', 'this channel is not awesome');
           irc.doCommand('NOTICE', 'frigg', 'SOURCE', true);
           waitsForArrayBufferConversion();
@@ -154,8 +156,9 @@
             expect(socket.received.argsForCall[0]).toMatch(/JOIN #awesome\s*/);
             expect(socket.received.argsForCall[1]).toMatch(/PRIVMSG #awesome :hello world\s*/);
             expect(socket.received.argsForCall[2]).toMatch(/NICK ournick\s*/);
-            expect(socket.received.argsForCall[3]).toMatch(/PART #awesome :this channel is not awesome\s*/);
-            return expect(socket.received.argsForCall[4]).toMatch(/NOTICE frigg :SOURCE\s*/);
+            expect(socket.received.argsForCall[3]).toMatch(/WHOIS ournick\s*/);
+            expect(socket.received.argsForCall[4]).toMatch(/PART #awesome :this channel is not awesome\s*/);
+            return expect(socket.received.argsForCall[5]).toMatch(/NOTICE frigg :SOURCE\s*/);
           });
         });
         it("emits 'join' after joining a room", function() {
@@ -312,7 +315,7 @@
           socket.respondWithData(":server@freenode.net 301 ournick someguy :I'm busy");
           waitsForArrayBufferConversion();
           return runs(function() {
-            return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg', 'someguy', "I'm busy");
+            return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg', 'someguy', "is away: I'm busy");
           });
         });
         it("emits a away notice when the user is no longer away", function() {
@@ -335,6 +338,97 @@
           waitsForArrayBufferConversion();
           return runs(function() {
             return expect(chat.onIRCMessage).toHaveBeenCalledWith(SERVER_WINDOW, 'notice', 'No Ident response');
+          });
+        });
+        return describe("handles WHOIS/WHOWAS response code of", function() {
+          it("311", function() {
+            socket.respondWithData(":server@freenode.net 311 ournick frigg ~frigguy 127.0.0.1 * :Our User");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is frigg!~frigguy@127.0.0.1 (Our User)');
+            });
+          });
+          it("312", function() {
+            socket.respondWithData(":server@freenode.net 312 ournick frigg freenode.net :FreeNode Network");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'connected via freenode.net (FreeNode Network)');
+            });
+          });
+          it("313", function() {
+            socket.respondWithData(":server@freenode.net 313 ournick frigg :is not an IRC Operator, but plays one on TV");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is not an IRC Operator, but plays one on TV');
+            });
+          });
+          it("314", function() {
+            socket.respondWithData(":server@freenode.net 314 ournick frigg ~frigguy 127.0.0.1 * :Our User");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'was frigg!~frigguy@127.0.0.1 (Our User)');
+            });
+          });
+          it("317", function() {
+            var now = Math.floor(new Date().valueOf() / 1000);
+            socket.respondWithData(":server@freenode.net 317 ournick frigg 101 " + now + " :seconds idle, logged in");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'has been idle for 101 seconds, and signed on at: ' + getReadableTime(now));
+            });
+          });
+          it("318", function() {
+            socket.respondWithData(":server@freenode.net 318 ournick frigg :End of WHOIS list.");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'End of WHOIS list.');
+            });
+          });
+          it("319", function() {
+            socket.respondWithData(":server@freenode.net 319 ournick frigg :#foo @#bar &baz");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is on channels: #foo @#bar &baz');
+            });
+          });
+          it("330", function() {
+            socket.respondWithData(":server@freenode.net 330 ournick frigg FriggUser :is authenticated as");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is authenticated as FriggUser');
+            });
+          });
+          it("338", function() {
+            socket.respondWithData(":server@freenode.net 338 ournick frigg foo@bar.com 224.1.1.1 :over the rainbow");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is actually foo@bar.com/224.1.1.1 (over the rainbow)');
+            });
+          });
+          it("369", function() {
+            socket.respondWithData(":server@freenode.net 369 ournick frigg :End of WHOWAS list.");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'End of WHOWAS list.');
+            });
+          });
+          it("671", function() {
+            socket.respondWithData(":server@freenode.net 671 ournick frigg :is using a secure connection");
+            waitsForArrayBufferConversion();
+            return runs(function() {
+              return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
+                  'frigg', 'is using a secure connection');
+            });
           });
         });
         return describe("has a CTCP handler which", function() {
