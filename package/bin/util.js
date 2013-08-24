@@ -179,7 +179,7 @@
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
-      '\'': '&rsquo;' 
+      '\'': '&apos;' 
     };
     return String(html).replace(/[&<>"\']/g, function(character) {
       var _ref;
