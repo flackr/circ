@@ -70,10 +70,18 @@
       this.notice = new chat.Notice;
       this.channelDisplay = new chat.ChannelList();
       this.channelDisplay.on('clicked', function(server, chan) {
-        var win;
-        win = _this.winList.get(server, chan);
+        var win = _this.winList.get(server, chan);
         if (win != null) {
           return _this.switchToWindow(win);
+        }
+      });
+      this.channelDisplay.on('midclicked', function(server, chan) {
+        var win = _this.winList.get(server, chan);
+        if (win != null) {
+          if (!win.isPrivate()) {
+            win.conn.irc.part(chan, '');
+          }
+          return _this.removeWindow(win);
         }
       });
       return this._addWelcomeWindow();
@@ -556,12 +564,16 @@
     };
 
     Chat.prototype._makeWin = function(conn, opt_chan) {
-      var win;
-      win = new chat.Window(conn.name, opt_chan);
+      var win = new chat.Window(conn.name, opt_chan);
       win.conn = conn;
       if (opt_chan) {
         conn.windows[opt_chan.toLowerCase()] = win;
         win.setTarget(opt_chan.toLowerCase());
+        var _this = this;
+        win.nicks.on('dblclicked', function(nick) {
+          var newWin = _this.createPrivateMessageWindow(win.conn, nick);
+          return _this.switchToWindow(newWin);
+        });
       } else {
         conn.serverWindow = win;
       }
