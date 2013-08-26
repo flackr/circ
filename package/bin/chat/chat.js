@@ -142,7 +142,7 @@
     Chat.prototype._promptToUpdate = function() {
       var message,
         _this = this;
-      message = "A new versionn of CIRC is available. Would you like to " + "restart and update? [update]";
+      message = "A new version of CIRC is available. Would you like to " + "restart and update? [update]";
       return this.notice.prompt(message, function() {
         return chrome.runtime.reload();
       });
