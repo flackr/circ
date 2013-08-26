@@ -379,7 +379,7 @@
             waitsForArrayBufferConversion();
             return runs(function() {
               return expect(chat.onIRCMessage).toHaveBeenCalledWith('ournick', 'privmsg',
-                  'frigg', 'has been idle for 101 seconds, and signed on at: ' + getReadableTime(now));
+                  'frigg', 'has been idle for 101 seconds, and signed on at: ' + getReadableTime(now * 1000));
             });
           });
           it("318", function() {

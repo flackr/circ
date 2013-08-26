@@ -300,7 +300,7 @@
 
       // RPL_WHOISIDLE
       317: function(from, to, nick, seconds, signon, x) {
-        var date = getReadableTime(parseInt(signon));
+        var date = getReadableTime(parseInt(signon) * 1000);
         var message = "has been idle for " + seconds + " seconds, and signed on at: " + date;
         return this._emitUserNotice(to, nick, message);
       },
