@@ -293,9 +293,9 @@
            * rpl_channelcreated
       */
 
-      329: function(from, to, channel, time) {
+      329: function(from, to, channel, secondsSinceEpoch) {
         var message;
-        message = "Channel created on " + (getReadableTime(parseInt(time)));
+        message = "Channel created on " + (getReadableTime(parseInt(secondsSinceEpoch * 1000)));
         return this.irc.emitMessage('notice', channel, message);
       },
       /*

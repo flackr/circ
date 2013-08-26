@@ -155,10 +155,10 @@
       /*
            * Display when the topic was set and who it was set by.
       */
-
-      topic_info: function(who, time) {
+      topic_info: function(who, secondsSinceEpoch) {
         this._formatter.addStyle('notice');
-        this._formatter.setContent(getReadableTime(parseInt(time)));
+        //The time needs converted to milliseconds since javascript doesn't have a way to set the clock in seconds from epoch
+        this._formatter.setContent(getReadableTime(parseInt(secondsSinceEpoch * 1000)));
         this._formatter.setMessage('Topic set by #from on #content.');
         return this._formatter.setPrettyFormat(false);
       },

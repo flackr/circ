@@ -584,7 +584,7 @@
         statusList.push("<span class='away'>away</span>");
       }
       if (topic) {
-        statusList.push("<span class='topic'>" + (html.display(topic)) + "</span>");
+        statusList.push("<span title='" + (html.escape(topic)) + "' class='topic'>" + (html.display(topic)) + "</span>");
       }
       $('#status').html(statusList.join(''));
       return this._updateDocumentTitle();
