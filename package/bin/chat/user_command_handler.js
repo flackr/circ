@@ -447,6 +447,34 @@
           return this.displayDirectMessage();
         }
       });
+      this._addCommand('whois', {
+        description: "displays information about a nick",
+        category: 'uncommon',
+        params: ['opt_nick'],
+        requires: ['connection'],
+        run: function() {
+          return this.conn.irc.doCommand('WHOIS', this.nick);
+        }
+      });
+      this._addCommand('swhois', {
+        description: "displays detailed information about a nick (by querying user's connecting server)",
+        category: 'uncommon',
+        params: ['opt_nick'],
+        requires: ['connection'],
+        run: function() {
+          // Same as WHOIS, but send the nick twice.
+          return this.conn.irc.doCommand('WHOIS', this.nick, this.nick);
+        }
+      });
+      this._addCommand('whowas', {
+        description: "displays recent login information about a nick",
+        category: 'uncommon',
+        params: ['opt_nick'],
+        requires: ['connection'],
+        run: function() {
+          return this.conn.irc.doCommand('WHOWAS', this.nick);
+        }
+      });
       this._addCommand('about', {
         description: "displays information about this IRC client",
         category: 'misc',
