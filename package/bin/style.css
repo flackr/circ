@@ -239,6 +239,7 @@ ul {
   text-align: right;
   padding: 0px 10px 0px 10px;
   border-right: 1px solid rgba(0,0,0,0.15);
+  cursor: text;
 }
 
 .message .source {
@@ -248,6 +249,7 @@ ul {
   display: table-cell;
   text-align: right;
   padding-left: 10px;
+  cursor: text;
 }
 
 .message .source.empty {
@@ -259,6 +261,7 @@ ul {
   padding: 4px 14px 4px 0px;
   white-space: pre-wrap;
   width: 100%;
+  cursor: text;
 }
 
 #messages-container .messages .message:last-child .content {
