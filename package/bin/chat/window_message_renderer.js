@@ -128,11 +128,16 @@
       return this._trimMessagesIfTooMany();
     };
 
+    // mock-hookable function
+    MessageRenderer.prototype._createTimestamp = function() {
+      return new Date();
+    };
+
     MessageRenderer.prototype._createMessageHTML = function(from, msg, style) {
       var message;
       message = $('#templates .message').clone();
       message.addClass(style);
-      $('.timestamp', message).append(new Date().toLocaleTimeString());
+      $('.timestamp', message).append(this._createTimestamp().toLocaleTimeString());
       $('.source', message).append(from);
       $('.content', message).append(msg);
       if (!(typeof from.text === "function" ? from.text() : void 0)) {
