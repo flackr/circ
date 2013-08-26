@@ -105,7 +105,6 @@
 
 
     Window.prototype.makePrivate = function() {
-      this.$roomsAndNicks.addClass('no-nicks');
       return this._private = true;
     };
 
