@@ -3,21 +3,22 @@
   "use strict";
 
   describe("A window message renderer", function() {
-    var content, message, renderer, surface;
+    var renderer, surface;
     surface = renderer = void 0;
-    message = function(num) {
+    var stamp = new Date();
+    var message = function(num) {
       var msg;
       msg = $($('.message', surface)[num]);
       return {
-        source: $(msg.children()[0]),
-        content: $(msg.children()[1])
+        timestamp: $(msg.children()[0]),
+        source: $(msg.children()[1]),
+        content: $(msg.children()[2])
       };
     };
     beforeEach(function() {
-      var win;
       mocks.dom.setUp();
       surface = $('<div>');
-      win = {
+      var win = {
         $messages: surface,
         $messagesContainer: $('<#messages-container>'),
         isScrolledDown: function() {},
@@ -32,9 +33,12 @@
       };
       win.$messagesContainer.restoreScrollPosition = function() {};
       renderer = new chat.window.MessageRenderer(win);
+      win._createTimestamp = function() {
+        return stamp;
+      };
       return spyOn(renderer, '_createContentFromText').andCallThrough();
     });
-    content = function() {
+    var content = function() {
       var args;
       args = renderer._createContentFromText.mostRecentCall.args;
       return html.display(args[0]);
@@ -45,6 +49,7 @@
     });
     it("displays messages to the user", function() {
       renderer.message('bob', 'hi');
+      expect(message(0).timestamp).toHaveText(stamp.toLocaleTimeString());
       expect(message(0).source).toHaveText('bob');
       return expect(message(0).content).toHaveText('hi');
     });
