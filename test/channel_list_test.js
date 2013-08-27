@@ -3,18 +3,22 @@
   "use strict";
 
   describe('A channel list', function() {
-    var cl, dom, item, items, textOfItem;
-    dom = cl = void 0;
-    item = function(index) {
+    var cl = {};
+    var item = function(index) {
       if (index === -1) {
         return items().last();
       }
       return $(items()[index]);
     };
-    items = function() {
+    var items = function() {
       return $('#rooms-container .rooms .room');
     };
-    textOfItem = function(index) {
+    var mousedown = function(node, which) {
+      node.trigger(new MouseEvent('mousedown', {
+        'button': (which - 1) // W3C DOM3 value: 0/1/2 = left/middle/right
+      }));
+    };
+    var textOfItem = function(index) {
       return $('.content-item', item(index)).text();
     };
     beforeEach(function() {
@@ -117,15 +121,27 @@
       expect(item(1)).not.toHaveClass('mention');
       return expect(item(1)).not.toHaveClass('activity');
     });
+    it("emits a midclicked event when a channel is clicked with the middle button", function() {
+      cl.addServer('freenode');
+      cl.insertChannel(0, 'freenode', '#bash');
+      mousedown(item(1), 2);
+      return expect(cl.emit).toHaveBeenCalledWith('midclicked', 'freenode', '#bash');
+    });
+    it("does not emit an event when a channel is clicked with the right button", function() {
+      cl.addServer('freenode');
+      cl.insertChannel(0, 'freenode', '#bash');
+      mousedown(item(1), 3);
+      return expect(cl.emit).not.toHaveBeenCalled();
+    });
     it("emits a clicked event when a channel is clicked", function() {
       cl.addServer('freenode');
       cl.insertChannel(0, 'freenode', '#bash');
-      item(1).mousedown();
+      mousedown(item(1), 1);
       return expect(cl.emit).toHaveBeenCalledWith('clicked', 'freenode', '#bash');
     });
     return it("emits a clicked event when a server is clicked", function() {
       cl.addServer('freenode');
-      item(0).mousedown();
+      mousedown(item(0), 1);
       return expect(cl.emit).toHaveBeenCalledWith('clicked', 'freenode', void 0);
     });
   });
