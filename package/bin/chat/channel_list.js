@@ -19,6 +19,7 @@
 
     function ChannelList() {
       this._handleClick = __bind(this._handleClick, this);
+      this._handleMiddleClick = __bind(this._handleMiddleClick, this);
       ChannelList.__super__.constructor.apply(this, arguments);
       this.$surface = $('#rooms-container .rooms');
       this.roomsByServer = {};
@@ -89,11 +90,16 @@
 
     ChannelList.prototype._handleMouseEvents = function(serverName, server, channels) {
       var _this = this;
-      server.mousedown(function() {
-        return _this._handleClick(serverName);
+      server.mousedown(function(event) {
+        if (event.which == 1) {
+          return _this._handleClick(serverName);
+        }
       });
-      return channels.on('clicked', function(channelName) {
+      channels.on('clicked', function(channelName) {
         return _this._handleClick(serverName, channelName);
+      });
+      return channels.on('midclicked', function(channelName) {
+        return _this._handleMiddleClick(serverName, channelName);
       });
     };
 
@@ -123,6 +129,10 @@
 
     ChannelList.prototype._handleClick = function(server, channel) {
       return this.emit('clicked', server, channel);
+    };
+
+    ChannelList.prototype._handleMiddleClick = function(server, channel) {
+      return this.emit('midclicked', server, channel);
     };
 
     return ChannelList;

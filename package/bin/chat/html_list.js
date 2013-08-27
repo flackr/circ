@@ -113,14 +113,33 @@
         name: name
       };
       node.content = $('.content-item', node.html);
-      node.html.mousedown(function() {
-        return _this._handleClick(node);
+      node.html.mousedown(function(event) {
+        switch (event.which) {
+        case 1:
+          return _this._handleClick(node);
+        case 2:
+          return _this._handleMiddleClick(node);
+        // case 3: // not handling right-clicks
+        }
+      });
+      node.html.dblclick(function(event) {
+        if (event.which == 1) {
+          return _this._handleDoubleClick(node);
+        }
       });
       return node;
     };
 
     HTMLList.prototype._handleClick = function(node) {
       return this.emit('clicked', node.name);
+    };
+
+    HTMLList.prototype._handleMiddleClick = function(node) {
+      return this.emit('midclicked', node.name);
+    };
+
+    HTMLList.prototype._handleDoubleClick = function(node) {
+      return this.emit('dblclicked', node.name);
     };
 
     HTMLList.prototype._htmlify = function(name) {
