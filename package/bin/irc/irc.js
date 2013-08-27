@@ -203,17 +203,18 @@
     };
 
     IRC.prototype.onData = function(pdata) {
-      var cr, crlf, d, dataView, i, line, _i, _len, _results,
-        _this = this;
+      var _this = this;
       this.data = this.util.concatSocketData(this.data, pdata);
-      dataView = new Uint8Array(this.data);
-      _results = [];
+      var dataView = new Uint8Array(this.data);
+      var _results = [];
       while (dataView.length > 0) {
-        cr = false;
-        crlf = void 0;
-        for (i = _i = 0, _len = dataView.length; _i < _len; i = ++_i) {
-          d = dataView[i];
+        var cr = false;
+        var crlf = null;
+        for (var i = 0; i < dataView.length; ++i) {
+          var d = dataView[i];
           if (d === 0x0d) {
+            // Even though the spec says that lines should end with CRLF some
+            // servers (e.g. irssi proxy) just send LF.
             cr = true;
           } else if (d === 0x0a) {
             crlf = i;
@@ -222,8 +223,8 @@
             cr = false;
           }
         }
-        if (crlf != null) {
-          line = this.data.slice(0, cr ? crlf - 1 : crlf);
+        if (crlf !== null) {
+          var line = this.data.slice(0, cr ? crlf - 1 : crlf);
           this.data = this.data.slice(crlf + 1);
           dataView = new Uint8Array(this.data);
           _results.push(this.util.fromSocketData(line, function(lineStr) {
