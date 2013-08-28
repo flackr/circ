@@ -163,6 +163,9 @@
     };
 
     IRC.prototype.onTimeout = function() {
+      if (this.state === 'connected' && this.exponentialBackoff > 0) {
+        this.exponentialBackoff--;
+      }
       this.send('PING', +(new Date));
       return this.socket.setTimeout(60000, this.onTimeout);
     };
@@ -183,7 +186,8 @@
 
     IRC.prototype.onEnd = function() {
       console.error("remote peer closed connection");
-      if (this.state === 'connected') {
+      if (this.state === 'connecting' || this.state === 'connected') {
+        this.emit('disconnect');
         return this.setReconnect();
       }
     };
