@@ -3,13 +3,12 @@
   "use strict";
 
   describe('A window list', function() {
-    var createWindow, joinMultipleServersAndChannels, windows, wl;
+    var windows, wl;
     wl = windows = void 0;
-    createWindow = function(server, chan) {
-      var win;
-      win = new chat.Window(server, chan);
+    var createWindow = function(server, chan) {
+      var win = new chat.Window(server, chan);
       if (chan) {
-        win.setTarget(chan);
+        win.setTarget(chan.toLowerCase());
       }
       win.conn = {
         name: server
@@ -17,7 +16,7 @@
       windows.push(win);
       return win;
     };
-    joinMultipleServersAndChannels = function() {
+    var joinMultipleServersAndChannels = function() {
       wl.add(createWindow('freenode'));
       wl.add(createWindow('freenode', '#bash'));
       wl.add(createWindow('freenode', '#zebra'));
@@ -47,8 +46,7 @@
       return wl.remove(windows[1]);
     });
     it('throws an error when a channel window is added with no corresponding connection window', function() {
-      var addChannelWindow;
-      addChannelWindow = function() {
+      var addChannelWindow = function() {
         return wl.add(createWindow('freenode', '#bash'));
       };
       return expect(addChannelWindow).toThrow();
@@ -60,13 +58,12 @@
       return expect(wl.getChannelWindow(1)).toBeUndefined();
     });
     it("returns the nth window on get(n)", function() {
-      var i, _i, _results;
       joinMultipleServersAndChannels();
-      _results = [];
-      for (i = _i = 0; _i <= 5; i = ++_i) {
-        _results.push(expect(wl.get(i)).toBe(windows[i]));
+      var results = [];
+      for (var i = 0; i <= 5; i++) {
+        results.push(expect(wl.get(i)).toBe(windows[i]));
       }
-      return _results;
+      return results;
     });
     it("has a length property which is equal to the number of windows", function() {
       expect(wl.length).toBe(0);
@@ -85,28 +82,26 @@
       return expect(wl.get('dalnet', '#bash')).toBeNull();
     });
     it("deletes all channel windows when their server window is deleted", function() {
-      var i, window, _i, _len, _ref, _results;
       joinMultipleServersAndChannels();
       wl.remove(windows[0]);
       wl.remove(windows[4]);
-      _ref = [-1, -1, -1, 0, -1, 1];
-      _results = [];
-      for (window = _i = 0, _len = _ref.length; _i < _len; window = ++_i) {
-        i = _ref[window];
-        _results.push(expect(wl.indexOf(windows[window])).toBe(i));
+      var indexes = [-1, -1, -1, 0, -1, 1];
+      var results = [];
+      for (var window = 0, len = indexes.length; window < len; window++) {
+        var i = indexes[window];
+        results.push(expect(wl.indexOf(windows[window])).toBe(i));
       }
-      return _results;
+      return results;
     });
     it("returns the Nth channel window on getChannelWindow(N)", function() {
-      var i, window, _i, _len, _ref, _results;
       joinMultipleServersAndChannels();
-      _ref = [1, 2, 4, 5];
-      _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        window = _ref[i];
-        _results.push(expect(wl.getChannelWindow(i)).toBe(windows[window]));
+      var indexes = [1, 2, 4, 5];
+      var results = [];
+      for (var i = 0, len = indexes.length; i < len; i++) {
+        var window = indexes[i];
+        results.push(expect(wl.getChannelWindow(i)).toBe(windows[window]));
       }
-      return _results;
+      return results;
     });
     it("returns the Nth server window on getServerWindow(N)", function() {
       joinMultipleServersAndChannels();
@@ -126,47 +121,56 @@
       return expect(wl.get('dalnet', '#zebra')).toBe(windows[5]);
     });
     it("returns the index of the given window on indexOf(window)", function() {
-      var i, _i, _results;
       joinMultipleServersAndChannels();
-      _results = [];
-      for (i = _i = 0; _i <= 5; i = ++_i) {
-        _results.push(expect(wl.indexOf(windows[i])).toBe(i));
+      var results = [];
+      for (var i = 0; i <= 5; i++) {
+        results.push(expect(wl.indexOf(windows[i])).toBe(i));
       }
-      return _results;
+      return results;
     });
     it("sorts windows under the same server in alphabetical order by their channel", function() {
-      var i, window, _i, _len, _ref, _results;
       wl.add(createWindow('freenode'));
-      wl.add(createWindow('freenode', '#zebra'));
       wl.add(createWindow('freenode', '#bash'));
-      _ref = [0, 2, 1];
-      _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        window = _ref[i];
-        _results.push(expect(wl.indexOf(windows[window])).toBe(i));
+      wl.add(createWindow('freenode', '#tcsh'));
+      wl.add(createWindow('freenode', '#zebra'));
+      wl.add(createWindow('freenode', '#Linux'));
+      wl.add(createWindow('freenode', '#CIRC'));
+      wl.add(createWindow('freenode', 'someuser'));
+      wl.add(createWindow('freenode', '#GitHub'));
+      wl.add(createWindow('freenode', '#foo'));
+      wl.add(createWindow('freenode', '#bar'));
+      wl.add(createWindow('freenode', '#Baz'));
+      wl.add(createWindow('freenode', '#qqq'));
+      wl.add(createWindow('freenode', '#freenode'));
+      wl.add(createWindow('freenode', 'anotheruser'));
+      var ordering = [0, 9, 1, 10, 5, 8, 12, 7, 4, 11, 2, 3, 13, 6];
+      var results = [];
+      for (var i = 0, len = ordering.length; i < len; i++) {
+        var window = ordering[i];
+        results.push(expect(wl.indexOf(windows[window])).toBe(i));
+        results.push(expect(wl.get(i).target).toBe(windows[window].target));
       }
-      return _results;
+      return results;
     });
     it("sorts first by server, then by channel", function() {
-      var i, window, _i, _j, _len, _len1, _ref, _ref1, _results;
       wl.add(createWindow('freenode'));
       wl.add(createWindow('dalnet'));
       wl.add(createWindow('dalnet', '#zebra'));
       wl.add(createWindow('freenode', '#zebra'));
       wl.add(createWindow('dalnet', '#bash'));
       wl.add(createWindow('freenode', '#bash'));
-      _ref = [5, 3, 4, 2];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        window = _ref[i];
+      var ordering = [5, 3, 4, 2];
+      for (var i = 0, len = ordering.length; i < len; i++) {
+        var window = ordering[i];
         expect(wl.getChannelWindow(i)).toBe(windows[window]);
       }
-      _ref1 = [0, 5, 3, 1, 4, 2];
-      _results = [];
-      for (i = _j = 0, _len1 = _ref1.length; _j < _len1; i = ++_j) {
-        window = _ref1[i];
-        _results.push(expect(wl.indexOf(windows[window])).toBe(i));
+      ordering = [0, 5, 3, 1, 4, 2];
+      var results = [];
+      for (var i = 0, len = ordering.length; i < len; i++) {
+        window = ordering[i];
+        results.push(expect(wl.indexOf(windows[window])).toBe(i));
       }
-      return _results;
+      return results;
     });
     it("returns the window index on indexOf when it only has server windows", function() {
       wl.add(createWindow('freenode'));
