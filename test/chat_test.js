@@ -413,7 +413,7 @@
         type('/server freenode 6667');
         type('/join #bash');
         type('/join #awesome');
-        type('/server dalnet 6697');
+        type('/server dalnet:6697');
         return type('/join #hiphop');
       };
       beforeEach(function() {

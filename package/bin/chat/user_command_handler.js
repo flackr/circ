@@ -79,19 +79,28 @@
         }
       });
       this._addCommand('server', {
-        description: 'connects to the server, port 6667 is used by default, ' + "reconnects to the current server if no server is specified",
+        description: 'connects to a server, port 6667 is used by default; reconnects to the current server if no server is specified',
         category: 'common',
         params: ['opt_server', 'opt_port', 'opt_password'],
+        usage: "<server> [<port>] [<password>] | <server>:<port> [<password>]",
         requires: ['online'],
         validateArgs: function() {
-          var _ref1, _ref2;
+          if (this.server && this.server.indexOf(':') >= 0) {
+            if (this.password) {
+              return false; // too many arguments
+            }
+            this.password = this.port; // shift argument over
+            var servport = this.server.split(':');
+            this.server = servport[0];
+            this.port = servport[1];
+          }
           if (this.port) {
             this.port = parseInt(this.port);
           } else {
             this.port = 6667;
           }
-          if ((_ref1 = this.server) == null) {
-            this.server = (_ref2 = this.conn) != null ? _ref2.name : void 0;
+          if (!this.server) {
+            this.server = (this.conn ? this.conn.name : void 0);
           }
           return this.server && !isNaN(this.port);
         },
