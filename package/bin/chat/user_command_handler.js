@@ -475,6 +475,15 @@
           return this.conn.irc.doCommand('WHOWAS', this.nick);
         }
       });
+      this._addCommand('who', {
+        description: "displays detailed user list to server window; add 'o' as second option to restrict to IRCOps",
+        category: 'uncommon',
+        params: ['channel_or_pattern', "opt_o"],
+        requires: ['connection'],
+        run: function() {
+          return this.conn.irc.doCommand('WHO', this.channel_or_pattern, this.o);
+        }
+      });
       this._addCommand('about', {
         description: "displays information about this IRC client",
         category: 'misc',
