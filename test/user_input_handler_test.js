@@ -3,13 +3,11 @@
   "use strict";
 
   describe('A user input handler', function() {
-    var altHeld, commands, context, ctrl, ctrlHeld, cursor, handler, input, inputKeyDown, keyDown, names, numlock, onVal, space, tab, type, val, window, windowKeyDown,
-      _this = this;
+    var altHeld, ctrlHeld, handler, inputKeyDown, val, windowKeyDown;
     handler = altHeld = ctrlHeld = val = inputKeyDown = windowKeyDown = void 0;
-    onVal = jasmine.createSpy('onVal');
-    keyDown = function(code) {
-      var e;
-      e = {
+    var onVal = jasmine.createSpy('onVal');
+    var keyDown = function(code) {
+      var e = {
         which: code,
         altKey: altHeld,
         ctrlKey: ctrlHeld,
@@ -19,29 +17,29 @@
       windowKeyDown(e);
       return inputKeyDown(e);
     };
-    type = function(text) {
+    var type = function(text) {
       val = text;
       return keyDown(13);
     };
-    tab = function() {
+    var tab = function() {
       return keyDown(9);
     };
-    ctrl = function() {
+    var ctrl = function() {
       return keyDown(17);
     };
-    numlock = function() {
+    var numlock = function() {
       return keyDown(144);
     };
-    space = function() {
+    var space = function() {
       keyDown(32);
       return val += ' ';
     };
-    cursor = function(pos) {
+    var cursor = function(pos) {
       return handler._getCursorPosition = function() {
         return pos;
       };
     };
-    input = {
+    var input = {
       keydown: function(cb) {
         return inputKeyDown = cb;
       },
@@ -54,23 +52,24 @@
         return onVal(text);
       }
     };
-    window = {
+    var win = {
       keydown: function(cb) {
         return windowKeyDown = cb;
       }
     };
-    names = {
+    var names = {
       bill: 'bill',
       sally: 'sally',
       bob: 'bob',
       joe: 'Joe'
     };
-    commands = {
+    var commands = {
       help: 'help',
       join: 'join',
       nick: 'nick'
     };
-    context = {
+    var ircMock = new window.irc.IRC;
+    var context = {
       currentWindow: {
         getContext: function() {
           return {
@@ -81,9 +80,7 @@
         target: '#bash',
         conn: {
           name: 'freenode.net',
-          irc: {
-            channels: {}
-          }
+          irc: ircMock
         }
       },
       on: function() {},
@@ -94,10 +91,10 @@
       }
     };
     beforeEach(function() {
-      handler = new UserInputHandler(input, window);
+      handler = new UserInputHandler(input, win);
       handler.setKeyboardShortcuts(new KeyboardShortcutMap);
       handler._setCursorPosition = function() {};
-      context.currentWindow.conn.irc.channels['#bash'] = {
+      ircMock.channels['#bash'] = {
         names: names
       };
       handler.setContext(context);
@@ -106,10 +103,9 @@
       return onVal.reset();
     });
     it("switches to the given window on 'ctrl-[1-9]'", function() {
-      var event;
       ctrlHeld = true;
       keyDown(49);
-      event = handler.emit.mostRecentCall.args[1];
+      var event = handler.emit.mostRecentCall.args[1];
       expect(event.type).toBe('command');
       expect(event.name).toBe('win');
       expect(event.args).toEqual([1]);
@@ -126,10 +122,9 @@
       return expect(handler.emit).not.toHaveBeenCalled();
     });
     it("sends a say command when text is entered", function() {
-      var e;
       type('hello world!');
       expect(handler.emit).toHaveBeenCalledWith('command', jasmine.any(Object));
-      e = handler.emit.mostRecentCall.args[1];
+      var e = handler.emit.mostRecentCall.args[1];
       expect(e.type).toBe('command');
       expect(e.name).toBe('say');
       expect(e.context).toEqual({
@@ -139,10 +134,9 @@
       return expect(e.args).toEqual('hello world!'.split(' '));
     });
     it("sends the given command when a command is entered", function() {
-      var e;
       type('/kick sugarman for spamming /dance');
       expect(handler.emit).toHaveBeenCalledWith('command', jasmine.any(Object));
-      e = handler.emit.mostRecentCall.args[1];
+      var e = handler.emit.mostRecentCall.args[1];
       expect(e.type).toBe('command');
       expect(e.name).toBe('kick');
       expect(e.context).toEqual({
@@ -239,11 +233,10 @@
       });
     });
     return describe('input stack', function() {
-      var downArrow, upArrow;
-      upArrow = function() {
+      var upArrow = function() {
         return keyDown(38);
       };
-      downArrow = function() {
+      var downArrow = function() {
         return keyDown(40);
       };
       it("uses the up arrow to show previous commands", function() {

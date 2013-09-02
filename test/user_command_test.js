@@ -3,15 +3,15 @@
   "use strict";
 
   describe('A user command', function() {
-    var client, eatCommand, eatCommandDescription, getWindow, kickCommand, kickCommandDescription, modeCommand, modeCommandDescription, onRun, sayCommand, sayCommandDescription, serverCommand, serverCommandDescription, win;
+    var eatCommand, kickCommand, modeCommand, sayCommand, serverCommand, win;
     win = sayCommand = eatCommand = kickCommand = serverCommand = modeCommand = void 0;
-    onRun = jasmine.createSpy('onRun');
-    client = {
+    var onRun = jasmine.createSpy('onRun');
+    var client = {
       determineWindow: function() {
         return win;
       }
     };
-    eatCommandDescription = {
+    var eatCommandDescription = {
       description: 'eats cake',
       params: ['numCakes'],
       validateArgs: function() {
@@ -21,7 +21,7 @@
         return onRun(this.numCakes);
       }
     };
-    modeCommandDescription = {
+    var modeCommandDescription = {
       description: 'sets the mode for a user (by default, yourself)',
       params: ['opt_nick', 'mode'],
       requires: ['connection', 'channel', 'connected'],
@@ -33,37 +33,36 @@
         return onRun(this.nick, this.mode);
       }
     };
-    sayCommandDescription = {
+    var sayCommandDescription = {
       description: 'outputs text to the screen',
       params: ['text...'],
       run: function() {
         return onRun(this.text);
       }
     };
-    kickCommandDescription = {
+    var kickCommandDescription = {
       description: 'kicks a user from the current channel',
       params: ['nick', 'opt_reason...'],
       run: function() {
         return onRun(this.nick, this.reason);
       }
     };
-    serverCommandDescription = {
+    var serverCommandDescription = {
       description: 'joins a server',
       params: ['opt_server', 'opt_port', 'opt_password'],
       run: function() {
         return onRun(this.server, this.port, this.password);
       }
     };
-    getWindow = function() {
+    var getWindow = function() {
+      var ircMock = new window.irc.IRC;
+      ircMock.state = 'connected';
+      ircMock.nick = 'ournick';
       return {
         target: '#bash',
         conn: {
           name: 'freenode.net',
-          irc: {
-            state: 'connected',
-            nick: 'ournick',
-            channels: {}
-          }
+          irc: ircMock
         }
       };
     };
@@ -149,24 +148,22 @@
       return expect(modeCommand.getHelp()).toBe('MODE [nick] <mode>, ' + 'sets the mode for a user (by default, yourself).');
     });
     it("can't run of run isn't defined", function() {
-      var danceCommand, danceDescription;
-      danceDescription = {
+      var danceDescription = {
         description: "outputs dancing kirbys on the screen"
       };
-      danceCommand = new chat.UserCommand('dance', danceDescription);
+      var danceCommand = new chat.UserCommand('dance', danceDescription);
       danceCommand.setChat(client);
       danceCommand.setContext({});
       return expect(danceCommand.canRun()).toBe(false);
     });
     it("can have no params", function() {
-      var danceCommand, danceDescription;
-      danceDescription = {
+      var danceDescription = {
         description: "outputs dancing kirbys on the screen",
         run: function() {
           return onRun('(>^.^)>');
         }
       };
-      danceCommand = new chat.UserCommand('dance', danceDescription);
+      var danceCommand = new chat.UserCommand('dance', danceDescription);
       expect(danceCommand.getHelp()).toBe("DANCE, outputs dancing kirbys on the screen.");
       danceCommand.setArgs('hi');
       expect(danceCommand._hasValidArgs).toBe(false);
@@ -194,14 +191,13 @@
       return expect(serverCommand._hasValidArgs).toBe(false);
     });
     it('can extend other commands', function() {
-      var yellCommand, yellDescription;
-      yellDescription = {
+      var yellDescription = {
         description: 'outputs text to the screen in all caps',
         validateArgs: function() {
           return this.text = this.text.toUpperCase();
         }
       };
-      yellCommand = new chat.UserCommand('yell', yellDescription);
+      var yellCommand = new chat.UserCommand('yell', yellDescription);
       yellCommand.describe(sayCommandDescription);
       expect(yellCommand.getHelp()).toBe('YELL <text>, outputs text to the screen in all caps.');
       yellCommand.setArgs('hi', 'bob');
@@ -210,8 +206,7 @@
       return expect(onRun).toHaveBeenCalledWith('HI BOB');
     });
     it('can manually set usage message', function() {
-      var command;
-      command = new chat.UserCommand('name', {
+      var command = new chat.UserCommand('name', {
         usage: 'custom usage'
       });
       return expect(command.getHelp()).toBe('NAME custom usage.');
@@ -221,12 +216,11 @@
       return expect(modeCommand._hasValidArgs).toBe(true);
     });
     return it('can always run if it has no requirements or params', function() {
-      var yellCommand, yellDescription;
-      yellDescription = {
+      var yellDescription = {
         description: 'outputs text to the screen in all caps',
         run: function() {}
       };
-      yellCommand = new chat.UserCommand('yell', yellDescription);
+      var yellCommand = new chat.UserCommand('yell', yellDescription);
       yellCommand.setChat(client);
       spyOn(yellCommand, 'run');
       yellCommand.tryToRun({});
