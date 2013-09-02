@@ -275,7 +275,7 @@
       310: function(from, to, nick, msg) {}, // not useful; drop it
 
       // RPL_WHOISUSER
-      311: function(from, to, nick, user, addr, x, info) {
+      311: function(from, to, nick, user, addr, _, info) {
         var message = "is " + nick + "!" + user + "@" + addr + " (" + info + ")";
         return this._emitUserNotice(to, nick, message);
       },
@@ -293,13 +293,19 @@
       },
 
       // RPL_WHOWASUSER
-      314: function(from, to, nick, user, addr, x, info) {
+      314: function(from, to, nick, user, addr, _, info) {
         var message = "was " + nick + "!" + user + "@" + addr + " (" + info + ")";
         return this._emitUserNotice(to, nick, message);
       },
 
+      // RPL_ENDOFWHO
+      315: function(from, to, nick, msg) {
+        // server supplies the message text
+        return this.irc.emitMessage('notice', chat.SERVER_WINDOW, msg);
+      },
+
       // RPL_WHOISIDLE
-      317: function(from, to, nick, seconds, signon, x) {
+      317: function(from, to, nick, seconds, signon, _) {
         var date = getReadableTime(parseInt(signon) * 1000);
         var message = "has been idle for " + seconds + " seconds, and signed on at: " + date;
         return this._emitUserNotice(to, nick, message);
@@ -354,6 +360,16 @@
       338: function(from, to, nick, realident, realip, msg) {
         var message = "is actually " + realident + "/" + realip + " (" + msg + ")";
         return this._emitUserNotice(to, nick, message);
+      },
+
+      // RPL_WHOREPLY
+      352: function(from, to, chan, ident, addr, serv, nick, flags, data) {
+        var space = data.indexOf(' ');
+        var m1 = chan + ": " + nick;
+        var m2 = (flags.substring(0, 1) == "G" ? " (AWAY)" : "");
+        var m3 = " | " + ident + "@" + addr + " (" + data.substring(space + 1) +
+          ") | via " + serv + ", hops " + data.substring(0, space);
+        return this.irc.emitMessage('notice', chat.SERVER_WINDOW, m1 + m2 + m3);
       },
 
       // RPL_ENDOFWHOWAS
