@@ -37,7 +37,7 @@
       this.data = this.util.emptySocketData();
       this.exponentialBackoff = 0;
       this.partialNameLists = {};
-      this.channels = {};
+      this._channels = {};
       this.serverResponseHandler = new irc.ServerResponseHandler(this);
       this.state = 'disconnected';
       this.support = {};
@@ -71,10 +71,51 @@
       this.preferredNick = preferredNick;
     };
 
-    /*
-       * user-facing
-    */
+    // Normalize channel name and return its object, if any.
+    IRC.prototype.findChannel = function(chanName) {
+      if (chanName != null) {
+        return this._channels[chanName.toLowerCase()];
+      }
+      return null;
+    };
 
+    // Create a new channel object.
+    IRC.prototype.newChannel = function(chanName, key) {
+      return this._channels[chanName.toLowerCase()] = {
+        names: [],
+        key: key
+      };
+    };
+
+    // Remove a channel.
+    IRC.prototype.deleteChannel = function(chanName) {
+      delete this._channels[chanName.toLowerCase()];
+    };
+
+    // Save state for storage.
+    // DO NOT MODIFY the returned object. It may contain live data.
+    IRC.prototype.saveState = function() {
+      return this._channels;
+    };
+
+    // Restore a saved state object.
+    // Merges, rather than overwrites, existing data.
+    // For a channel that exists in both, the saved state wins.
+    IRC.prototype.restoreState = function(state) {
+      for (var chanName in state) {
+        this._channels[chanName.toLowerCase()] = state[chanName];
+      }
+    };
+    
+    // Loop a function over all channels.
+    // Function will receive two arguments: name and channel object.
+    IRC.prototype.foreachChannel = function(f) {
+      for (var chanName in this._channels) {
+        if (this._channels[chanName]) {
+          f(chanName, this._channels[chanName]);
+        }
+      }
+    };
 
     IRC.prototype.connect = function(server, port, password) {
       var _ref1;
@@ -126,19 +167,16 @@
         } else {
           return this.doCommand('JOIN', channel);
         }
-      } else if (!this.channels[channel]) {
-        return this.channels[channel] = {
-          names: [],
-          key: key
-        };
+      } else if (!this.findChannel(channel)) {
+        return this.newChannel(channel);
       }
     };
 
     IRC.prototype.part = function(channel, reason) {
       if (this.state === 'connected') {
         return this.doCommand('PART', channel, reason);
-      } else if (this.channels[channel]) {
-        return delete this.channels[channel];
+      } else if (this.findChannel(channel)) {
+        return this.deleteChannel(channel);
       }
     };
 

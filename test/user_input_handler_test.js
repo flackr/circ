@@ -94,9 +94,8 @@
       handler = new UserInputHandler(input, win);
       handler.setKeyboardShortcuts(new KeyboardShortcutMap);
       handler._setCursorPosition = function() {};
-      ircMock.channels['#bash'] = {
-        names: names
-      };
+      ircMock.deleteChannel('#bash');
+      ircMock.newChannel('#bash').names = names;
       handler.setContext(context);
       spyOn(handler, 'emit');
       altHeld = false;
