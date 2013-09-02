@@ -41,7 +41,7 @@
       this._commands = commands;
       this._postMessage();
       this._printCommands();
-      this._postMessage("Type '/help <command>' to see details about a specific command.", 'notice help');
+      this._postMessage(html.escape("Type '/help <command>' to see details about a specific command."), 'notice help');
       return this._postMessage("Type '/hotkeys' to see the list of keyboard shortcuts.", 'notice help');
     };
 

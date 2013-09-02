@@ -242,7 +242,7 @@
       if (win == null) {
         win = this.win;
       }
-      return win.message('', this.getHelp(), 'notice help');
+      return win.message('', html.escape(this.getHelp()), 'notice help');
     };
 
     UserCommand.prototype.getHelp = function() {
