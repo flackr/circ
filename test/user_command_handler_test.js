@@ -4,33 +4,32 @@
   var __slice = [].slice;
 
   describe('A user command handler', function() {
-    var context, getWindow, handle, handler, onJoin, onMe, onMessage, onMode, win;
+    var handler, onJoin, onMe, onMode, win;
     win = onMode = onJoin = onMe = handler = void 0;
-    onMessage = jasmine.createSpy('onMessage');
-    context = {
+    var onMessage = jasmine.createSpy('onMessage');
+    var context = {
       determineWindow: function() {
         return win;
       },
       storage: {},
       displayMessage: function() {}
     };
-    getWindow = function() {
+    var getWindow = function() {
+      var ircMock = new window.irc.IRC;
+      ircMock.state = 'connected';
+      ircMock.nick = 'ournick';
       return {
         message: onMessage,
         target: '#bash',
         conn: {
           name: 'freenode.net',
-          irc: {
-            state: 'connected',
-            nick: 'ournick',
-            channels: {}
-          }
+          irc: ircMock
         }
       };
     };
-    handle = function() {
-      var args, name;
-      name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    var handle = function() {
+      var name = arguments[0];
+      var args = (2 <= arguments.length ? __slice.call(arguments, 1) : []);
       return handler.handle.apply(handler, [name, {}].concat(__slice.call(args)));
     };
     beforeEach(function() {
@@ -43,24 +42,22 @@
       return onMode = spyOn(handler._handlers.mode, 'run');
     });
     it("can handle valid user commands", function() {
-      var command, _i, _len, _ref, _results;
-      _ref = ['join', 'win'];
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        command = _ref[_i];
-        _results.push(expect(handler.canHandle(command)).toBe(true));
+      var commands = ['join', 'win'];
+      var results = [];
+      for (var i = 0, len = commands.length; i < len; i++) {
+        var command = commands[i];
+        results.push(expect(handler.canHandle(command)).toBe(true));
       }
-      return _results;
+      return results;
     });
     it("can't handle invalid user commands", function() {
-      var command, commands, _i, _len, _results;
-      commands = ['not_a_command', 'neitheristhis'];
-      _results = [];
-      for (_i = 0, _len = commands.length; _i < _len; _i++) {
-        command = commands[_i];
-        _results.push(expect(handler.canHandle(command)).toBe(false));
+      var commands = ['not_a_command', 'neitheristhis'];
+      var results = [];
+      for (var i = 0, len = commands.length; i < len; i++) {
+        var command = commands[i];
+        results.push(expect(handler.canHandle(command)).toBe(false));
       }
-      return _results;
+      return results;
     });
     it('runs commands that have valid args and can be run', function() {
       handle('join');
@@ -91,22 +88,19 @@
       return expect(onMode).toHaveBeenCalled();
     });
     it("supports the away command", function() {
-      var onAway;
-      onAway = spyOn(handler._handlers.away, 'run');
+      var onAway = spyOn(handler._handlers.away, 'run');
       handle('away');
       expect(onAway).toHaveBeenCalled();
       handle('away', "I'm", "busy");
       return expect(onAway).toHaveBeenCalled();
     });
     it("supports the op command", function() {
-      var onOp;
-      onOp = spyOn(handler._handlers.op, 'run');
+      var onOp = spyOn(handler._handlers.op, 'run');
       handle('op', 'othernick');
       return expect(onOp).toHaveBeenCalled();
     });
     it("only runs /join-server when online", function() {
-      var onJoinServer;
-      onJoinServer = spyOn(handler._handlers['join-server'], 'run');
+      var onJoinServer = spyOn(handler._handlers['join-server'], 'run');
       handle('join-server');
       expect(onJoinServer).toHaveBeenCalled();
       mocks.navigator.goOffline();
