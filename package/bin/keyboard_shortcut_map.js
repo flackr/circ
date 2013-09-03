@@ -144,6 +144,10 @@
           args: [windowNumber]
         });
       }
+      this._addHotkey('Ctrl-W', {
+        command: 'part',
+        description: 'close current channel/private chat'
+      });
       this._addHotkey('Alt-S', {
         command: 'next-server'
       });
