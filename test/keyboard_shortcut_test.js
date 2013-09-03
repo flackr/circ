@@ -3,45 +3,40 @@
   "use strict";
 
   describe("A keyboard shortcut map", function() {
-    var map;
-    map = void 0;
+    var map = void 0;
     beforeEach(function() {
       return map = new KeyboardShortcutMap();
     });
     it("maps a keyboard event to a command with certain arguments", function() {
-      var ctrl1, args, command, _ref;
-      ctrl1 = {
+      var ctrl1 = {
         ctrlKey: true,
         which: 49
       };
-      _ref = map.getMappedCommand(ctrl1), command = _ref[0], args = _ref[1];
-      expect(command).toBe('win');
-      return expect(args).toEqual([1]);
+      var cmd = map.getMappedCommand(ctrl1);
+      expect(cmd[0]).toBe('win');
+      return expect(cmd[1]).toEqual([1]);
     });
     it("returns an undefined command when the shortcut doesn't match any command", function() {
-      var args, command, alt1, _ref;
-      alt1 = {
+      var alt1 = {
         altKey: true,
         which: 49
       };
-      _ref = map.getMappedCommand(alt1), command = _ref[0], args = _ref[1];
-      return expect(command).not.toBeDefined();
+      var cmd = map.getMappedCommand(alt1);
+      return expect(cmd[0]).not.toBeDefined();
     });
     it("maps Tab to a command when the input field is empty", function() {
-      var args, command, tab, _ref;
-      tab = {
+      var tab = {
         which: 9
       };
-      _ref = map.getMappedCommand(tab, ""), command = _ref[0], args = _ref[1];
-      return expect(command).toBeDefined();
+      var cmd = map.getMappedCommand(tab, "");
+      return expect(cmd[0]).toBeDefined();
     });
     return it("doesn't map Tab to a command when the input field isn't empty", function() {
-      var args, command, tab, _ref;
-      tab = {
+      var tab = {
         which: 9
       };
-      _ref = map.getMappedCommand(tab, "user input"), command = _ref[0], args = _ref[1];
-      return expect(command).not.toBeDefined();
+      var cmd = map.getMappedCommand(tab, "user input");
+      return expect(cmd[0]).not.toBeDefined();
     });
   });
 
