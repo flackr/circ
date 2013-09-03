@@ -10,69 +10,67 @@
   var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   describe('An IRC client front end', function() {
-    var client, commandInput, device, getNoticeOption, init, irc, nick, nicks, noticeIsVisible, pressTab, prompt, restart, room, rooms, scriptHandler, switchToWindow, textOfNick, textOfRoom, type, useMocks;
+    var client, commandInput, prompt, scriptHandler;
     scriptHandler = client = prompt = commandInput = void 0;
-    room = function(index) {
+    var room = function(index) {
       if (index === -1) {
         return rooms().last();
       }
       return $(rooms()[index]);
     };
-    rooms = function() {
+    var rooms = function() {
       return $('#rooms-container .rooms .room');
     };
-    textOfRoom = function(index) {
+    var textOfRoom = function(index) {
       return $('.content-item', room(index)).text();
     };
-    nick = function(index) {
+    var nick = function(index) {
       if (index === -1) {
         return nicks().last();
       }
       return $(nicks()[index]);
     };
-    nicks = function() {
+    var nicks = function() {
       return $('#nicks-container .nicks .nick');
     };
-    textOfNick = function(index) {
+    var textOfNick = function(index) {
       return $('.content-item', nick(index)).text();
     };
-    device = function(i) {
+    var device = function(i) {
       return mocks.RemoteDevice.devices[i];
     };
-    irc = function(name) {
-      var _ref;
-      return (_ref = client.connections[name]) != null ? _ref.irc : void 0;
+    var irc = function(name) {
+      var conn = client.connections[name];
+      return conn != null ? conn.irc : void 0;
     };
-    type = function(text) {
-      var event;
+    var type = function(text) {
       prompt.val(text);
-      event = $.Event('keypress');
+      var event = $.Event('keypress');
       event.which = 13;
       return commandInput._handleKeydown(event);
     };
-    pressTab = function() {
-      var event;
-      event = $.Event('keypress');
+    var pressTab = function() {
+      var event = $.Event('keypress');
       event.which = 9;
       return commandInput._handleGlobalKeydown(event);
     };
-    switchToWindow = function(index) {
+    var switchToWindow = function(index) {
       return client.switchToWindow(client.winList.get(index));
     };
-    noticeIsVisible = function() {
+    var noticeIsVisible = function() {
       return $("#notice")[0].style.top === "0px";
     };
-    getNoticeOption = function(index) {
+    var getNoticeOption = function(index) {
       return $("#notice .option" + index);
     };
-    restart = function() {
+    var restart = function() {
       RemoteDevice.devices = [];
       mocks.dom.tearDown();
       client.tearDown();
       mocks.dom.setUp();
       return init();
     };
-    init = function() {
+    var init = function() {
       scriptHandler = new window.script.ScriptHandler;
       client = new window.chat.Chat;
       commandInput.setContext(client);
@@ -84,7 +82,7 @@
       client.listenToIRCEvents(scriptHandler);
       return client.init();
     };
-    useMocks = function() {
+    var useMocks = function() {
       mocks.scripts.useMock();
       mocks.Walkthrough.useMock();
       mocks.Runtime.useMock();
@@ -137,28 +135,25 @@
       return expect(noticeIsVisible()).toBe(true);
     });
     describe("script", function() {
-      var add, getMostRecentScriptId, loadScript, waitsForScriptToLoad, waitsForScriptToRespond;
-      getMostRecentScriptId = function() {
+      var getMostRecentScriptId = function() {
         return window.script.Script.scriptCount - 1;
       };
-      waitsForScriptToRespond = function(event) {
+      var waitsForScriptToRespond = function(event) {
         return waitsFor(function() {
           return scriptHandler[event].calls.length > 0;
         }, 'the script should have sent the given response', 500);
       };
-      waitsForScriptToLoad = function(id) {
+      var waitsForScriptToLoad = function(id) {
         return waitsFor(function() {
-          var script;
-          script = scriptHandler._scripts[id];
+          var script = scriptHandler._scripts[id];
           if (!script) {
             return false;
           }
           return script._messagesToHandle.length > 0;
         }, 'the script should have finished loading', 500);
       };
-      loadScript = function(sourceCode) {
-        var script;
-        script = window.script.loader._createScript(sourceCode);
+      var loadScript = function(sourceCode) {
+        var script = window.script.loader._createScript(sourceCode);
         client.addScript(script);
         waitsForScriptToLoad(script.id);
         return script;
@@ -190,17 +185,16 @@
       it("won't automatically load on startup if it was uninstalled", function() {
         loadScript(mocks.scripts.hiSourceCode);
         return runs(function() {
-          var loadedScripts, script, _i, _len, _results;
           type('/uninstall /hi');
           spyOn(window.script.loader, 'loadScriptsFromStorage');
           restart();
-          loadedScripts = window.script.loader.loadScriptsFromStorage.mostRecentCall.args[0];
-          _results = [];
-          for (_i = 0, _len = loadedScripts.length; _i < _len; _i++) {
-            script = loadedScripts[_i];
-            _results.push(expect(script.sourceCode).not.toBe(mocks.scripts.hiSourceCode));
+          var loadedScripts = window.script.loader.loadScriptsFromStorage.mostRecentCall.args[0];
+          var results = [];
+          for (var i = 0, len = loadedScripts.length; i < len; i++) {
+            var script = loadedScripts[i];
+            results.push(expect(script.sourceCode).not.toBe(mocks.scripts.hiSourceCode));
           }
-          return _results;
+          return results;
         });
       });
       it("loads automatically from local storage on startup if previously loaded", function() {
@@ -228,7 +222,7 @@
           return expect(__indexOf.call(scriptHandler.getScriptNames(), '/dance') >= 0).toBe(true);
         });
       });
-      add = function(amount, onFinish) {
+      var add = function(amount, onFinish) {
         type('/add ' + amount);
         waitsForScriptToRespond('_emitEvent');
         return runs(function() {
@@ -292,32 +286,28 @@
       });
       return describe('has a name which', function() {
         it("is always unique name", function() {
-          var script1, script2;
-          script1 = loadScript(mocks.scripts.hiSourceCode);
-          script2 = loadScript(mocks.scripts.hiSourceCode);
+          var script1 = loadScript(mocks.scripts.hiSourceCode);
+          var script2 = loadScript(mocks.scripts.hiSourceCode);
           return runs(function() {
             expect(script1.getName()).toBe('/hi');
             return expect(script2.getName()).toBe('/hi2');
           });
         });
         it("can only contain valid characters", function() {
-          var script;
-          script = loadScript(mocks.scripts.invalidNameSourceCode);
+          var script = loadScript(mocks.scripts.invalidNameSourceCode);
           return runs(function() {
             return expect(script.getName()).not.toBe('invalid name');
           });
         });
         it("has a max length", function() {
-          var script;
-          script = loadScript(mocks.scripts.longNameSourceCode);
+          var script = loadScript(mocks.scripts.longNameSourceCode);
           return runs(function() {
             console.log(script.getName());
             return expect(script.getName().length <= 20).toBe(true);
           });
         });
         return it("has a default name of script#", function() {
-          var script;
-          script = loadScript(mocks.scripts.noNameSourceCode);
+          var script = loadScript(mocks.scripts.noNameSourceCode);
           return runs(function() {
             return expect(script.getName()).toMatch(/script\d+/);
           });
@@ -325,12 +315,11 @@
       });
     });
     describe("walkthrough", function() {
-      var restartWith, walkthrough;
-      walkthrough = void 0;
+      var walkthrough = void 0;
       beforeEach(function() {
         return walkthrough = mocks.Walkthrough.instance;
       });
-      restartWith = function(obj, type) {
+      var restartWith = function(obj, type) {
         if (type == null) {
           type = 'sync';
         }
@@ -407,17 +396,13 @@
       });
     });
     describe("storage", function() {
-      var doActivity;
-      doActivity = function() {
+      beforeEach(function() {
         type('/nick newNick');
         type('/server freenode 6667');
         type('/join #bash');
         type('/join #awesome');
         type('/server dalnet 6697');
         return type('/join #hiphop');
-      };
-      beforeEach(function() {
-        return doActivity();
       });
       it("chooses a new password when one doesn't currently exist", function() {
         return expect(client.remoteConnection._password).toEqual(jasmine.any(String));
@@ -489,8 +474,7 @@
         return expect(irc('freenode').state).toBe('connecting');
       });
       it('can queue a disconnection request with /quit', function() {
-        var currentIRC;
-        currentIRC = irc('freenode');
+        var currentIRC = irc('freenode');
         type('/quit');
         currentIRC.handle('1', {}, 'ournick');
         return expect(currentIRC.state).toBe('disconnected');
@@ -523,8 +507,7 @@
       });
     });
     return describe("that connects", function() {
-      var currentIRC;
-      currentIRC = void 0;
+      var currentIRC = void 0;
       beforeEach(function() {
         type('/server freenode');
         currentIRC = irc('freenode');
@@ -635,9 +618,8 @@
           return expect(room(2)).not.toHaveClass('selected');
         });
         it("marks a window as active if a message is sent and it's not selected", function() {
-          var irc2;
           type('/server dalnet');
-          irc2 = client.currentWindow.conn.irc;
+          var irc2 = client.currentWindow.conn.irc;
           irc2.handle('1', {}, 'ournick');
           currentIRC.handle('PRIVMSG', {
             nick: 'someguy'
@@ -731,19 +713,17 @@
           });
         });
         describe("has a nick list which", function() {
-          var addNicks, currentNicks;
-          currentNicks = void 0;
+          var currentNicks = void 0;
           beforeEach(function() {
             return currentNicks = ['bart', 'bill', 'bob', 'charlie', 'derek', 'edward', 'jacob', 'megan', 'norman', 'sally', 'sue', 'Tereza', 'zabo1', 'ZABO2', 'zabo3', 'Zabo88'];
           });
-          addNicks = function() {
-            var name, nameMap, _i, _len;
+          var addNicks = function() {
             currentIRC.emit('names', '#bash', currentNicks.slice(0, 7));
             currentIRC.emit('names', '#bash', currentNicks.slice(7, 12));
             currentIRC.emit('names', '#bash', currentNicks.slice(12));
-            nameMap = {};
-            for (_i = 0, _len = currentNicks.length; _i < _len; _i++) {
-              name = currentNicks[_i];
+            var nameMap = {};
+            for (var i = 0, len = currentNicks.length; i < len; i++) {
+              var name = currentNicks[i];
               nameMap[name] = name;
             }
             return currentIRC.channels['#bash'].names = nameMap;
@@ -790,18 +770,16 @@
             return expect(nicks().length).toBe(currentNicks.length);
           });
           return it("stays visible when another non-selected window is closed", function() {
-            var event;
             type("/join #awesome");
-            event = new Event('command', 'part');
+            var event = new Event('command', 'part');
             event.setContext('freenode', '#bash');
             client.userCommands.handle('part', event);
             return expect($('#rooms-and-nicks')).not.toHaveClass('no-nicks');
           });
         });
         return describe("with a remote connection", function() {
-          var authenticate, becomeClient, findPort, getChannels, getState, onAuth, receiveChatHistory, receivePassword, state;
-          state = onAuth = void 0;
-          getChannels = function() {
+          var state = void 0;
+          var getChannels = function() {
             return {
               '#bash': {
                 names: {
@@ -812,7 +790,7 @@
               }
             };
           };
-          getState = function() {
+          var getState = function() {
             return {
               nick: 'preferredNick',
               servers: [
@@ -844,28 +822,26 @@
               ]
             };
           };
-          findPort = function() {
-            var d;
-            d = client.remoteConnection._thisDevice;
+          var findPort = function() {
+            var d = client.remoteConnection._thisDevice;
             d.port = 1;
             RemoteDevice.state = 'found_port';
             return d.emit('found_port');
           };
-          authenticate = function(device) {
-            var authToken;
-            authToken = client.remoteConnection._getAuthToken(device.password);
+          var authenticate = function(device) {
+            var authToken = client.remoteConnection._getAuthToken(device.password);
             return device.emit('authenticate', device, authToken);
           };
-          receivePassword = function(device, password) {
+          var receivePassword = function(device, password) {
             return device.emit('authentication_offer', device, password);
           };
-          becomeClient = function(opt_state) {
+          var becomeClient = function(opt_state) {
             if (opt_state) {
               state = opt_state;
             }
             return (device(1)).emit('connection_message', device(1), 'irc_state', state);
           };
-          receiveChatHistory = function(chatHistory) {
+          var receiveChatHistory = function(chatHistory) {
             return device(1).emit('connection_message', device(1), 'chat_log', chatHistory);
           };
           beforeEach(function() {
@@ -910,7 +886,6 @@
             return expect(client.connections['freenode']).not.toBeDefined();
           });
           it("can load the IRC state from the server device", function() {
-            var i, name, _i, _len, _ref;
             type("/join-server 1.1.1.2 1336");
             becomeClient();
             expect(rooms().length).toBe(4);
@@ -921,9 +896,9 @@
             expect(room(2)).toHaveClass('disconnected');
             expect(room(3)).toHaveClass('disconnected');
             type(switchToWindow(1));
-            _ref = ['bob', 'Sally', 'somenick'];
-            for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-              name = _ref[i];
+            var nicklist = ['bob', 'Sally', 'somenick'];
+            for (var i = 0, len = nicklist.length; i < len; i++) {
+              var name = nicklist[i];
               expect(textOfNick(i)).toBe(name);
             }
             return expect($('#status').text()).toBe('somenick' + 'away');
@@ -936,10 +911,9 @@
             return expect(irc('freenode').preferredNick).toBeDefined();
           });
           it("can listen to user input from the server device", function() {
-            var event;
             type("/join-server 1.1.1.2 1336");
             becomeClient();
-            event = new Event('command', 'nick', 'newnick');
+            var event = new Event('command', 'nick', 'newnick');
             event.setContext('freenode');
             spyOn(client, 'setNick');
             (device(1)).emit('user_input', device(1), event);
@@ -1102,10 +1076,9 @@
             return expect(device(1).send).toHaveBeenCalledWith('connection_message', ['chat_log', jasmine.any(Object)]);
           });
           it("replays received chat history after connecting to a server device", function() {
-            var chatHistory, win;
             type('hi there');
             type('i am recording some chat history');
-            chatHistory = client.messageHandler.getChatLog();
+            var chatHistory = client.messageHandler.getChatLog();
             chrome.storage.sync.set({
               server_device: {
                 addr: '1.1.1.2',
@@ -1114,11 +1087,11 @@
             });
             restart();
             becomeClient();
-            win = client.winList.get('freenode', '#bash');
-            spyOn(win, 'rawHTML');
+            var mywin = client.winList.get('freenode', '#bash');
+            spyOn(mywin, 'rawHTML');
             receiveChatHistory(chatHistory);
             expect(client.remoteConnection.isClient()).toBe(true);
-            return expect(win.rawHTML).toHaveBeenCalled();
+            return expect(mywin.rawHTML).toHaveBeenCalled();
           });
           it("connects to a server even when the server connection takes a long time", function() {
             chrome.storage.sync.set({
