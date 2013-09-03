@@ -289,7 +289,7 @@
 
 
     ScriptHandler.prototype._isValidName = function(name) {
-      return name && /^[a-zA-Z0-9/_-]+$/.test(name);
+      return name && /^[a-zA-Z0-9\/_-]+$/.test(name);
     };
 
     /*
