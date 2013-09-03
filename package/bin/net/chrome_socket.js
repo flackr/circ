@@ -40,12 +40,8 @@
 
     ChromeSocket.prototype._onConnect = function(rc) {
       if (rc < 0) {
-        /*
-               * Can get -109, -105, -102 when entering a server we can't connect to
-               * TODO make better error messages
-        */
-
-        return this.emit('error', "couldn't connect to socket: " + rc);
+        return this.emit('error', "couldn't connect to socket: " +
+          chrome.runtime.lastError.message + " (error " + (-rc) + ")");
       } else {
         this.emit('connect');
         return chrome.socket.read(this.socketId, this._onRead);
@@ -58,7 +54,8 @@
       }
       this._active();
       if (readInfo.resultCode < 0) {
-        this.emit('error', readInfo.resultCode);
+        this.emit('error', "read from socket: " +
+          chrome.runtime.lastError.message + " (error " + (-readInfo.resultCode) + ")");
       } else if (readInfo.resultCode === 0) {
         this.emit('end');
         this.close();
@@ -74,7 +71,8 @@
       this._active();
       return chrome.socket.write(this.socketId, data, function(writeInfo) {
         if (writeInfo.resultCode < 0) {
-          console.error("SOCKET ERROR on write: ", writeInfo.resultCode);
+          console.error("SOCKET ERROR on write: ",
+            chrome.runtime.lastError.message + " (error " + (-writeInfo.resultCode) + ")");
         }
         if (writeInfo.bytesWritten === data.byteLength) {
           return _this.emit('drain');
