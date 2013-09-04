@@ -356,15 +356,14 @@
     };
 
     Storage.prototype._createIRCStates = function() {
-      var conn, ircStates, name, _ref1;
-      ircStates = [];
-      _ref1 = this._chat.connections;
-      for (name in _ref1) {
-        conn = _ref1[name];
+      var ircStates = [];
+      var connlist = this._chat.connections;
+      for (var name in connlist) {
+        var conn = connlist[name];
         ircStates.push({
           server: conn.name,
           state: conn.irc.state,
-          channels: conn.irc.channels,
+          channels: conn.irc.saveState(),
           away: conn.irc.away,
           nick: conn.irc.nick
         });
@@ -555,7 +554,7 @@
         conn.irc.away = ircState.away;
       }
       if (ircState.channels) {
-        conn.irc.channels = ircState.channels;
+        conn.irc.restoreState(ircState.channels);
       }
       conn.irc.nick = ircState.nick;
       if (!ircState.channels) {

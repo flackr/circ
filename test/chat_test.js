@@ -726,7 +726,7 @@
               var name = currentNicks[i];
               nameMap[name] = name;
             }
-            return currentIRC.channels['#bash'].names = nameMap;
+            return currentIRC.findChannel('#bash').names = nameMap;
           };
           it("displays the user's nick when first joining a channel", function() {
             expect(nicks().length).toBe(1);

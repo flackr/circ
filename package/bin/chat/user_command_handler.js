@@ -144,7 +144,7 @@
                     return this.displayMessage('error','you must be in a channel or specify one');
                  }
              }
-             if (!this.conn.irc.channels[this.channel]) {
+             if (!this.conn.irc.findChannel(this.channel)) {
                  // according to spec you can invite users to a channel that you are not a member of if it doesn't exist
                  return this.displayMessage('error', 'you must be in ' + this.channel + ' to invite someone to it');
              }
@@ -202,7 +202,7 @@
           } else {
             names = ((function() {
               var _ref1, _results;
-              _ref1 = this.conn.irc.channels[this.chan].names;
+              _ref1 = this.conn.irc.findChannel(this.chan).names;
               _results = [];
               for (k in _ref1) {
                 v = _ref1[k];

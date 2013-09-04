@@ -87,7 +87,7 @@
     AutoComplete.prototype._getNickCompletions = function() {
       var chan, completions, nick, nicks, norm, ownNick, _ref, _ref1;
       chan = this._context.currentWindow.target;
-      nicks = (_ref = this._context.currentWindow.conn) != null ? (_ref1 = _ref.irc.channels[chan]) != null ? _ref1.names : void 0 : void 0;
+      nicks = (_ref = this._context.currentWindow.conn) != null ? (_ref1 = _ref.irc.findChannel(chan)) != null ? _ref1.names : void 0 : void 0;
       if (nicks != null) {
         ownNick = this._context.currentWindow.conn.irc.nick;
         completions = [];

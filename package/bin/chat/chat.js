@@ -588,7 +588,7 @@
       nick = (_ref1 = (_ref2 = this.currentWindow.conn) != null ? _ref2.irc.nick : void 0) != null ? _ref1 : this.preferredNick;
       away = (_ref3 = this.currentWindow.conn) != null ? _ref3.irc.away : void 0;
       channel = this.currentWindow.target;
-      topic = (_ref4 = this.currentWindow.conn) != null ? (_ref5 = _ref4.irc.channels[channel]) != null ? _ref5.topic : void 0 : void 0;
+      topic = (_ref4 = this.currentWindow.conn) != null ? (_ref5 = _ref4.irc.findChannel(channel)) != null ? _ref5.topic : void 0 : void 0;
       if (nick) {
         statusList.push("<span class='nick'>" + (html.escape(nick)) + "</span>");
       }
