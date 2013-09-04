@@ -216,7 +216,8 @@
 
     RemoteDevice.prototype._onFailedToListen = function(callback, port, result) {
       if (port - RemoteDevice.BASE_PORT > RemoteDevice.MAX_CONNECTION_ATTEMPTS) {
-        this._log('w', "Couldn't listen to 0.0.0.0 on any attempted ports");
+        this._log('w', "Couldn't listen to 0.0.0.0 on any attempted ports",
+          chrome.runtime.lastError.message + " (error " +  (-result) + ")");
         this.port = RemoteDevice.NO_PORT;
         return this.emit('no_port');
       } else {
@@ -268,7 +269,8 @@
         var _ref;
         return (_ref = chrome.socket) != null ? _ref.write(_this._socketId, data, function(writeInfo) {
           if (writeInfo.resultCode < 0 || writeInfo.bytesWritten !== data.byteLength) {
-            _this._log('w', 'closing b/c failed to send:', type, args, writeInfo.resultCode);
+            _this._log('w', 'closing b/c failed to send:', type, args,
+              chrome.runtime.lastError.message + " (error " + (-writeInfo.resultCode) + ")");
             return _this.close();
           } else {
             return _this._log('sent', type, args);
@@ -301,7 +303,8 @@
 
     RemoteDevice.prototype._onConnect = function(result, callback) {
       if (result < 0) {
-        this._log('w', "Couldn't connect to server", this.addr, 'on port', this.port, '-', result);
+        this._log('w', "Couldn't connect to server", this.addr, 'on port', this.port, '-',
+          chrome.runtime.lastError.message + " (error " +  (-result) + ")");
         return callback(false);
       } else {
         this._listenForData();
@@ -325,7 +328,8 @@
         _this = this;
       return (_ref = chrome.socket) != null ? _ref.read(this._socketId, function(readInfo) {
         if (readInfo.resultCode <= 0) {
-          _this._log('w', 'bad read - closing socket. code: ', readInfo.resultCode);
+          _this._log('w', 'bad read - closing socket: ',
+            chrome.runtime.lastError.message + " (error " +  (-readInfo.resultCode) + ")");
           _this.emit('closed', _this);
           return _this.close();
         } else if (readInfo.data.byteLength) {
