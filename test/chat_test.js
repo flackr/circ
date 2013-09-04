@@ -401,7 +401,7 @@
         type('/server freenode 6667');
         type('/join #bash');
         type('/join #awesome');
-        type('/server dalnet 6697');
+        type('/server dalnet:6697');
         return type('/join #hiphop');
       });
       it("chooses a new password when one doesn't currently exist", function() {
