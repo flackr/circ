@@ -114,7 +114,7 @@
     WindowList.prototype._addWindowToServer = function(server, win) {
       server.windows.push(win);
       return server.windows.sort(function(win1, win2) {
-        return win1.target > win2.target;
+        return win1.target.localeCompare(win2.target);
       });
     };
 
