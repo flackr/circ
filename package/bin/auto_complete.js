@@ -111,18 +111,28 @@
 
 
     AutoComplete.prototype.getTextWithCompletion = function(text, cursor) {
-      var completion, textWithCompletion;
       this._text = text;
       this._cursor = cursor;
-      if (this._previousText !== this._text) {
+
+      if (this._previousText !== this._text ||
+          (this._completionFinder.hasStarted && this._cursor != this._updatedCursorPosition)) {
+        // Either the text changed, or the cursor moved since last completion.
+        // Restart the cycle.
         this._completionFinder.reset();
       }
-      this._previousCursor = this._cursor;
+
       if (!this._completionFinder.hasStarted) {
+        if (cursor >= 1 && /\s/.test(text.charAt(cursor - 1))) {
+          // Don't start a new completion cycle when the cursor immediately
+          // follows whitespace, but allow completion at start of line.
+          this._updatedCursorPosition = cursor;
+          return text;
+        }
         this._extractStub();
       }
-      completion = this._getCompletion();
-      textWithCompletion = this._preCompletion + completion + this._postCompletion;
+
+      var completion = this._getCompletion();
+      var textWithCompletion = this._preCompletion + completion + this._postCompletion;
       this._updatedCursorPosition = this._preCompletion.length + completion.length;
       this._previousText = textWithCompletion;
       return textWithCompletion;
