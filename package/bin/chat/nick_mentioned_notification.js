@@ -45,7 +45,7 @@
       nick = nick.replace(/_+$/, '');
       nick = this._escapeTextForRegex(nick);
       msgToTest = this._prepMessageForRegex(msg, nick);
-      return /\#nick\#_*([!?.]*|[-:;~\*]?)(?!\S)/i.test(msgToTest);
+      return /\#nick\#_*([!?.]*|[-:;~\*\u0001]?)(?!\S)/i.test(msgToTest);
     };
 
     NickMentionedNotification._escapeTextForRegex = function(text) {
