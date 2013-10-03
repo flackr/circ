@@ -50,6 +50,12 @@
       expect(notification.shouldNotify('sallyjoe', 'I mean @sallyjoe*')).toBe(true);
       return expect(notification.shouldNotify('sallyjoe', 'oh its @sallyjoe!!??  ')).toBe(true);
     });
+    it('should notify when nick is in an action', function() {
+      expect(notification.shouldNotify('sallyjoe', '\u0001ACTION sallyjoe\u0001')).toBe(true);
+      expect(notification.shouldNotify('sallyjoe', '\u0001ACTION waves to sallyjoe\u0001')).toBe(true);
+      expect(notification.shouldNotify('sallyjoe', '\u0001ACTION slaps sallyjoe with a large trout\u0001')).toBe(true);
+      return expect(notification.shouldNotify('sallyjoe', '\u0001ACTION sallyjoe hides\u0001')).toBe(true);
+    });
     it('should not notify when nick is not mentioned', function() {
       expect(notification.shouldNotify('thragtusk', 'sallyjoe')).toBe(false);
       expect(notification.shouldNotify('sallyjoe', '-sallyjoe-')).toBe(false);
