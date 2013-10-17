@@ -22,6 +22,12 @@
     "unlimitedStorage"
   ],
 
+  "sockets": {
+    "tcp": {
+      "listen": "", "connect": ""
+    }
+  },
+
   "app": {
     "background": {
       "scripts": ["bin/background.js"]

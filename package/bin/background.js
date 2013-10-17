@@ -12,8 +12,8 @@
 
   var cleanup = function() {
     for (var socketid in openConnections) {
-      chrome.socket.disconnect(parseInt(socketid));
-      chrome.socket.destroy(parseInt(socketid));
+      chrome.sockets.tcp.disconnect(parseInt(socketid));
+      chrome.sockets.tcp.close(parseInt(socketid));
     }
     openConnections = [];
     window.close();

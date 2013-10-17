@@ -9,7 +9,7 @@
   var exports = (_ref = window.net) != null ? _ref : window.net = {};
 
   /*
-   * A socket connected to an IRC server. Uses chrome.socket.
+   * A socket connected to an IRC server. Uses chrome.sockets.tcp.
   */
 
 
@@ -18,24 +18,31 @@
     __extends(ChromeSocket, _super);
 
     function ChromeSocket() {
-      this._onRead = __bind(this._onRead, this);
-
+      this._onCreate = __bind(this._onCreate, this);
       this._onConnect = __bind(this._onConnect, this);
+      this._onReceive = __bind(this._onReceive, this);
+      this._onReceiveError = __bind(this._onReceiveError, this);
       return ChromeSocket.__super__.constructor.apply(this, arguments);
     }
 
     ChromeSocket.prototype.connect = function(addr, port) {
-      var _this = this;
       this._active();
-      return chrome.socket.create('tcp', {}, function(si) {
-        _this.socketId = si.socketId;
-        if (_this.socketId > 0) {
-          registerSocketConnection(si.socketId);
-          return chrome.socket.connect(_this.socketId, addr, port, _this._onConnect);
-        } else {
-          return _this.emit('error', "couldn't create socket");
-        }
+      var _this = this;
+      return chrome.sockets.tcp.create({}, function(si) {
+        _this._onCreate(si, addr, port)
       });
+    };
+
+    ChromeSocket.prototype._onCreate = function(si, addr, port) {
+      this.socketId = si.socketId;
+      if (this.socketId > 0) {
+        registerSocketConnection(si.socketId);
+        chrome.sockets.tcp.setPaused(this.socketId, true, function() {});
+        return chrome.sockets.tcp.connect(
+            this.socketId, addr, port, this._onConnect);
+      } else {
+        return this.emit('error', "couldn't create socket");
+      }
     };
 
     ChromeSocket.prototype._onConnect = function(rc) {
@@ -44,32 +51,38 @@
           chrome.runtime.lastError.message + " (error " + (-rc) + ")");
       } else {
         this.emit('connect');
-        return chrome.socket.read(this.socketId, this._onRead);
+
+        chrome.sockets.tcp.onReceive.addListener(this._onReceive);
+        chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
+        chrome.sockets.tcp.setPaused(this.socketId, false, function() {});
       }
     };
 
-    ChromeSocket.prototype._onRead = function(readInfo) {
-      if (readInfo.resultCode === -1) {
-        console.error("Bad assumption: got -1 in _onRead");
-      }
+    ChromeSocket.prototype._onReceive = function(info) {
+      if (info.socketId != this.socketId)
+        return;
       this._active();
-      if (readInfo.resultCode < 0) {
-        this.emit('error', "read from socket: " +
-          chrome.runtime.lastError.message + " (error " + (-readInfo.resultCode) + ")");
-      } else if (readInfo.resultCode === 0) {
+      if (info.data.byteLength == 0) {
         this.emit('end');
         this.close();
+      } else {
+        this.emit('data', info.data);
       }
-      if (readInfo.data.byteLength) {
-        this.emit('data', readInfo.data);
-        return chrome.socket.read(this.socketId, this._onRead);
-      }
+    };
+
+    ChromeSocket.prototype._onReceiveError = function(info) {
+      if (info.socketId != this.socketId)
+        return;
+      this._active();
+      this.emit('error', "read from socket: " +
+        chrome.runtime.lastError.message +
+        " (error " + (-info.resultCode) + ")");
     };
 
     ChromeSocket.prototype.write = function(data) {
       var _this = this;
       this._active();
-      return chrome.socket.write(this.socketId, data, function(writeInfo) {
+      return chrome.sockets.tcp.send(this.socketId, data, function(writeInfo) {
         if (writeInfo.resultCode < 0) {
           console.error("SOCKET ERROR on write: ",
             chrome.runtime.lastError.message + " (error " + (-writeInfo.resultCode) + ")");
@@ -89,8 +102,10 @@
 
     ChromeSocket.prototype.close = function() {
       if (this.socketId != null) {
-        chrome.socket.disconnect(this.socketId);
-        chrome.socket.destroy(this.socketId);
+        chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
+        chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
+        chrome.sockets.tcp.disconnect(this.socketId);
+        chrome.sockets.tcp.close(this.socketId);
         registerSocketConnection(this.socketId, true);
       }
       return this.emit('close');

@@ -56,7 +56,7 @@
 
     Chat.prototype._displaySocketSupportError = function() {
       var message;
-      message = "CIRC cannot run on this device. Support for " + "chrome.socket is required to connect to the IRC server. " + "Please update your version of Chrome and try again.";
+      message = "CIRC cannot run on this device. Support for " + "chrome.sockets is required to connect to the IRC server. " + "Please update your version of Chrome and try again.";
       return this.displayMessage('error', this.getCurrentContext(), message);
     };
 
