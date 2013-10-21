@@ -160,7 +160,7 @@
     RemoteConnection.prototype._onSocketData = function(device, server, type, data) {
       var _ref;
       if (type === 'data') {
-        data = irc.util.dataViewToArrayBuffer(data);
+        data = irc.util.arrayToArrayBuffer(data);
       }
       return (_ref = this._ircSocketMap[server]) != null ? _ref.emit(type, data) : void 0;
     };

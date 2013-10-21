@@ -131,12 +131,17 @@
     return exports.arrayBufferConversionCount > 0;
   };
 
-  exports.dataViewToArrayBuffer = function(view) {
-    var result, resultView;
-    result = new ArrayBuffer(view.byteLength);
-    resultView = new Uint8Array(result);
-    resultView.set(view);
-    return result;
+  /**
+   * Converts an array containing uint8 values to an ArrayBuffer.
+   * @param {Array.<number>} array An array of values in the range [0, 255].
+   * @return {ArrayBuffer} An array buffer containing the byte representation of
+   *     the passed in array.
+   */
+  exports.arrayToArrayBuffer = function(array) {
+    var arrayBuffer = new ArrayBuffer(array.length);
+    var arrayView = new Uint8Array(arrayBuffer);
+    arrayView.set(array);
+    return arrayBuffer;
   };
 
   function createBlob(src) {

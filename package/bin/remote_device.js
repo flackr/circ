@@ -258,9 +258,17 @@
     };
 
     RemoteDevice.prototype.send = function(type, args) {
-      var msg,
-        _this = this;
-      msg = JSON.stringify({
+      var _this = this;
+      if (args) {
+        // Convert Uint8Arrays to regular JS arrays for stringify.
+        // TODO(flackr): Preferably this would be done earlier so that send
+        // doesn't need to know what's being sent.
+        for (var i = 0; i < args.length; i++) {
+          if (args[i] instanceof Uint8Array)
+            args[i] = Array.prototype.slice.call(args[i]);
+        }
+      }
+      var msg = JSON.stringify({
         type: type,
         args: args
       });
@@ -339,8 +347,7 @@
             completeMessages = _this._parseReceivedMessages();
             _results = [];
             for (_i = 0, _len = completeMessages.length; _i < _len; _i++) {
-              json = completeMessages[_i];
-              data = JSON.parse(json);
+              data = completeMessages[_i];
               _this._log.apply(_this, ['received', data.type].concat(__slice.call(data.args)));
               _results.push(_this.emit.apply(_this, [data.type, _this].concat(__slice.call(data.args))));
             }
@@ -361,6 +368,13 @@
       if (!this._receivedMessages) {
         return result;
       }
+      var isDigit = function(c) {
+        return c >= '0' && c <= '9';
+      };
+      if (this._receivedMessages.length &&
+          !isDigit(this._receivedMessages[0])) {
+        this._log.apply(this, ['received message doesn\'t begin with digit: ', this._receivedMessages]);
+      }
       prefixEnd = this._receivedMessages.indexOf('$');
       if (!(prefixEnd >= 0)) {
         return result;
@@ -370,7 +384,19 @@
         return result;
       }
       message = this._receivedMessages.slice(prefixEnd + 1, +(prefixEnd + length) + 1 || 9e9);
-      result.push(message);
+      try {
+        var json = JSON.parse(message);
+        result.push(json);
+        if (JSON.stringify(json).length != length) {
+          this._log('e', 'json length mismatch');
+        }
+      } catch (e) {
+        this._log('e', 'failed to parse json: ' + message);
+      }
+      if (this._receivedMessages.length > prefixEnd + length + 1 &&
+          !isDigit(this._receivedMessages[prefixEnd + length + 1])) {
+        this._log('e', 'message after split doesn\'t begin with digit: ' + this._receivedMessages);
+      }
       this._receivedMessages = this._receivedMessages.slice(prefixEnd + length + 1);
       return this._parseReceivedMessages(result);
     };
