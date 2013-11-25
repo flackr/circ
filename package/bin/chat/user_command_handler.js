@@ -79,9 +79,9 @@
         }
       });
       this._addCommand('server', {
-        description: 'connects to the server, port 6667 is used by default, ' + "reconnects to the current server if no server is specified",
+        description: 'connects to the server, port 6667 is used by default, ' + "reconnects to the current server if no server is specified, " + 'including nick:password identifies to NickServ',
         category: 'common',
-        params: ['opt_server', 'opt_port', 'opt_password'],
+        params: ['opt_server', 'opt_port', 'opt_server_password', 'opt_nick:password'],
         requires: ['online'],
         validateArgs: function() {
           var _ref1, _ref2;
