@@ -34,9 +34,12 @@
 
     function RemoteDevice(addr, port) {
       this._listenOnValidPort = __bind(this._listenOnValidPort, this);
+      this._onReceive = __bind(this._onReceive, this);
+      this._onReceiveError = __bind(this._onReceiveError, this);
       RemoteDevice.__super__.constructor.apply(this, arguments);
       this._receivedMessages = '';
       this.id = addr;
+      this._isClient = false;
       if (typeof addr === 'string') {
         this._initFromAddress(addr, port);
       } else if (addr) {
@@ -75,6 +78,7 @@
 
     RemoteDevice.prototype._initFromSocketId = function(_socketId) {
       this._socketId = _socketId;
+      this._isClient = true;
       return this._listenForData();
     };
 
@@ -82,7 +86,7 @@
       var device,
         _this = this;
       device = new RemoteDevice;
-      if (!device.hasGetNetworkListSupport()) {
+      if (!device.hasGetNetworkInterfacesSupport()) {
         callback(device);
         return;
       }
@@ -96,7 +100,7 @@
 
     RemoteDevice.prototype.findPossibleAddrs = function(callback) {
       var _this = this;
-      return chrome.socket.getNetworkList(function(networkInfoList) {
+      return chrome.system.network.getNetworkInterfaces(function(networkInfoList) {
         var networkInfo;
         _this.possibleAddrs = (function() {
           var _i, _len, _results;
@@ -131,18 +135,18 @@
       return shortest;
     };
 
-    RemoteDevice.prototype.hasGetNetworkListSupport = function() {
-      if (api.getNetworkListSupported()) {
+    RemoteDevice.prototype.hasGetNetworkInterfacesSupport = function() {
+      if (api.getNetworkInterfacesSupported()) {
         return true;
       }
-      this._log('w', 'chrome.socket.getNetworkList is not supported!');
+      this._log('w', 'chrome.system.network.getNetworkInterfaces is not supported!');
       this.possibleAddrs = [];
       this.port = RemoteDevice.NO_PORT;
       return false;
     };
 
     /*
-       * Call chrome.socket.getNetworkList in an attempt to find a valid address.
+       * Call chrome.system.network.getNetworkInterfaces in an attempt to find a valid address.
     */
 
 
@@ -151,7 +155,7 @@
       if (timeout == null) {
         timeout = 500;
       }
-      if (!this.hasGetNetworkListSupport()) {
+      if (!this.hasGetNetworkInterfacesSupport()) {
         return;
       }
       if (timeout > 60000) {
@@ -177,9 +181,9 @@
     RemoteDevice.prototype.listenForNewDevices = function(callback) {
       var _ref,
         _this = this;
-      return (_ref = chrome.socket) != null ? _ref.create('tcp', {}, function(socketInfo) {
+      return (_ref = chrome.sockets.tcpServer) != null ? _ref.create({}, function(socketInfo) {
         _this._socketId = socketInfo.socketId;
-        registerSocketConnection(socketInfo.socketId);
+        registerTcpServer(socketInfo.socketId);
         if (api.listenSupported()) {
           return _this._listenOnValidPort(callback);
         }
@@ -197,7 +201,7 @@
       if (!(port >= 0)) {
         port = RemoteDevice.BASE_PORT;
       }
-      return chrome.socket.listen(this._socketId, '0.0.0.0', port, function(result) {
+      return chrome.sockets.tcpServer.listen(this._socketId, '0.0.0.0', port, function(result) {
         return _this._onListen(callback, port, result);
       });
     };
@@ -208,9 +212,7 @@
       } else {
         this.port = port;
         this.emit('found_port', this);
-        if (api.acceptSupported()) {
-          return this._acceptNewConnection(callback);
-        }
+        this._acceptNewConnection(callback);
       }
     };
 
@@ -228,30 +230,31 @@
     RemoteDevice.prototype._acceptNewConnection = function(callback) {
       var _this = this;
       this._log('listening for new connections on port', this.port);
-      return chrome.socket.accept(this._socketId, function(acceptInfo) {
-        var device;
-        if (!acceptInfo.socketId) {
+      // TODO(rpaquay): When do we remove the listener?
+      chrome.sockets.tcpServer.onAccept.addListener(function(acceptInfo) {
+        if (_this._socketId != acceptInfo.socketId)
           return;
-        }
-        _this._log('Connected to a client device', _this._socketId);
-        registerSocketConnection(_this._socketId);
-        device = new RemoteDevice(acceptInfo.socketId);
-        device.getAddr(function() {
-          return callback(device);
-        });
-        return _this._acceptNewConnection(callback);
+        _this._onAccept(acceptInfo, callback);
       });
     };
 
-    /*
-       * Called when acting as a server. Finds the client ip address.
-    */
+    RemoteDevice.prototype._onAccept = function(acceptInfo, callback) {
+      this._log('Connected to a client device', this._socketId);
+      registerSocketConnection(acceptInfo.clientSocketId);
+      var device = new RemoteDevice(acceptInfo.clientSocketId);
+      device.getAddr(function() {
+        return callback(device);
+      });
+    }
 
+    /*
+     * Called when acting as a server. Finds the client ip address.
+     */
 
     RemoteDevice.prototype.getAddr = function(callback) {
       var _ref,
         _this = this;
-      return (_ref = chrome.socket) != null ? _ref.getInfo(this._socketId, function(socketInfo) {
+      return (_ref = chrome.sockets.tcp) != null ? _ref.getInfo(this._socketId, function(socketInfo) {
         _this.addr = socketInfo.peerAddress;
         return callback();
       }) : void 0;
@@ -275,10 +278,10 @@
       msg = msg.length + '$' + msg;
       return irc.util.toSocketData(msg, function(data) {
         var _ref;
-        return (_ref = chrome.socket) != null ? _ref.write(_this._socketId, data, function(writeInfo) {
-          if (writeInfo.resultCode < 0 || writeInfo.bytesWritten !== data.byteLength) {
+        return (_ref = chrome.sockets.tcp) != null ? _ref.send(_this._socketId, data, function(sendInfo) {
+          if (sendInfo.resultCode < 0 || sendInfo.bytesSent !== data.byteLength) {
             _this._log('w', 'closing b/c failed to send:', type, args,
-              chrome.runtime.lastError.message + " (error " + (-writeInfo.resultCode) + ")");
+              chrome.runtime.lastError.message + " (error " + (-sendInfo.resultCode) + ")");
             return _this.close();
           } else {
             return _this._log('sent', type, args);
@@ -288,24 +291,26 @@
     };
 
     /*
-       * Called when the device represents a remote server. Creates a connection
-       * to that remote server.
-    */
-
+     * Called when the device represents a remote server. Creates a connection
+     * to that remote server.
+     */
 
     RemoteDevice.prototype.connect = function(callback) {
       var _ref,
         _this = this;
       this.close();
-      return (_ref = chrome.socket) != null ? _ref.create('tcp', {}, function(socketInfo) {
+      return (_ref = chrome.sockets.tcp) != null ? _ref.create(function(socketInfo) {
         var _ref1;
         _this._socketId = socketInfo.socketId;
+        _this._isClient = true;
         if (!_this._socketId) {
           callback(false);
         }
-        return (_ref1 = chrome.socket) != null ? _ref1.connect(_this._socketId, _this.addr, _this.port, function(result) {
-          return _this._onConnect(result, callback);
-        }) : void 0;
+        _ref.setPaused(_this._socketId, true, function () {
+          return (_ref1 = chrome.sockets.tcp) != null ? _ref1.connect(_this._socketId, _this.addr, _this.port, function (result) {
+            return _this._onConnect(result, callback);
+          }) : void 0;
+        });
       }) : void 0;
     };
 
@@ -323,41 +328,56 @@
     RemoteDevice.prototype.close = function() {
       var _ref, _ref1;
       if (this._socketId) {
-        registerSocketConnection(this._socketId, true);
-        chrome.socket.disconnect(this._socketId);
-        chrome.socket.destroy(this._socketId);
+        if (this._isClient) {
+          chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
+          chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
+          registerSocketConnection(this._socketId, true);
+          chrome.sockets.tcp.disconnect(this._socketId);
+          chrome.sockets.tcp.close(this._socketId);
+        } else {
+          //chrome.sockets.tcp.onAccept.removeListener(this._onAccept);
+          registerTcpServer(this._socketId, true);
+          chrome.sockets.tcp.disconnect(this._socketId);
+          chrome.sockets.tcp.close(this._socketId);
+        }
         this._socketId = undefined;
         return this.emit('closed', this);
       }
     };
 
-    RemoteDevice.prototype._listenForData = function() {
-      var _ref,
-        _this = this;
-      return (_ref = chrome.socket) != null ? _ref.read(this._socketId, function(readInfo) {
-        if (readInfo.resultCode <= 0) {
-          _this._log('w', 'bad read - closing socket: ',
-            chrome.runtime.lastError.message + " (error " +  (-readInfo.resultCode) + ")");
-          _this.emit('closed', _this);
-          return _this.close();
-        } else if (readInfo.data.byteLength) {
-          irc.util.fromSocketData(readInfo.data, function(partialMessage) {
-            var completeMessages, data, json, _i, _len, _results;
-            _this._receivedMessages += partialMessage;
-            completeMessages = _this._parseReceivedMessages();
-            _results = [];
-            for (_i = 0, _len = completeMessages.length; _i < _len; _i++) {
-              data = completeMessages[_i];
-              _this._log.apply(_this, ['received', data.type].concat(__slice.call(data.args)));
-              _results.push(_this.emit.apply(_this, [data.type, _this].concat(__slice.call(data.args))));
-            }
-            return _results;
-          });
-          return _this._listenForData();
-        } else {
-          return _this._log('w', 'onRead - got no data?!');
+    RemoteDevice.prototype._onReceive = function (receiveInfo) {
+      if (receiveInfo.socketId != this._socketId)
+        return;
+
+      var _this = this;
+      irc.util.fromSocketData(receiveInfo.data, function (partialMessage) {
+        var completeMessages, data, json, _i, _len, _results;
+        _this._receivedMessages += partialMessage;
+        completeMessages = _this._parseReceivedMessages();
+        _results = [];
+        for (_i = 0, _len = completeMessages.length; _i < _len; _i++) {
+          json = completeMessages[_i];
+          data = JSON.parse(json);
+          _this._log.apply(_this, ['received', data.type].concat(__slice.call(data.args)));
+          _results.push(_this.emit.apply(_this, [data.type, _this].concat(__slice.call(data.args))));
         }
-      }) : void 0;
+        return _results;
+      });
+    }
+
+    RemoteDevice.prototype._onReceiveError = function (receiveInfo) {
+      if (receiveInfo.socketId != this._socketId)
+        return;
+
+      this._log('w', 'bad read - closing socket: ', "(error " + (-receiveInfo.resultCode) + ")");
+      this.emit('closed', this);
+      this.close();
+    }
+
+    RemoteDevice.prototype._listenForData = function () {
+      chrome.sockets.tcp.onReceive.addListener(this._onReceive);
+      chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
+      chrome.sockets.tcp.setPaused(this._socketId, false, function () { });
     };
 
     RemoteDevice.prototype._parseReceivedMessages = function(result) {

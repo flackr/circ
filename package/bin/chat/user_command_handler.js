@@ -536,7 +536,7 @@
           if (this.chat.remoteConnectionHandler.shouldBeServerDevice()) {
             return this.displayMessage('error', "this device is already acting as a " + "server");
           } else if (!api.listenSupported()) {
-            return this.displayMessage('error', "this command cannot be used with your " + "current version of Chrome because it does not support " + "chrome.socket.listen");
+            return this.displayMessage('error', "this command cannot be used with your " + "current version of Chrome because it does not support " + "chrome.sockets.tcpServer");
           } else if (state === 'no_addr') {
             return this.displayMessage('error', "this device can not be used as a " + "server at this time because it cannot find its own IP address");
           } else if (state === 'no_port') {

@@ -10,16 +10,13 @@
   */
   exports.api = {
     listenSupported: function() {
-      return chrome.socket && chrome.socket.listen;
+      return chrome.sockets && chrome.sockets.tcpServer;
     },
-    acceptSupported: function() {
-      return chrome.socket && chrome.socket.accept;
+    clientSocketSupported: function() {
+      return chrome.sockets && chrome.sockets.tcp;
     },
-    socketSupported: function() {
-      return chrome.socket;
-    },
-    getNetworkListSupported: function() {
-      return chrome.socket && chrome.socket.getNetworkList;
+    getNetworkInterfacesSupported: function() {
+      return chrome.system && chrome.system.network;
     }
   };
 
@@ -353,6 +350,19 @@
           page.unregisterSocketId(socketId);
         else
           page.registerSocketId(socketId);
+      });
+    }
+  };
+
+  exports.registerTcpServer = function (socketId, remove) {
+    if (window.chrome && chrome.runtime) {
+      chrome.runtime.getBackgroundPage(function (page) {
+        if (!page || !page.registerTcpServer || !page.unregisterTcpServer)
+          return;
+        if (remove)
+          page.unregisterTcpServer(socketId);
+        else
+          page.registerTcpServer(socketId);
       });
     }
   };

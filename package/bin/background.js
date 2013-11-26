@@ -2,6 +2,7 @@
 (function() {
   "use strict";
   var _ref, _ref1, _ref2, _this = this;
+  var openTcpServers = [];
   var openConnections = [];
   var currentApp = null;
   var exports = window || {};
@@ -16,6 +17,12 @@
       chrome.sockets.tcp.close(parseInt(socketid));
     }
     openConnections = [];
+
+    for (var socketid in openTcpServers) {
+      chrome.sockets.tcpServer.disconnect(parseInt(socketid));
+      chrome.sockets.tcp.close(parseInt(socketid));
+    }
+    openTcpServers = [];
     window.close();
   }
 
@@ -27,7 +34,15 @@
     delete openConnections[socketid];
   }
 
-  var onCreated = function(win) {
+  exports.registerTcpServer = function (socketid) {
+    openTcpServers[socketid] = true;
+  }
+
+  exports.unregisterTcpServer = function (socketid) {
+    delete openTcpServers[socketid];
+  }
+
+  var onCreated = function (win) {
     var _ref;
     currentApp = win;
     if (win.onClosed)

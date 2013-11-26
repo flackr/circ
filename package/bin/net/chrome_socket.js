@@ -62,40 +62,41 @@
       if (info.socketId != this.socketId)
         return;
       this._active();
-      if (info.data.byteLength == 0) {
-        this.emit('end');
-        this.close();
-      } else {
-        this.emit('data', info.data);
-      }
+      this.emit('data', info.data);
     };
 
     ChromeSocket.prototype._onReceiveError = function(info) {
       if (info.socketId != this.socketId)
         return;
       this._active();
-      this.emit('error', "read from socket: " +
-        chrome.runtime.lastError.message +
-        " (error " + (-info.resultCode) + ")");
+      if (info.resultCode == -100) {  // connection closed
+        this.emit('end');
+        this.close();
+      }
+      else {
+        this.emit('error', "read from socket: " + 
+          " (error " + (-info.resultCode) + ")");
+        this.close();
+      }
     };
 
     ChromeSocket.prototype.write = function(data) {
       var _this = this;
       this._active();
-      return chrome.sockets.tcp.send(this.socketId, data, function(writeInfo) {
-        if (writeInfo.resultCode < 0) {
-          console.error("SOCKET ERROR on write: ",
-            chrome.runtime.lastError.message + " (error " + (-writeInfo.resultCode) + ")");
+      return chrome.sockets.tcp.send(this.socketId, data, function(sendInfo) {
+        if (sendInfo.resultCode < 0) {
+          console.error("SOCKET ERROR on send: ",
+            chrome.runtime.lastError.message + " (error " + (-sendInfo.resultCode) + ")");
         }
-        if (writeInfo.bytesWritten === data.byteLength) {
+        if (sendInfo.bytesSent === data.byteLength) {
           return _this.emit('drain');
         } else {
-          if (writeInfo.bytesWritten >= 0) {
-            console.error("Can't handle non-complete writes: wrote " +
-              writeInfo.bytesWritten + " expected " + data.byteLength);
+          if (sendInfo.bytesSent >= 0) {
+            console.error("Can't handle non-complete send: wrote " +
+              sendInfo.bytesSent + " expected " + data.byteLength);
           }
           return _this.emit('error',
-              "Invalid write on socket, code: " + writeInfo.bytesWritten);
+              "Invalid send on socket, code: " + sendInfo.bytesSent);
         }
       });
     };

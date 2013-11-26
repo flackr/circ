@@ -37,7 +37,7 @@
     }
 
     Chat.prototype.init = function() {
-      if (api.socketSupported()) {
+      if (api.clientSocketSupported()) {
         this.storage.init();
         return this.remoteConnection.init();
       } else {
@@ -50,7 +50,7 @@
     };
 
     /*
-       * Tell the user that they need chrome.socket support to run CIRC.
+       * Tell the user that they need chrome.sockets support to run CIRC.
     */
 
 
