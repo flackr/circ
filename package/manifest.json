@@ -1,7 +1,7 @@
 {
   "name": "CIRC - SOCKETS V2",
   "description": "An IRC client for Chrome (using chrome.sockets v2)",
-  "version": "0.8.0",
+  "version": "0.8.6",
   "minimum_chrome_version": "32",
   "manifest_version": 2,
   "icons": {
@@ -9,8 +9,6 @@
     "48": "static/icon/icon48.png",
     "128": "static/icon/icon128.png"
   },
-
-  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDwi17PnlCWAHUvLhT+eMKZ4kJExfxtiRgWTBamyFdR0pMRO2sPmMD2lJSe1n6zZ4f52kuGzLPVLfexG1Exlgyfl6C+OGfHAhvBc6cUDmWSzCwjKAf1jFBQmDI5En1Oo+2eE3CcOefxIRTLl5Ug6QnbUQcAZQx3ChiFi05DL9ldBwIDAQAB",
 
   "permissions": [
     "notifications",
