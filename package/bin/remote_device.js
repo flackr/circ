@@ -356,8 +356,7 @@
         completeMessages = _this._parseReceivedMessages();
         _results = [];
         for (_i = 0, _len = completeMessages.length; _i < _len; _i++) {
-          json = completeMessages[_i];
-          data = JSON.parse(json);
+          data = completeMessages[_i];
           _this._log.apply(_this, ['received', data.type].concat(__slice.call(data.args)));
           _results.push(_this.emit.apply(_this, [data.type, _this].concat(__slice.call(data.args))));
         }
