@@ -148,7 +148,7 @@
       } else {
         this._message("Great! Now join a server by typing /server <server> [port].");
       }
-      return this._message("For example, you can connect to freenode by typing " + "/server irc.freenode.net.");
+      return this._message("For example, you can connect to freenode by typing " + "/server chat.freenode.net.");
     };
 
     Walkthrough.prototype._channelWalkthrough = function(context) {
