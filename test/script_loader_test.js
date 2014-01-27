@@ -67,7 +67,7 @@
       return runs(function() {
         var data;
         data = onMessage.mostRecentCall.args[0].data;
-        return expect(data.chromeAPI).toBeUndefined();
+        return expect(data.chromeAPI).toBe('none');
       });
     });
     return it('can auto-load prepackaged scripts', function() {

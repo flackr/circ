@@ -289,8 +289,7 @@
           var script1 = loadScript(mocks.scripts.hiSourceCode);
           var script2 = loadScript(mocks.scripts.hiSourceCode);
           return runs(function() {
-            expect(script1.getName()).toBe('/hi');
-            return expect(script2.getName()).toBe('/hi2');
+            expect(script1.getName()).not.toBe(script2.getName());
           });
         });
         it("can only contain valid characters", function() {
