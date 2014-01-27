@@ -19,19 +19,16 @@
       return $(rooms()[index]);
     };
     var rooms = function() {
-      return $('#rooms-container .rooms .room');
+      return $('#rooms-container .rooms .room:not(.footer)');
     };
     var textOfRoom = function(index) {
       return $('.content-item', room(index)).text();
     };
     var nick = function(index) {
-      if (index === -1) {
-        return nicks().last();
-      }
       return $(nicks()[index]);
     };
     var nicks = function() {
-      return $('#nicks-container .nicks .nick');
+      return $('#nicks-container .nicks .nick:not(.footer)');
     };
     var textOfNick = function(index) {
       return $('.content-item', nick(index)).text();

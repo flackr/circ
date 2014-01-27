@@ -20,8 +20,20 @@
       this.$template = $template;
       this.nodes = {};
       this.nodeNames = [];
+      this._addFooterNode();
       HTMLList.__super__.constructor.apply(this, arguments);
     }
+
+    HTMLList.prototype._addFooterNode = function() {
+      this._footerNode = this._createNode('footer');
+      this.$list.append(this._footerNode.html);
+      this._footerNode.html.addClass('footer');
+    };
+
+    // Sets the text of the footer node, e.g. '<add channel>' or '<add server>'.
+    HTMLList.prototype.setFooterNodeText = function(text) {
+      this._footerNode.content.text(text);
+    };
 
     HTMLList.prototype.add = function(name) {
       return this.insert(this.nodeNames.length, name);
@@ -42,12 +54,9 @@
     };
 
     HTMLList.prototype._insertHTML = function(index, newNode) {
-      var nextNode = this.get(index);
-      if (nextNode) {
-        return newNode.html.insertBefore(nextNode.html);
-      } else {
-        return this.$list.append(newNode.html);
-      }
+      var nextNode = this.get(index) || this._footerNode;
+      console.log('adding', newNode, 'at', index, 'with next node', nextNode);
+      newNode.html.insertBefore(nextNode.html);
     };
 
     HTMLList.prototype.get = function(index) {
@@ -82,7 +91,7 @@
     HTMLList.prototype.clear = function() {
       this.nodes = {};
       this.nodeNames = [];
-      return this.$list.empty();
+      this.$list.find('li:not(.footer)').remove();
     };
 
     HTMLList.prototype.addClass = function(name, c) {
@@ -130,15 +139,25 @@
     };
 
     HTMLList.prototype._handleClick = function(node) {
-      return this.emit('clicked', node.name);
+      this._emitClickEvent(node, 'clicked');
     };
 
     HTMLList.prototype._handleMiddleClick = function(node) {
-      return this.emit('midclicked', node.name);
+      this._emitClickEvent(node, 'midclicked');
     };
 
     HTMLList.prototype._handleDoubleClick = function(node) {
-      return this.emit('dblclicked', node.name);
+      this._emitClickEvent(node, 'dblclicked');
+    };
+
+    HTMLList.prototype._emitClickEvent = function(node, eventName) {
+      var emitType;
+      if (node == this._footerNode) {
+        emitType = 'footer_' + eventName;
+      } else {
+        emitType = eventName;
+      }
+      this.emit(emitType, node.name);
     };
 
     HTMLList.prototype._htmlify = function(name) {

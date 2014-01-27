@@ -40,12 +40,23 @@
       var _this = this;
       this._context = _context;
       this._autoComplete.setContext(this._context);
-      return this._context.on('set_input', function(text) {
+      this._context.on('set_input_if_empty', function(text) {
         if (!_this.input.val()) {
-          return _this.input.val(text);
+          _this.setInput(text);
         }
       });
+      return this._context.on('set_input', function(text) {
+        _this.setInput(text);
+      });
     };
+
+    UserInputHandler.prototype.setInput = function(text) {
+      var _this = this;
+      this.input.val(text);
+      // If setInput was called because of a click, we need to wait for the
+      // click to propagate before setting focus.
+      setTimeout(function() { _this.input.focus(); }, 0);
+    }
 
     UserInputHandler.prototype.setKeyboardShortcuts = function(keyboardShortcuts) {
       return this._keyboardShortcutMap = keyboardShortcuts;
