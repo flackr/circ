@@ -560,7 +560,7 @@
     Chat.prototype._selectNextWindow = function(preferredIndex) {
       var nextWin, _ref1;
       if (this.winList.length === 0) {
-        this.channelDisplay.addServer(this.emptyWindow.name);
+        this.channelDisplay.addAlwaysEmptyServer(this.emptyWindow.name);
         return this.switchToWindow(this.emptyWindow);
       } else if (this.winList.indexOf(this.currentWindow) === -1) {
         nextWin = (_ref1 = this.winList.get(preferredIndex)) != null ? _ref1 : this.winList.get(preferredIndex - 1);
