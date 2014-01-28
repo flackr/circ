@@ -28,7 +28,7 @@
 
     ChannelList.prototype._addFooter = function() {
       var _this = this;
-      this._footerHtml = this._createAndAppendServerHTML('<add server>');
+      this._footerHtml = this._createAndAppendServerHTML('+ add server');
       var serverRoomHtml = $('.server', this._footerHtml);
       serverRoomHtml.addClass('footer');
       serverRoomHtml.mousedown(function(event) {
@@ -119,7 +119,7 @@
       var channelList, channelTemplate;
       channelTemplate = $('#templates .channel');
       channelList = new chat.HTMLList($('.channels', html), channelTemplate);
-      channelList.setFooterNodeText('<add channel>');
+      channelList.setFooterNodeText('+ add channel');
       return channelList;
     };
 

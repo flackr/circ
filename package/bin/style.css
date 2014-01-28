@@ -30,8 +30,9 @@ ul {
 }
 
 .footer {
-  font-style: italic;
   display: none;
+  font-style: italic;
+  color: #9493A2;
 }
 
 .help-command {
