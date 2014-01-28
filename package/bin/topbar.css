@@ -1,5 +1,6 @@
 #hide-channels {
   display: inline-block;
+  font-size: 12px;
 }
 
 #topic-container {
@@ -20,7 +21,7 @@
 }
 
 .topbar-button {
-  background: rgba(0, 0, 0, .06);
+  background: rgba(0, 0, 0, .08);
   border: 0 transparent;
   text-decoration: none;
   cursor: pointer;
@@ -33,7 +34,7 @@
 }
 
 .topbar-button:hover {
-  background: rgba(0, 0, 0, .1);
+  background: rgba(0, 0, 0, .13);
 }
 
 .topbar-button:focus {
