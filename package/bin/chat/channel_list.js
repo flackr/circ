@@ -127,7 +127,11 @@
       var _this = this;
       server.mousedown(function(event) {
         if (event.which == 1) {
-          _this._handleClick(serverName);
+          if ($(event.target).hasClass('remove-button')) {
+            _this._handleRemoveRoom(serverName);
+          } else {
+            _this._handleClick(serverName);
+          }
         }
       });
       channels.on('clicked', function(channelName) {
@@ -138,6 +142,9 @@
       });
       channels.on('footer_clicked', function() {
         _this._handleAddChannelClick();
+      });
+      channels.on('remove_button_clicked', function(channelName) {
+        _this._handleRemoveRoom(serverName, channelName);
       });
     };
 
@@ -179,6 +186,10 @@
 
     ChannelList.prototype._handleAddServerClick = function() {
       this.emit('help_type_command', '/server ');
+    };
+
+    ChannelList.prototype._handleRemoveRoom = function(server, channel) {
+      this.emit('remove_button_clicked', server, channel);
     };
 
     return ChannelList;

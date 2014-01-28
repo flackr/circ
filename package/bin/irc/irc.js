@@ -134,9 +134,9 @@
       }
     };
 
-    IRC.prototype.part = function(channel, reason) {
+    IRC.prototype.part = function(channel, opt_reason) {
       if (this.state === 'connected') {
-        return this.doCommand('PART', channel, reason);
+        return this.doCommand('PART', channel, opt_reason);
       } else if (this.channels[channel]) {
         return delete this.channels[channel];
       }

@@ -201,6 +201,38 @@ ul {
   background-color: #F0E798;
 }
 
+#rooms-and-nicks .room {
+  position: relative;
+}
+
+#rooms-and-nicks .room .remove-button {
+  position: absolute;
+  right: 6px;
+  top: -1px;
+  cursor: pointer;
+  font-size: 30px;
+  color: rgba(0, 0, 0, .25);
+  display: none;
+}
+
+#rooms-and-nicks .room .remove-button:hover {
+  color: rgba(0, 0, 0, .5);
+}
+
+#rooms-and-nicks .room.selected:not(.footer):not(.always-empty) .content-item {
+  width: 123px;
+}
+#rooms-and-nicks .room:hover:not(.footer):not(.always-empty) .content-item {
+  width: 123px;
+}
+
+#rooms-and-nicks .room.selected:not(.footer):not(.always-empty) .remove-button {
+  display: inline-block;
+}
+#rooms-and-nicks .room:hover:not(.footer):not(.always-empty) .remove-button {
+  display: inline-block;
+}
+
 #nicks-container {
   border-top: 1px solid #FFF;
   -webkit-box-flex: 1;
