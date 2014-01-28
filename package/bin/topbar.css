@@ -1,0 +1,41 @@
+#hide-channels {
+  display: inline-block;
+}
+
+#topic-container {
+  border-bottom: 1px solid #CCC;
+  -webkit-box-flex: 0;
+  display: -webkit-box;
+  background-color: #ECECEC;
+  padding: 2px 6px;
+}
+
+#status {
+  -webkit-box-flex: 1;
+  padding: 4px 5px;
+}
+
+#status .topic {
+  font-style: italic;
+}
+
+.topbar-button {
+  background: rgba(0, 0, 0, .06);
+  border: 0 transparent;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 2px;
+  -webkit-transition: .1s linear -webkit-box-shadow;
+}
+
+.topbar-button:active {
+  box-shadow: 0 0 0 1px rgba(0 ,0 ,0 ,.15) inset, 0 0 6px rgba(0, 0, 0, .2) inset;
+}
+
+.topbar-button:hover {
+  background: rgba(0, 0, 0, .1);
+}
+
+.topbar-button:focus {
+  outline: none;
+}
