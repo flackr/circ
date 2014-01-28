@@ -332,23 +332,6 @@ ul {
   padding: 5px 14px 5px 14px;
 }
 
-#topic-container {
-  border-bottom: 1px solid #CCC;
-  -webkit-box-flex: 0;
-  display: -webkit-box;
-  background-color: #ECECEC;
-  padding: 2px 6px;
-}
-
-#hide-channels {
-  display: inline-block;
-}
-
-#status {
-  -webkit-box-flex: 1;
-  padding: 4px 5px;
-}
-
 #nick {
   padding-top: 5px;
   padding-right: 10px;
@@ -368,10 +351,6 @@ ul {
 }
 #nick .away:after {
   content: ")"
-}
-
-#status .topic {
-  font-style: italic;
 }
 
 #input-bar {
