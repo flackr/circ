@@ -34,7 +34,6 @@
     };
 
     MessageRenderer.prototype.displayWelcome = function() {
-      this._addWhitespace();
       this.systemMessage("Welcome to CIRC!");
       return this.systemMessage(this._getWebsiteBlurb());
     };

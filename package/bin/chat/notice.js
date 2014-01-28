@@ -63,7 +63,7 @@
     };
 
     Notice.prototype._hide = function() {
-      this.$notice[0].style.top = "-35px";
+      this.$notice[0].style.top = "-38px";
       this.$option1.off('click');
       return this.$option2.off('click');
     };

@@ -260,6 +260,7 @@ ul {
   width: 100%;
   -webkit-transition: 150ms;
   top: -35px;
+  padding: 2px 0;
 }
 
 #notice .content {
@@ -283,6 +284,7 @@ ul {
   background-color: #ECECEC;
   color: #505053;
   cursor: pointer;
+  outline: none;
 }
 
 #notice button.close {
@@ -335,7 +337,7 @@ ul {
 
 .source-content-container {
   display: table-cell;
-  padding: 4px 14px 4px 10px;
+  padding: 4px 10px 4px 15px;
   width: 100%;
 }
 
@@ -375,32 +377,23 @@ ul {
   padding-top: 1px;
   padding-bottom: 1px;
 }
-.message.privmsg .source-content-container {
-  padding-bottom: 4px;
-}
 
 .message:not(.group) + .message.group .source-content-container {
   padding-top: 4px;
-  padding-bottom: 1px;
+  padding-bottom: 0px;
 }
 .message.group + .message.group .source-content-container {
   padding-top: 0px;
   padding-bottom: 0px;
 }
-.message.group .source-content-container {
-  padding-bottom: 4px;
-}
 
 .message:not(.notice-group) + .message.notice-group .source-content-container {
   padding-top: 4px;
-  padding-bottom: 1px;
+  padding-bottom: 0px;
 }
 .message.notice-group + .message.notice-group .source-content-container {
   padding-top: 0px;
   padding-bottom: 0px;
-}
-.message.notice-group .source-content-container {
-  padding-bottom: 4px;
 }
 
 .longword { word-break: break-all; }
@@ -410,11 +403,14 @@ ul {
   -webkit-box-flex: 0;
   display: -webkit-box;
   background-color: #ECECEC;
-  padding: 5px 14px 5px 14px;
+  padding: 5px 10px 5px 10px;
 }
 
 #nick {
   padding-top: 5px;
+}
+
+#nick .name {
   padding-right: 10px;
 }
 
