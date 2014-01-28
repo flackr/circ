@@ -29,8 +29,7 @@ ul {
   padding: 0;
 }
 
-ul .footer {
-  display: none;
+.footer {
   font-style: italic;
 }
 
@@ -92,6 +91,10 @@ ul .footer {
 
 #rooms-and-nicks .room {
   cursor: pointer;
+}
+
+#rooms-and-nicks .channel.footer {
+  display: none;
 }
 
 #rooms-container {

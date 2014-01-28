@@ -88,22 +88,8 @@
           return _this.removeWindow(win);
         }
       });
-      this.channelDisplay.on('help_type_command', function(text, server) {
-        var currentConnection = _this.currentWindow.conn;
-        if (currentConnection) {
-          if (currentConnection.name != server) {
-            // '/join' uses the user's current server, so we need to switch
-            // windows if the user is trying to join a channel from another
-            // server.
-            var win = _this.winList.get(server);
-            if (win) {
-              _this.switchToWindow(win);
-            } else {
-              return;
-            }
-          }
-          _this.emit('set_input', text);
-        }
+      this.channelDisplay.on('help_type_command', function(text) {
+        _this.emit('set_input', text);
       });
       this._addWelcomeWindow();
     };
