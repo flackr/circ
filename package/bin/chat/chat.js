@@ -68,6 +68,10 @@
       var _this = this;
       this.winList = new chat.WindowList;
       this.notice = new chat.Notice;
+      this.toggleChannelDisplay = $('#hide-channels');
+      this.toggleChannelDisplay.click(function() {
+        $('#rooms-and-nicks')[0].classList.toggle('hidden');
+      });
       this.channelDisplay = new chat.ChannelList();
       this.channelDisplay.on('clicked', function(server, chan) {
         var win = _this.winList.get(server, chan);
@@ -583,22 +587,21 @@
     };
 
     Chat.prototype.updateStatus = function() {
-      var away, channel, nick, statusList, topic, _ref1, _ref2, _ref3, _ref4, _ref5;
-      statusList = [];
-      nick = (_ref1 = (_ref2 = this.currentWindow.conn) != null ? _ref2.irc.nick : void 0) != null ? _ref1 : this.preferredNick;
-      away = (_ref3 = this.currentWindow.conn) != null ? _ref3.irc.away : void 0;
-      channel = this.currentWindow.target;
-      topic = (_ref4 = this.currentWindow.conn) != null ? (_ref5 = _ref4.irc.channels[channel]) != null ? _ref5.topic : void 0 : void 0;
-      if (nick) {
-        statusList.push("<span class='nick'>" + (html.escape(nick)) + "</span>");
+      var conn = this.currentWindow.conn;
+      var nick = this.preferredNick;
+      var away, topic;
+      if (conn) {
+        var channelName = this.currentWindow.target;
+        nick = this.currentWindow.conn.irc.nick || this.preferredNick;
+        away = this.currentWindow.conn.irc.away;
+        var channel = channelName ? this.currentWindow.conn.irc.channels[channelName] : undefined;
+        if (channel)
+          topic = channel.topic;
       }
-      if (away) {
-        statusList.push("<span class='away'>away</span>");
-      }
-      if (topic) {
-        statusList.push("<span title='" + (html.escape(topic)) + "' class='topic'>" + (html.display(topic)) + "</span>");
-      }
-      $('#status').html(statusList.join(''));
+
+      $('#nick').html((nick ? "<span class='name'>" + (html.escape(nick)) + "</span>" : "") +
+                      (away ? "<span class='away'>away</span>" : ""));
+      $('#status').html(topic ? "<span title='" + (html.escape(topic)) + "' class='topic'>" + (html.display(topic)) + "</span>" : "");
       return this._updateDocumentTitle();
     };
 

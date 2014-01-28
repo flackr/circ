@@ -108,7 +108,7 @@
       return client.tearDown();
     });
     it("displays the preferred nick in the status bar", function() {
-      return expect($('#status')).toHaveText('ournick');
+      return expect($('#nick')).toHaveText('ournick');
     });
     it("sets the document title to the version", function() {
       return expect(document.title).toMatch(/^CIRC \d{1,3}\.\d{1,3}\.\d{1,3}/);
@@ -416,7 +416,7 @@
       it("restores the previously used nick", function() {
         restart();
         return runs(function() {
-          return expect($('#status')).toHaveText('newNick');
+          return expect($('#nick')).toHaveText('newNick');
         });
       });
       it("generates random nick when no previously used nick is available", function() {
@@ -520,7 +520,7 @@
       it("updates the status bar on /away", function() {
         type('/away');
         currentIRC.handle('306');
-        return expect($('#status')).toHaveText('ournick' + 'away');
+        return expect($('#nick')).toHaveText('ournick' + 'away');
       });
       it("creates a new window when a direct private message is received", function() {
         currentIRC.handle('PRIVMSG', {
@@ -900,7 +900,7 @@
               var name = nicklist[i];
               expect(textOfNick(i)).toBe(name);
             }
-            return expect($('#status').text()).toBe('somenick' + 'away');
+            return expect($('#nick').text()).toBe('somenick' + 'away');
           });
           it("doesn't set the irc nick if the nick isn't saved", function() {
             type("/join-server 1.1.1.2 1336");
