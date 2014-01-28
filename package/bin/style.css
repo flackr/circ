@@ -31,6 +31,7 @@ ul {
 
 .footer {
   font-style: italic;
+  display: none;
 }
 
 .help-command {
@@ -93,8 +94,8 @@ ul {
   cursor: pointer;
 }
 
-#rooms-and-nicks .channel.footer {
-  display: none;
+#rooms-and-nicks .server.footer {
+  display: block;
 }
 
 #rooms-container {
