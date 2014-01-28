@@ -23,7 +23,20 @@
       ChannelList.__super__.constructor.apply(this, arguments);
       this.$surface = $('#rooms-container .rooms');
       this.roomsByServer = {};
-    }
+      this._addFooter();
+    };
+
+    ChannelList.prototype._addFooter = function() {
+      var _this = this;
+      this._footerHtml = this._createAndAppendServerHTML('<add server>');
+      var serverRoomHtml = $('.server', this._footerHtml);
+      serverRoomHtml.addClass('footer');
+      serverRoomHtml.mousedown(function(event) {
+        if (event.which == 1) {
+          _this._handleAddServerClick();
+        }
+      });
+    };
 
     ChannelList.prototype.select = function(server, channel) {
       this._removeLastSelected();
@@ -72,13 +85,13 @@
      * welcome window.
      */
     ChannelList.prototype.addAlwaysEmptyServer = function(serverName) {
-      addServer(serverName);
+      this.addServer(serverName);
       this._addClass(serverName, null, 'always-empty');
     }
 
     ChannelList.prototype.addServer = function(serverName) {
       var channels, html, server;
-      html = this._createServerHTML(serverName);
+      html = this._createAndAppendServerHTML(serverName);
       server = $('.server', html);
       channels = this._createChannelList(html);
       this._handleMouseEvents(serverName, server, channels);
@@ -90,11 +103,15 @@
       return this.disconnect(serverName);
     };
 
-    ChannelList.prototype._createServerHTML = function(serverName) {
+    ChannelList.prototype._createAndAppendServerHTML = function(serverName) {
       var html;
       html = $('#templates .server-channels').clone();
       $('.server .content-item', html).text(serverName);
-      this.$surface.append(html);
+      if (this._footerHtml) {
+        html.insertBefore(this._footerHtml);
+      } else {
+        this.$surface.append(html);
+      }
       return html;
     };
 
@@ -120,7 +137,7 @@
         _this._handleMiddleClick(serverName, channelName);
       });
       channels.on('footer_clicked', function() {
-        _this._handleAddChannelClick(serverName);
+        _this._handleAddChannelClick();
       });
     };
 
@@ -156,8 +173,12 @@
       return this.emit('midclicked', server, channel);
     };
 
-    ChannelList.prototype._handleAddChannelClick = function(server) {
-      this.emit('help_type_command', '/join #', server);
+    ChannelList.prototype._handleAddChannelClick = function() {
+      this.emit('help_type_command', '/join #');
+    };
+
+    ChannelList.prototype._handleAddServerClick = function() {
+      this.emit('help_type_command', '/server ');
     };
 
     return ChannelList;
