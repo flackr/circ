@@ -110,7 +110,7 @@
 
     Chat.prototype._addWelcomeWindow = function() {
       this.emptyWindow = new chat.Window('none');
-      this.channelDisplay.addServer(this.emptyWindow.name);
+      this.channelDisplay.addAlwaysEmptyServer(this.emptyWindow.name);
       this.switchToWindow(this.emptyWindow);
       return this.emptyWindow.messageRenderer.displayWelcome();
     };

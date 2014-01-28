@@ -67,6 +67,15 @@
       return this.disconnect(server, channel);
     };
 
+    /**
+     * Adds a server that will never have any channels, e.g. when we add the
+     * welcome window.
+     */
+    ChannelList.prototype.addAlwaysEmptyServer = function(serverName) {
+      addServer(serverName);
+      this._addClass(serverName, null, 'always-empty');
+    }
+
     ChannelList.prototype.addServer = function(serverName) {
       var channels, html, server;
       html = this._createServerHTML(serverName);
