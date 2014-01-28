@@ -259,8 +259,12 @@ ul {
   position: absolute;
   width: 100%;
   -webkit-transition: 150ms;
-  top: -35px;
+  top: 0;
   padding: 2px 0;
+}
+
+#notice.hide {
+  top: -38px;
 }
 
 #notice .content {

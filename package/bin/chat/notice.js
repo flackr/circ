@@ -63,13 +63,13 @@
     };
 
     Notice.prototype._hide = function() {
-      this.$notice[0].style.top = "-38px";
+      this.$notice.addClass('hide');
       this.$option1.off('click');
       return this.$option2.off('click');
     };
 
     Notice.prototype._show = function() {
-      return this.$notice[0].style.top = "0px";
+      this.$notice.removeClass('hide');
     };
 
     Notice.prototype._parseRepresentation = function(representation) {
