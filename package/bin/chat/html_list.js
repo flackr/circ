@@ -124,7 +124,12 @@
       node.html.mousedown(function(event) {
         switch (event.which) {
         case 1:
-          return _this._handleClick(node);
+          if ($(event.target).hasClass('remove-button')) {
+            _this._emitClickEvent(node, 'remove_button_clicked');
+          } else {
+            _this._handleClick(node);
+          }
+          break;
         case 2:
           return _this._handleMiddleClick(node);
         // case 3: // not handling right-clicks

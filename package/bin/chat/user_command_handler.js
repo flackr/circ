@@ -121,10 +121,7 @@
         params: ['opt_reason...'],
         requires: ['connection', 'channel'],
         run: function() {
-          if (!this.win.isPrivate()) {
-            this.conn.irc.part(this.chan, this.reason);
-          }
-          return this.chat.removeWindow(this.win);
+          this.chat.disconnectAndRemoveRoom(this.conn.name, this.chan, this.reason);
         }
       });
       this._addCommand('leave', {
@@ -188,7 +185,7 @@
         params: ['opt_reason...'],
         requires: ['connection'],
         run: function() {
-          return this.chat.closeConnection(this.conn);
+          this.chat.disconnectAndRemoveRoom(this.conn.name, null /* channel */, this.reason);
         }
       });
       this._addCommand('names', {
