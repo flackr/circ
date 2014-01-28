@@ -11,8 +11,19 @@
       return $(items()[index]);
     };
     var items = function() {
-      return $('#rooms-container .rooms .room');
+      return $('#rooms-container .rooms .room:not(.footer)');
     };
+    var footer = function(index) {
+      return $($('.footer')[index]);
+    }
+    var getVisibleFooter = function() {
+      return $('#rooms-and-nicks .current-server + .channels .footer');
+    }
+    var isFooterVisible = function(index) {
+      footer(index).removeClass('testing-is-visible')
+      getVisibleFooter().addClass('testing-is-visible');
+      return footer(index).hasClass('testing-is-visible');
+    }
     var mousedown = function(node, which) {
       node.trigger(new MouseEvent('mousedown', {
         'button': (which - 1) // W3C DOM3 value: 0/1/2 = left/middle/right
@@ -139,10 +150,20 @@
       mousedown(item(1), 1);
       return expect(cl.emit).toHaveBeenCalledWith('clicked', 'freenode', '#bash');
     });
-    return it("emits a clicked event when a server is clicked", function() {
+    it("emits a clicked event when a server is clicked", function() {
       cl.addServer('freenode');
       mousedown(item(0), 1);
       return expect(cl.emit).toHaveBeenCalledWith('clicked', 'freenode', void 0);
+    });
+    it("displays '<add channel>' when the current server is selected", function() {
+      cl.addServer('freenode');
+      cl.addServer('dalnet');
+      cl.select('freenode');
+      expect(isFooterVisible(0)).toBe(true);
+      expect(isFooterVisible(1)).toBe(false);
+      cl.select('dalnet');
+      expect(isFooterVisible(0)).toBe(false);
+      expect(isFooterVisible(1)).toBe(true);
     });
   });
 

@@ -88,12 +88,29 @@
           return _this.removeWindow(win);
         }
       });
-      return this._addWelcomeWindow();
+      this.channelDisplay.on('help_type_command', function(text, server) {
+        var currentConnection = _this.currentWindow.conn;
+        if (currentConnection) {
+          if (currentConnection.name != server) {
+            // '/join' uses the user's current server, so we need to switch
+            // windows if the user is trying to join a channel from another
+            // server.
+            var win = _this.winList.get(server);
+            if (win) {
+              _this.switchToWindow(win);
+            } else {
+              return;
+            }
+          }
+          _this.emit('set_input', text);
+        }
+      });
+      this._addWelcomeWindow();
     };
 
     Chat.prototype._addWelcomeWindow = function() {
       this.emptyWindow = new chat.Window('none');
-      this.channelDisplay.addServer(this.emptyWindow.name);
+      this.channelDisplay.addAlwaysEmptyServer(this.emptyWindow.name);
       this.switchToWindow(this.emptyWindow);
       return this.emptyWindow.messageRenderer.displayWelcome();
     };

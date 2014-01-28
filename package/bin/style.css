@@ -29,6 +29,11 @@ ul {
   padding: 0;
 }
 
+ul .footer {
+  display: none;
+  font-style: italic;
+}
+
 .help-command {
   display: inline-block;
   width: 7em;
@@ -106,6 +111,28 @@ ul {
 
 #rooms-and-nicks .room.server {
   background-color: #F2EFD3;
+  position: relative;
+}
+
+#rooms-and-nicks:hover .room.server .content-item {
+  width: 130px;
+}
+
+#rooms-and-nicks .add-channel {
+  position: absolute;
+  right: 2px;
+  top: -1px;
+  cursor: pointer;
+  font-size: 18px;
+  display: none;
+}
+
+#rooms-and-nicks:hover .add-channel {
+  display: block;
+}
+
+#rooms-and-nicks .add-channel:hover {
+  color: #888;
 }
 
 #rooms-and-nicks .room.channel:first-child {
@@ -117,17 +144,31 @@ ul {
   line-height: 20px;
 }
 
+#rooms-and-nicks not(.current-server) + .channels .room.channel:nth-last-child(2) {
+  padding-bottom: 3px;
+}
 #rooms-and-nicks .room.channel:last-child {
   padding-bottom: 3px;
 }
 
+#rooms-and-nicks not(.current-server) + .channels .room.channel:nth-last-child(2) .content-item {
+  padding-top: 3px;
+  line-height: 20px;
+}
 #rooms-and-nicks .room.channel:last-child .content-item {
   padding-top: 3px;
   line-height: 20px;
 }
 
+#rooms-and-nicks not(.current-server) + .channels .room.channel:nth-last-child(2):first-child .content-item {
+  line-height: 14px;
+}
 #rooms-and-nicks .room.channel:last-child:first-child .content-item {
   line-height: 14px;
+}
+
+#rooms-and-nicks .current-server:not(.always-empty) + .channels .footer {
+  display: block;
 }
 
 #rooms-and-nicks .room.channel .content-item {

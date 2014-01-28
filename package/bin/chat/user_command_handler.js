@@ -105,11 +105,11 @@
         params: ['opt_channel', 'opt_key'],
         requires: ['connection'],
         validateArgs: function() {
-          var _ref1;
-          if ((_ref1 = this.channel) == null) {
+          if (this.channel == null) {
             this.channel = this.chan;
           }
-          return this.channel = this.channel.toLowerCase();
+          this.channel = this.channel.toLowerCase();
+          return true;
         },
         run: function() {
           return this.chat.join(this.conn, this.channel, this.key);
@@ -775,7 +775,7 @@
           if (!user) {
             return;
           }
-          return this.chat.emit('set_input', "" + user + ": ");
+          return this.chat.emit('set_input_if_empty', "" + user + ": ");
         }
       });
       return this._addCommand('image', {
