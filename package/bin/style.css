@@ -317,8 +317,7 @@ ul {
   -webkit-user-select: initial;
 }
 
-.message.activity-marker .source,
-.message.activity-marker .content {
+.message.activity-marker .source-content-container {
   border-top: 1px solid rgb(224, 179, 179);
 }
 
@@ -334,13 +333,19 @@ ul {
   cursor: text;
 }
 
+.source-content-container {
+  display: table-cell;
+  padding: 4px 14px 4px 10px;
+  width: 100%;
+}
+
 .message .source {
   font-weight: bold;
-  padding-right: 20px;
+  padding-right: 5px;
+  margin-left: -5px;
   white-space: nowrap;
-  display: table-cell;
+  display: inline;
   text-align: right;
-  padding-left: 10px;
   cursor: text;
 }
 
@@ -349,54 +354,52 @@ ul {
 }
 
 .message .content {
-  display: table-cell;
-  padding: 4px 14px 4px 0px;
+  display: inline;
   white-space: pre-wrap;
-  width: 100%;
   cursor: text;
 }
 
-#messages-container .messages .message:last-child .content {
-  padding-bottom: 8px;
-}
-
-#messages-container .messages .message:first-child .content {
+#messages-container .messages .message:first-child .source-content-container {
   padding-top: 10px;
 }
 
-.message:not(.privmsg) + .message.privmsg .content {
+#messages-container .messages .message:last-child .source-content-container {
+  padding-bottom: 8px;
+}
+
+.message:not(.privmsg) + .message.privmsg .source-content-container {
   padding-top: 4px;
   padding-bottom: 1px;
 }
-.message.privmsg + .message.privmsg .content {
+.message.privmsg + .message.privmsg .source-content-container {
   padding-top: 1px;
   padding-bottom: 1px;
 }
-.message.privmsg .content {
+.message.privmsg .source-content-container {
   padding-bottom: 4px;
 }
 
-.message:not(.group) + .message.group .content {
+.message:not(.group) + .message.group .source-content-container {
   padding-top: 4px;
   padding-bottom: 1px;
 }
-.message.group + .message.group .content {
+.message.group + .message.group .source-content-container {
   padding-top: 0px;
   padding-bottom: 0px;
 }
-.message.group .content {
+.message.group .source-content-container {
   padding-bottom: 4px;
 }
 
-.message:not(.notice-group) + .message.notice-group .content {
+.message:not(.notice-group) + .message.notice-group .source-content-container {
   padding-top: 4px;
   padding-bottom: 1px;
 }
-.message.notice-group + .message.notice-group .content {
+.message.notice-group + .message.notice-group .source-content-container {
   padding-top: 0px;
   padding-bottom: 0px;
 }
-.message.notice-group .content {
+.message.notice-group .source-content-container {
   padding-bottom: 4px;
 }
 
