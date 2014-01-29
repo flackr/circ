@@ -454,6 +454,10 @@ ul {
   outline: 0;
 }
 
+#input.blink {
+  -webkit-box-shadow: 0px 0px 6px #406698;
+}
+
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
