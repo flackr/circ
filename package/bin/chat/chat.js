@@ -87,6 +87,7 @@
       });
       this.channelDisplay.on('help_type_command', function(text) {
         _this.emit('set_input', text);
+        _this.emit('blink_input');
       });
       this._addWelcomeWindow();
     };
