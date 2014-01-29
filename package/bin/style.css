@@ -71,6 +71,7 @@ ul {
   -webkit-box-orient: vertical;
   -webkit-box-flex: 0;
   width: 150px;
+  height: inherit;
   padding: 4px 0px;
   border-right: 1px solid rgba(0, 0, 0, .15);
   overflow-y: auto;
