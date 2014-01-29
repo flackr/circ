@@ -228,16 +228,16 @@
           return;
         }
       } else {
-        this._createConnection(server);
+        this._createConnection(server, port);
         this._createWindowForServer(server, port, password);
       }
       return this.connections[server].irc.connect(server, port, password);
     };
 
-    Chat.prototype._createConnection = function(server) {
+    Chat.prototype._createConnection = function(server, port) {
       var irc, _ref1;
       irc = new window.irc.IRC;
-      irc.setSocket(this.remoteConnection.createSocket(server));
+      irc.setSocket(this.remoteConnection.createSocket(server, port));
       if (this.preferredNick) {
         irc.setPreferredNick(this.preferredNick);
       }

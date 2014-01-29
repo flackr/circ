@@ -79,15 +79,14 @@
         }
       });
       this._addCommand('server', {
-        description: 'connects to the server, port 6667 is used by default, ' + "reconnects to the current server if no server is specified",
+        description: 'connects to the server, port 6667 is used by default, reconnects to the current server if no server is specified. ' +
+                     'Use a + to enable ssl, i.e. port +6697.',
         category: 'common',
         params: ['opt_server', 'opt_port', 'opt_password'],
         requires: ['online'],
         validateArgs: function() {
           var _ref1, _ref2;
-          if (this.port) {
-            this.port = parseInt(this.port);
-          } else {
+          if (!this.port) {
             this.port = 6667;
           }
           if ((_ref1 = this.server) == null) {
