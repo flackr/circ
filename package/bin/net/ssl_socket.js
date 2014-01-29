@@ -87,7 +87,6 @@ window.net.SslSocket = (function() {
         tlsDataReady: function(c) {
           // send TLS data over socket
           var bytes = c.tlsData.getBytes();
-          console.log('Sending TLS data: ' + bytes);
           string2ArrayBuffer(bytes, function(data) {
             chrome.socket.write(_this.socketId, data, function(writeInfo) {
               if (writeInfo.resultCode < 0) {
@@ -174,7 +173,6 @@ window.net.SslSocket = (function() {
       var _this = this;
       arrayBuffer2String(readInfo.data, function(data) {
         _this._buffer += data;
-        console.log('Received TLS data: ' + data);
         if (_this._buffer.length >= _this._requiredBytes) {
           _this._requiredBytes = _this._tls.process(_this._buffer);
           _this._buffer = '';
