@@ -27,6 +27,9 @@
       'test-notif': function() {
         return new chat.Notification('test', 'hi!').show();
       },
+      'test-upgrade-prompt': function() {
+        this._chat._promptToUpdate();
+      },
       'get-pw': function() {
         return this._chat.displayMessage('notice', this.params[0].context, 'Your password is: ' + this._chat.remoteConnection._password);
       },

@@ -45,8 +45,16 @@
           _this.setInput(text);
         }
       });
-      return this._context.on('set_input', function(text) {
+      this._context.on('set_input', function(text) {
         _this.setInput(text);
+      });
+      this._context.on('blink_input', function() {
+        _this.input.css('-webkit-transition', '0');
+        _this.input.addClass('blink');
+        setTimeout(function() {
+          _this.input.css('-webkit-transition', '300ms');
+          _this.input.removeClass('blink');
+        }, 0);
       });
     };
 

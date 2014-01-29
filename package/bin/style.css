@@ -259,8 +259,12 @@ ul {
   position: absolute;
   width: 100%;
   -webkit-transition: 150ms;
-  top: -35px;
+  top: 0;
   padding: 2px 0;
+}
+
+#notice.hide {
+  top: -38px;
 }
 
 #notice .content {
@@ -448,6 +452,10 @@ ul {
   font-size: 14px;
   padding: 0px 8px;
   outline: 0;
+}
+
+#input.blink {
+  -webkit-box-shadow: 0px 0px 6px #406698;
 }
 
 ::-webkit-scrollbar {
