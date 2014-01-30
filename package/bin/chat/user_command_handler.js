@@ -79,8 +79,9 @@
         }
       });
       this._addCommand('server', {
-        description: 'connects to the server, port 6667 is used by default, reconnects to the current server if no server is specified. ' +
-                     'Use a + to enable ssl, i.e. port +6697.',
+        description: 'connects to the server, port 6667 is used by default, ' +
+            'reconnects to the current server if no server is specified, ' +
+            'use \'+\' to enable SSL (i.e. +6667)',
         category: 'common',
         params: ['opt_server', 'opt_port', 'opt_password'],
         requires: ['online'],
@@ -99,7 +100,8 @@
         }
       });
       this._addCommand('join', {
-        description: 'joins the channel with the key if provided, reconnects to the current channel ' + 'if no channel is specified',
+        description: 'joins the channel with the key if provided, reconnects ' +
+            'to the current channel if no channel is specified',
         category: 'common',
         params: ['opt_channel', 'opt_key'],
         requires: ['connection'],
