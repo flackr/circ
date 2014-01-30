@@ -74,28 +74,23 @@
       return win.on('message', this._chatLog.add);
     };
 
-    /*
-       * Replays the given chatlog so the user can see the conversation they
-       * missed.
-    */
-
-
+    /**
+     * Replays the given chatlog so the user can see the conversation they
+     * missed.
+     */
     IRCMessageHandler.prototype.replayChatLog = function(opt_chatLogData) {
-      var context, win, _i, _len, _ref1, _results;
       if (opt_chatLogData) {
         this._chatLog.loadData(opt_chatLogData);
       }
-      _ref1 = this._chatLog.getContextList();
-      _results = [];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        context = _ref1[_i];
-        win = this._chat.winList.get(context.server, context.channel);
+      var contextList = this._chatLog.getContextList();
+      for (var i = 0; i < contextList.length; i++) {
+        var context = contextList[i];
+        var win = this._chat.winList.get(context.server, context.channel);
         if (!win) {
           continue;
         }
-        _results.push(win.rawHTML(this._chatLog.get(context)));
+        win.rawHTML(this._chatLog.get(context));
       }
-      return _results;
     };
 
     /*
