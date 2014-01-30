@@ -107,7 +107,7 @@ window.net.SslSocket = (function() {
         },
         dataReady: function(c) {
           // indicate application data is ready
-          var data = forge.util.decodeUtf8(c.data.getBytes());
+          var data = c.data.getBytes();
           irc.util.toSocketData(data, function(data) {
             _this.emit('data', data);
           });
