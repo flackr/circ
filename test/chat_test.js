@@ -55,7 +55,7 @@
       return client.switchToWindow(client.winList.get(index));
     };
     var noticeIsVisible = function() {
-      return $("#notice")[0].style.top === "0px";
+      return !$("#notice").hasClass('hide');
     };
     var getNoticeOption = function(index) {
       return $("#notice .option" + index);

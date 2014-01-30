@@ -12,7 +12,7 @@
       return $("#notice .option" + index);
     };
     isVisible = function() {
-      return $("#notice")[0].style.top === '0px';
+      return !$("#notice").hasClass('hide');
     };
     beforeEach(function() {
       mocks.dom.setUp();
