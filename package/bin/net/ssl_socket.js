@@ -20,8 +20,13 @@ window.net.SslSocket = (function() {
   };
 
   var arrayBuffer2String = function(buf, callback) {
-    var data = String.fromCharCode.apply(null, new Uint8Array(buf));
-    callback(data);
+    var bufView = new Uint8Array(buf);
+    var chunkSize = 65536;
+    var result = '';
+    for (var i = 0; i < bufView.length; i += chunkSize) {
+      result += String.fromCharCode.apply(null, bufView.subarray(i, Math.min(i + chunkSize, bufView.length)));
+    }
+    callback(result);
   };
 
   var SslSocket = function() {
