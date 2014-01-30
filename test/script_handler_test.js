@@ -12,6 +12,7 @@
         data: event
       });
     };
+
     emit = function() {
       var args, channel, event, name, server, type;
       type = arguments[0], server = arguments[1], channel = arguments[2], name = arguments[3], args = 5 <= arguments.length ? __slice.call(arguments, 4) : [];
@@ -23,9 +24,13 @@
       event.setContext(server, channel);
       return emitter.emit(type, event);
     };
+
     onCommand = jasmine.createSpy('onCommand');
     onUnknown = jasmine.createSpy('onUnknown');
+
     beforeEach(function() {
+      jasmine.Clock.useMock();
+
       var mockFrame1, mockFrame2;
       mockFrame1 = {
         postMessage: function() {}
@@ -33,6 +38,7 @@
       mockFrame2 = {
         postMessage: function() {}
       };
+
       script1 = new window.script.Script('1', mockFrame1);
       script2 = new window.script.Script('2', mockFrame2);
       spyOn(script1, 'postMessage');
@@ -157,7 +163,7 @@
       });
       return expect(handler.emit).not.toHaveBeenCalled();
     });
-    return it("sends 'command' when a registered command is entered", function() {
+    it("sends 'command' when a registered command is entered", function() {
       sendMessage(script1, {
         type: 'command',
         context: {
@@ -168,6 +174,21 @@
         args: ['hi', 'there!']
       });
       return expect(handler.emit).toHaveBeenCalled();
+    });
+    it("uninstalls inactive scripts after 5 seconds", function() {
+      sendMessage(script1, {
+        type: 'hook_command',
+        name: 'say'
+      });
+      emit('command', 'freenode', '#bash', 'say', 'hey', 'there!');
+      var sixSecondsInTheFuture = Date.now() + 5001;
+      spyOn(Date, 'now').andReturn(sixSecondsInTheFuture);
+      spyOn(handler, 'removeScript').andCallThrough();
+      jasmine.Clock.tick(5001);
+      runs(function() {
+        expect(handler.removeScript).toHaveBeenCalled();
+        expect(handler.emit).toHaveBeenCalled();
+      });
     });
   });
 
