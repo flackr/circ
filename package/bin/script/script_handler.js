@@ -54,7 +54,6 @@
 
     function ScriptHandler() {
       this._handleMessage = __bind(this._handleMessage, this);
-
       this._handleEvent = __bind(this._handleEvent, this);
       ScriptHandler.__super__.constructor.apply(this, arguments);
       this._scripts = {};
@@ -62,6 +61,7 @@
       this._eventCount = 0;
       this._emitters = [];
       this._propagationTimeoutTimerId = null;
+      this._log = getLogger(this);
       addEventListener('message', this._handleMessage);
     }
 
@@ -213,11 +213,13 @@
     ScriptHandler.prototype._checkPropagationTimeout = function() {
       var unresponsiveScripts = this._getUnresponsiveScripts();
       for (var id in unresponsiveScripts) {
-        this.removeScript(unresponsiveScripts[id]);
+        var script = unresponsiveScripts[id];
+        this._log('e', 'Removing unresponsive script ' + script.getName());
+        this.removeScript(script);
       }
       this._propagationTimeoutTimerId = null;
       if (!this._isPendingEventQueueEmpty()) {
-        var nextTimeout = ScriptHandler.prototype._getNextPendingEventTimeout();
+        var nextTimeout = this._getNextPendingEventTimeout();
         this._propagationTimeoutTimerId = setTimeout(
             this._checkPropagationTimeout.bind(this), nextTimeout);
       }
@@ -249,13 +251,13 @@
     ScriptHandler.prototype._getNextPendingEventTimeout = function() {
       var largestTimestamp = 0;
       for (var id in this._pendingEvents) {
-        pendingEventInfo = this._pendingEvents(id);
+        var pendingEventInfo = this._pendingEvents[id];
         if (pendingEventInfo.timestamp > largestTimestamp) {
           largestTimestamp = pendingEventInfo.timestamp;
         }
       }
       var nextTimeout = largestTimestamp + ScriptHandler.PROPAGATION_TIMEOUT -
-        Date.now();
+          Date.now();
       assert(nextTimeout > 0);
       return nextTimeout;
     }
