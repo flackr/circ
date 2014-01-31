@@ -202,6 +202,8 @@
 
       tick(1500);
       emit('command', 'freenode', '#bash', 'say', 'anyone', 'home?');
+      tick(1500);
+      emit('command', 'freenode', '#bash', 'say', 'last', 'message');
 
       tick(1500);
       sendMessage(script1, {
@@ -210,10 +212,10 @@
         args: [firstEventId]
       });
 
-      tick(2500);
+      tick(500);
       expect(handler.removeScript).not.toHaveBeenCalled();
 
-      tick(1001);
+      tick(1500);
       expect(handler.removeScript).toHaveBeenCalled();
       expect(handler.emit).toHaveBeenCalled();
     });
