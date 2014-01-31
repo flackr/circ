@@ -12,6 +12,8 @@ this.onMessage = function(e) {
     updatePasswords(e.args[0]);
   } else if (e.type == 'message' && e.name == 'privmsg') {
     handlePrivateMessage(e);
+  } else {
+    propagate(e);
   }
 };
 

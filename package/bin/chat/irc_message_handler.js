@@ -19,6 +19,7 @@
 
     function IRCMessageHandler(_chat) {
       this._chat = _chat;
+      this._suspendNotifications = false;
       this._formatter = new window.chat.MessageFormatter;
       this._chatLog = new chat.ChatLog;
       this._chatLog.whitelist('privmsg');
@@ -26,13 +27,15 @@
       IRCMessageHandler.__super__.constructor.apply(this, arguments);
     }
 
+    IRCMessageHandler.prototype.setSuspendNotifications = function(suspend) {
+      this._suspendNotifications = suspend;
+    };
+
     /*
-       * Ignore messages of a certain type when in the specified room.
-       * @param {Context} context
-       * @param {string} type
-    */
-
-
+     * Ignore messages of a certain type when in the specified room.
+     * @param {Context} context
+     * @param {string} type
+     */
     IRCMessageHandler.prototype.ignoreMessageType = function(context, type) {
       var _base, _ref1;
       if ((_ref1 = (_base = this._ignoredMessages)[context]) == null) {
@@ -364,7 +367,7 @@
     };
 
     IRCMessageHandler.prototype._shouldNotifyMention = function() {
-      return !this._isFromWindowInFocus() || !window.document.hasFocus();
+      return !this._suspendNotifications && (!this._isFromWindowInFocus() || !window.document.hasFocus());
     };
 
     IRCMessageHandler.prototype._isFromWindowInFocus = function() {

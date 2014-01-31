@@ -776,7 +776,7 @@
           return this.chat.emit('set_input_if_empty', "" + user + ": ");
         }
       });
-      return this._addCommand('image', {
+      this._addCommand('image', {
         description: "embed an image in a message",
         category: 'hidden',
         params: ['src'],
@@ -793,6 +793,14 @@
             });
             return img.attr('src', url);
           });
+        }
+      });
+      this._addCommand('suspend-notifications', {
+        description: 'suspends notifications temporarily',
+        category: 'hidden',
+        params: ['suspend'],
+        run: function() {
+          this.chat.messageHandler.setSuspendNotifications(this.suspend.toLowerCase() == 'on');
         }
       });
     };
