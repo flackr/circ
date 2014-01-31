@@ -230,7 +230,7 @@
       var unresponsiveScripts = {}
       for (var id in this._pendingEvents) {
         var pendingEventInfo = this._pendingEvents[id];
-        if (pendingEventInfo.timestamp + ScriptHandler.PROPAGATION_TIMEOUT <
+        if (pendingEventInfo.timestamp + ScriptHandler.PROPAGATION_TIMEOUT <=
             now) {
           for (var i = 0; i < pendingEventInfo.scripts.length; i++) {
             var script = pendingEventInfo.scripts[i];
@@ -249,16 +249,18 @@
     };
 
     ScriptHandler.prototype._getNextPendingEventTimeout = function() {
-      var largestTimestamp = 0;
+      var smallestTimestamp = Number.MAX_VALUE;
       for (var id in this._pendingEvents) {
         var pendingEventInfo = this._pendingEvents[id];
-        if (pendingEventInfo.timestamp > largestTimestamp) {
-          largestTimestamp = pendingEventInfo.timestamp;
+        if (pendingEventInfo.timestamp < smallestTimestamp) {
+          smallestTimestamp = pendingEventInfo.timestamp;
         }
       }
-      var nextTimeout = largestTimestamp + ScriptHandler.PROPAGATION_TIMEOUT -
+      var nextTimeout = smallestTimestamp + ScriptHandler.PROPAGATION_TIMEOUT -
           Date.now();
-      assert(nextTimeout > 0);
+      if (nextTimeout > ScriptHandler.PROPAGATION_TIMEOUT || nextTimeout <= 0) {
+        nextTimeout = ScriptHandler.PROPAGATION_TIMEOUT;
+      }
       return nextTimeout;
     }
 
