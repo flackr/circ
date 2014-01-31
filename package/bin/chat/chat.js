@@ -656,9 +656,17 @@
       }
       this.currentWindow = win;
       win.attach();
+      this._focusInput();
       this._selectWindowInChannelDisplay(win);
       return this.updateStatus();
     };
+
+    Chat.prototype._focusInput = function() {
+      var input = $('#input');
+      if (input) {
+        setTimeout(function() { input.focus(); }, 0);
+      }
+    }
 
     Chat.prototype._selectWindowInChannelDisplay = function(win) {
       if (win.conn) {
