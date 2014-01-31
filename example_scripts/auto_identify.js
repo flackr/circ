@@ -72,7 +72,7 @@ var getHiddenPasswordText = function(length) {
 };
 
 var updatePasswords = function(loadedPasswords) {
-  for (server in loadedPasswords) {
+  for (var server in loadedPasswords) {
     if (!serverPasswords[server]) {
       serverPasswords[server] = loadedPasswords[server];
     }
