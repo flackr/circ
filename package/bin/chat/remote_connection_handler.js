@@ -120,10 +120,10 @@
         return _this.determineConnection();
       });
       this._remoteConnection.on('no_addr', function() {
-        return _this._useOwnConnection();
+        return _this.useOwnConnection();
       });
       this._remoteConnection.on('no_port', function() {
-        return _this._useOwnConnection();
+        return _this.useOwnConnection();
       });
       this._remoteConnection.on('server_found', function() {
         var abruptSwitch;
@@ -144,7 +144,7 @@
           _this._displayFailedToConnect(connectInfo);
         }
         _this._reconnectionAttempt = false;
-        _this._useOwnConnection();
+        _this.useOwnConnection();
         return _this._tryToReconnectToServerDevice();
       });
       this._remoteConnection.on('irc_state', function(state) {
@@ -226,7 +226,7 @@
       if (this._storage.serverDevice && !this.shouldBeServerDevice()) {
         return this._useServerDeviceConnection();
       } else {
-        return this._useOwnConnection();
+        return this.useOwnConnection();
       }
     };
 
@@ -299,7 +299,7 @@
       return this._resumeIRCConnection();
     };
 
-    RemoteConnectionHandler.prototype._useOwnConnection = function() {
+    RemoteConnectionHandler.prototype.useOwnConnection = function() {
       var shouldResumeIRCConn, usingServerDeviceConnection, _ref1;
       clearTimeout(this._useOwnConnectionTimeout);
       usingServerDeviceConnection = (_ref1 = this._remoteConnection.getState()) === 'connected';

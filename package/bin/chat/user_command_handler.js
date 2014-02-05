@@ -585,6 +585,16 @@
           return _results;
         }
       });
+      this._addCommand('quit-server', {
+        description: "stops connecting through another device's IRC " +
+            "connection and starts using a new IRC connection (see /join-server)",
+        category: 'one_identity',
+        requires: ['online'],
+        run: function() {
+          this.chat.remoteConnectionHandler.useOwnConnection();
+          this.displayMessage('notice', "this device is now using its own IRC connection");
+        }
+      });
       this._addCommand('autostart', {
         description: "sets whether the application will run on startup, " + "toggles if no arguments are given",
         category: 'misc',
