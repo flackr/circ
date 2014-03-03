@@ -63,10 +63,10 @@ window.net.SslSocket = (function() {
       return;
     }
     this._initializeTls({});
+    this._tls.handshake(this._tlsOptions.sessionId || null);
     chrome.sockets.tcp.onReceive.addListener(this._onReceive);
     chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
     chrome.sockets.tcp.setPaused(this.socketId, false);
-    this._tls.handshake(this._tlsOptions.sessionId || null);
   };
 
   SslSocket.prototype._initializeTls = function(options) {
@@ -110,7 +110,7 @@ window.net.SslSocket = (function() {
                   console.error('Can\'t handle non-complete writes: wrote ' +
                       sendInfo.bytesSent + ' expected ' + data.byteLength);
                 }
-                _this.emit('error', 'Invalid write on socket, code: ' + sendInfo.bytesSent);
+                _this.emit('error', 'Invalid write on socket, code: ' + sendInfo.resultCode);
               }
             });
           });
