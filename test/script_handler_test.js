@@ -4,7 +4,7 @@
   var __slice = [].slice;
 
   describe('A script handler', function() {
-    var emit, emitter, handler, onCommand, onEmit, onUnknown, script1, script2, sendMessage;
+    var mockCurrentTime, emit, emitter, handler, onCommand, onEmit, onUnknown, script1, script2, sendMessage;
     script1 = script2 = handler = emitter = onEmit = void 0;
     sendMessage = function(script, event) {
       return handler._handleMessage({
@@ -12,6 +12,23 @@
         data: event
       });
     };
+
+    function mockOutClock() {
+      jasmine.Clock.useMock();
+      mockCurrentTime = undefined;
+    }
+
+    function tick(milliseconds) {
+      if (!Date.now.isSpy) {
+        mockCurrentTime = Date.now();
+        spyOn(Date, 'now').andCallFake(function() {
+          return mockCurrentTime;
+        });
+      }
+      mockCurrentTime += milliseconds;
+      jasmine.Clock.tick(milliseconds);
+    }
+
     emit = function() {
       var args, channel, event, name, server, type;
       type = arguments[0], server = arguments[1], channel = arguments[2], name = arguments[3], args = 5 <= arguments.length ? __slice.call(arguments, 4) : [];
@@ -23,9 +40,12 @@
       event.setContext(server, channel);
       return emitter.emit(type, event);
     };
+
     onCommand = jasmine.createSpy('onCommand');
     onUnknown = jasmine.createSpy('onUnknown');
+
     beforeEach(function() {
+      mockOutClock();
       var mockFrame1, mockFrame2;
       mockFrame1 = {
         postMessage: function() {}
@@ -33,6 +53,7 @@
       mockFrame2 = {
         postMessage: function() {}
       };
+
       script1 = new window.script.Script('1', mockFrame1);
       script2 = new window.script.Script('2', mockFrame2);
       spyOn(script1, 'postMessage');
@@ -157,7 +178,7 @@
       });
       return expect(handler.emit).not.toHaveBeenCalled();
     });
-    return it("sends 'command' when a registered command is entered", function() {
+    it("sends 'command' when a registered command is entered", function() {
       sendMessage(script1, {
         type: 'command',
         context: {
@@ -168,6 +189,35 @@
         args: ['hi', 'there!']
       });
       return expect(handler.emit).toHaveBeenCalled();
+    });
+    it("uninstalls inactive scripts after 5 seconds", function() {
+      spyOn(handler, 'removeScript').andCallThrough();
+
+      sendMessage(script1, {
+        type: 'hook_command',
+        name: 'say'
+      });
+      emit('command', 'freenode', '#bash', 'say', 'hey', 'there!');
+      var firstEventId = script1.postMessage.mostRecentCall.args[0].id;
+
+      tick(1500);
+      emit('command', 'freenode', '#bash', 'say', 'anyone', 'home?');
+      tick(1500);
+      emit('command', 'freenode', '#bash', 'say', 'last', 'message');
+
+      tick(1500);
+      sendMessage(script1, {
+        type: 'propagate',
+        name: 'all',
+        args: [firstEventId]
+      });
+
+      tick(500);
+      expect(handler.removeScript).not.toHaveBeenCalled();
+
+      tick(1500);
+      expect(handler.removeScript).toHaveBeenCalled();
+      expect(handler.emit).toHaveBeenCalled();
     });
   });
 

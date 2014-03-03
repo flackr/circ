@@ -147,7 +147,7 @@
   function createBlob(src) {
     var BB = window.BlobBuilder || window.WebKitBlobBuilder;
     if (BB) {
-      bb = new BB();
+      var bb = new BB();
       bb.append(src);
       return bb.getBlob();
     }

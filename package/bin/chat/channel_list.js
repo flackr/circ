@@ -23,19 +23,40 @@
       ChannelList.__super__.constructor.apply(this, arguments);
       this.$surface = $('#rooms-container .rooms');
       this.roomsByServer = {};
-    }
+      this._addFooter();
+    };
+
+    ChannelList.prototype._addFooter = function() {
+      var _this = this;
+      this._footerHtml = this._createAndAppendServerHTML('+ add server');
+      var serverRoomHtml = $('.server', this._footerHtml);
+      serverRoomHtml.addClass('footer');
+      serverRoomHtml.mousedown(function(event) {
+        if (event.which == 1) {
+          _this._handleAddServerClick();
+        }
+      });
+    };
 
     ChannelList.prototype.select = function(server, channel) {
       this._removeLastSelected();
       this._addClass(server, channel, 'selected');
+      this._addClass(server, null, 'current-server');
       this._removeClass(server, channel, 'activity');
       return this._removeClass(server, channel, 'mention');
     };
 
     ChannelList.prototype._removeLastSelected = function() {
-      var _ref1;
-      return (_ref1 = $('.room.selected', this.$surface)) != null ? _ref1.removeClass('selected') : void 0;
+      this.removeFirstInstanceOfClass('selected');
+      this.removeFirstInstanceOfClass('current-server');
     };
+
+    ChannelList.prototype.removeFirstInstanceOfClass = function(cssClass) {
+      var elementWithClass = $('.' + cssClass, this.$surface);
+      if (elementWithClass) {
+        elementWithClass.removeClass(cssClass);
+      }
+    }
 
     ChannelList.prototype.activity = function(server, opt_channel) {
       return this._addClass(server, opt_channel, 'activity');
@@ -59,9 +80,18 @@
       return this.disconnect(server, channel);
     };
 
+    /**
+     * Adds a server that will never have any channels, e.g. when we add the
+     * welcome window.
+     */
+    ChannelList.prototype.addAlwaysEmptyServer = function(serverName) {
+      this.addServer(serverName);
+      this._addClass(serverName, null, 'always-empty');
+    }
+
     ChannelList.prototype.addServer = function(serverName) {
       var channels, html, server;
-      html = this._createServerHTML(serverName);
+      html = this._createAndAppendServerHTML(serverName);
       server = $('.server', html);
       channels = this._createChannelList(html);
       this._handleMouseEvents(serverName, server, channels);
@@ -73,11 +103,15 @@
       return this.disconnect(serverName);
     };
 
-    ChannelList.prototype._createServerHTML = function(serverName) {
+    ChannelList.prototype._createAndAppendServerHTML = function(serverName) {
       var html;
       html = $('#templates .server-channels').clone();
       $('.server .content-item', html).text(serverName);
-      this.$surface.append(html);
+      if (this._footerHtml) {
+        html.insertBefore(this._footerHtml);
+      } else {
+        this.$surface.append(html);
+      }
       return html;
     };
 
@@ -85,6 +119,7 @@
       var channelList, channelTemplate;
       channelTemplate = $('#templates .channel');
       channelList = new chat.HTMLList($('.channels', html), channelTemplate);
+      channelList.setFooterNodeText('+ add channel');
       return channelList;
     };
 
@@ -92,14 +127,24 @@
       var _this = this;
       server.mousedown(function(event) {
         if (event.which == 1) {
-          return _this._handleClick(serverName);
+          if ($(event.target).hasClass('remove-button')) {
+            _this._handleRemoveRoom(serverName);
+          } else {
+            _this._handleClick(serverName);
+          }
         }
       });
       channels.on('clicked', function(channelName) {
-        return _this._handleClick(serverName, channelName);
+        _this._handleClick(serverName, channelName);
       });
-      return channels.on('midclicked', function(channelName) {
-        return _this._handleMiddleClick(serverName, channelName);
+      channels.on('midclicked', function(channelName) {
+        _this._handleMiddleClick(serverName, channelName);
+      });
+      channels.on('footer_clicked', function() {
+        _this._handleAddChannelClick();
+      });
+      channels.on('remove_button_clicked', function(channelName) {
+        _this._handleRemoveRoom(serverName, channelName);
       });
     };
 
@@ -133,6 +178,18 @@
 
     ChannelList.prototype._handleMiddleClick = function(server, channel) {
       return this.emit('midclicked', server, channel);
+    };
+
+    ChannelList.prototype._handleAddChannelClick = function() {
+      this.emit('help_type_command', '/join #');
+    };
+
+    ChannelList.prototype._handleAddServerClick = function() {
+      this.emit('help_type_command', '/server ');
+    };
+
+    ChannelList.prototype._handleRemoveRoom = function(server, channel) {
+      this.emit('remove_button_clicked', server, channel);
     };
 
     return ChannelList;

@@ -248,13 +248,16 @@
     */
 
 
-    RemoteConnection.prototype.createSocket = function(server) {
+    RemoteConnection.prototype.createSocket = function(server, port) {
       var socket;
       if (this.isClient()) {
         socket = new net.RemoteSocket;
         this._ircSocketMap[server] = socket;
       } else {
-        socket = new net.ChromeSocket;
+        if (port && port.substr && port.substr(0, 1) == '+')
+          socket = new net.SslSocket;
+        else
+          socket = new net.ChromeSocket;
         this.broadcastSocketData(socket, server);
       }
       return socket;

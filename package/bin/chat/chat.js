@@ -68,6 +68,10 @@
       var _this = this;
       this.winList = new chat.WindowList;
       this.notice = new chat.Notice;
+      this.toggleChannelDisplay = $('#hide-channels');
+      this.toggleChannelDisplay.click(function() {
+        $('#rooms-and-nicks')[0].classList.toggle('hidden');
+      });
       this.channelDisplay = new chat.ChannelList();
       this.channelDisplay.on('clicked', function(server, chan) {
         var win = _this.winList.get(server, chan);
@@ -76,20 +80,21 @@
         }
       });
       this.channelDisplay.on('midclicked', function(server, chan) {
-        var win = _this.winList.get(server, chan);
-        if (win != null) {
-          if (!win.isPrivate()) {
-            win.conn.irc.part(chan, '');
-          }
-          return _this.removeWindow(win);
-        }
+        _this.disconnectAndRemoveRoom(server, chan);
       });
-      return this._addWelcomeWindow();
+      this.channelDisplay.on('remove_button_clicked', function(server, chan) {
+        _this.disconnectAndRemoveRoom(server, chan);
+      });
+      this.channelDisplay.on('help_type_command', function(text) {
+        _this.emit('set_input', text);
+        _this.emit('blink_input');
+      });
+      this._addWelcomeWindow();
     };
 
     Chat.prototype._addWelcomeWindow = function() {
       this.emptyWindow = new chat.Window('none');
-      this.channelDisplay.addServer(this.emptyWindow.name);
+      this.channelDisplay.addAlwaysEmptyServer(this.emptyWindow.name);
       this.switchToWindow(this.emptyWindow);
       return this.emptyWindow.messageRenderer.displayWelcome();
     };
@@ -182,11 +187,11 @@
       return _results;
     };
 
-    Chat.prototype.closeConnection = function(conn) {
+    Chat.prototype.closeConnection = function(conn, opt_reason) {
       if (conn.irc.state === 'reconnecting') {
         conn.irc.giveup();
       } else {
-        conn.irc.quit(this.reason);
+        conn.irc.quit(opt_reason);
       }
       return this.removeWindow(this.winList.get(conn.name));
     };
@@ -224,16 +229,16 @@
           return;
         }
       } else {
-        this._createConnection(server);
+        this._createConnection(server, port);
         this._createWindowForServer(server, port, password);
       }
       return this.connections[server].irc.connect(server, port, password);
     };
 
-    Chat.prototype._createConnection = function(server) {
+    Chat.prototype._createConnection = function(server, port) {
       var irc, _ref1;
       irc = new window.irc.IRC;
-      irc.setSocket(this.remoteConnection.createSocket(server));
+      irc.setSocket(this.remoteConnection.createSocket(server, port));
       if (this.preferredNick) {
         irc.setPreferredNick(this.preferredNick);
       }
@@ -519,6 +524,20 @@
       return this.channelDisplay.disconnect(win.conn.name, win.target);
     };
 
+    Chat.prototype.disconnectAndRemoveRoom = function(server, channel, opt_reason) {
+      var win = this.winList.get(server, channel);
+      if (win) {
+        if (!channel) {
+          this.closeConnection(win.conn, opt_reason);
+        } else {
+          if (!win.isPrivate()) {
+            win.conn.irc.part(channel, opt_reason);
+          }
+          this.removeWindow(win);
+        }
+      }
+    };
+
     Chat.prototype.removeWindow = function(win) {
       var index, removedWindows, _i, _len, _ref1;
       if (win == null) {
@@ -553,7 +572,7 @@
     Chat.prototype._selectNextWindow = function(preferredIndex) {
       var nextWin, _ref1;
       if (this.winList.length === 0) {
-        this.channelDisplay.addServer(this.emptyWindow.name);
+        this.channelDisplay.addAlwaysEmptyServer(this.emptyWindow.name);
         return this.switchToWindow(this.emptyWindow);
       } else if (this.winList.indexOf(this.currentWindow) === -1) {
         nextWin = (_ref1 = this.winList.get(preferredIndex)) != null ? _ref1 : this.winList.get(preferredIndex - 1);
@@ -583,22 +602,21 @@
     };
 
     Chat.prototype.updateStatus = function() {
-      var away, channel, nick, statusList, topic, _ref1, _ref2, _ref3, _ref4, _ref5;
-      statusList = [];
-      nick = (_ref1 = (_ref2 = this.currentWindow.conn) != null ? _ref2.irc.nick : void 0) != null ? _ref1 : this.preferredNick;
-      away = (_ref3 = this.currentWindow.conn) != null ? _ref3.irc.away : void 0;
-      channel = this.currentWindow.target;
-      topic = (_ref4 = this.currentWindow.conn) != null ? (_ref5 = _ref4.irc.channels[channel]) != null ? _ref5.topic : void 0 : void 0;
-      if (nick) {
-        statusList.push("<span class='nick'>" + (html.escape(nick)) + "</span>");
+      var conn = this.currentWindow.conn;
+      var nick = this.preferredNick;
+      var away, topic;
+      if (conn) {
+        var channelName = this.currentWindow.target;
+        nick = this.currentWindow.conn.irc.nick || this.preferredNick;
+        away = this.currentWindow.conn.irc.away;
+        var channel = channelName ? this.currentWindow.conn.irc.channels[channelName] : undefined;
+        if (channel)
+          topic = channel.topic;
       }
-      if (away) {
-        statusList.push("<span class='away'>away</span>");
-      }
-      if (topic) {
-        statusList.push("<span title='" + (html.escape(topic)) + "' class='topic'>" + (html.display(topic)) + "</span>");
-      }
-      $('#status').html(statusList.join(''));
+
+      $('#nick').html((nick ? "<span class='name'>" + (html.escape(nick)) + "</span>" : "") +
+                      (away ? "<span class='away'>away</span>" : ""));
+      $('#status').html(topic ? "<span title='" + (html.escape(topic)) + "' class='topic'>" + (html.display(topic)) + "</span>" : "");
       return this._updateDocumentTitle();
     };
 
@@ -638,9 +656,17 @@
       }
       this.currentWindow = win;
       win.attach();
+      this._focusInput();
       this._selectWindowInChannelDisplay(win);
       return this.updateStatus();
     };
+
+    Chat.prototype._focusInput = function() {
+      var input = $('#input');
+      if (input) {
+        setTimeout(function() { input.focus(); }, 0);
+      }
+    }
 
     Chat.prototype._selectWindowInChannelDisplay = function(win) {
       if (win.conn) {

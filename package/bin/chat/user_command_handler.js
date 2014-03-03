@@ -79,15 +79,15 @@
         }
       });
       this._addCommand('server', {
-        description: 'connects to the server, port 6667 is used by default, ' + "reconnects to the current server if no server is specified",
+        description: 'connects to the server, port 6667 is used by default, ' +
+            'reconnects to the current server if no server is specified, ' +
+            'use \'+\' to enable SSL (i.e. +6667)',
         category: 'common',
         params: ['opt_server', 'opt_port', 'opt_password'],
         requires: ['online'],
         validateArgs: function() {
           var _ref1, _ref2;
-          if (this.port) {
-            this.port = parseInt(this.port);
-          } else {
+          if (!this.port) {
             this.port = 6667;
           }
           if ((_ref1 = this.server) == null) {
@@ -100,16 +100,17 @@
         }
       });
       this._addCommand('join', {
-        description: 'joins the channel with the key if provided, reconnects to the current channel ' + 'if no channel is specified',
+        description: 'joins the channel with the key if provided, reconnects ' +
+            'to the current channel if no channel is specified',
         category: 'common',
         params: ['opt_channel', 'opt_key'],
         requires: ['connection'],
         validateArgs: function() {
-          var _ref1;
-          if ((_ref1 = this.channel) == null) {
+          if (this.channel == null) {
             this.channel = this.chan;
           }
-          return this.channel = this.channel.toLowerCase();
+          this.channel = this.channel.toLowerCase();
+          return true;
         },
         run: function() {
           return this.chat.join(this.conn, this.channel, this.key);
@@ -121,10 +122,7 @@
         params: ['opt_reason...'],
         requires: ['connection', 'channel'],
         run: function() {
-          if (!this.win.isPrivate()) {
-            this.conn.irc.part(this.chan, this.reason);
-          }
-          return this.chat.removeWindow(this.win);
+          this.chat.disconnectAndRemoveRoom(this.conn.name, this.chan, this.reason);
         }
       });
       this._addCommand('leave', {
@@ -188,7 +186,7 @@
         params: ['opt_reason...'],
         requires: ['connection'],
         run: function() {
-          return this.chat.closeConnection(this.conn);
+          this.chat.disconnectAndRemoveRoom(this.conn.name, null /* channel */, this.reason);
         }
       });
       this._addCommand('names', {
@@ -587,6 +585,16 @@
           return _results;
         }
       });
+      this._addCommand('quit-server', {
+        description: "stops connecting through another device's IRC " +
+            "connection and starts using a new IRC connection (see /join-server)",
+        category: 'one_identity',
+        requires: ['online'],
+        run: function() {
+          this.chat.remoteConnectionHandler.useOwnConnection();
+          this.displayMessage('notice', "this device is now using its own IRC connection");
+        }
+      });
       this._addCommand('autostart', {
         description: "sets whether the application will run on startup, " + "toggles if no arguments are given",
         category: 'misc',
@@ -775,10 +783,10 @@
           if (!user) {
             return;
           }
-          return this.chat.emit('set_input', "" + user + ": ");
+          return this.chat.emit('set_input_if_empty', "" + user + ": ");
         }
       });
-      return this._addCommand('image', {
+      this._addCommand('image', {
         description: "embed an image in a message",
         category: 'hidden',
         params: ['src'],
@@ -795,6 +803,14 @@
             });
             return img.attr('src', url);
           });
+        }
+      });
+      this._addCommand('suspend-notifications', {
+        description: 'suspends notifications temporarily',
+        category: 'hidden',
+        params: ['suspend'],
+        run: function() {
+          this.chat.messageHandler.setSuspendNotifications(this.suspend.toLowerCase() == 'on');
         }
       });
     };

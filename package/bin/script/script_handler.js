@@ -13,25 +13,27 @@
    * Handles currently running scripts. Events sent from the user and IRC servers
    * are intercepted by this class, passed to scripts, and then forwarded on to
    * their destination.
-  */
-
-
+   */
   ScriptHandler = (function(_super) {
 
     __extends(ScriptHandler, _super);
 
     /*
-       * Script names that are longer this this are truncated.
-    */
-
-
+     * Script names that are longer this this are truncated.
+     */
     ScriptHandler.MAX_NAME_LENGTH = 20;
 
     /*
-       * A set of events that cannot be intercepted by scripts.
-    */
+     * The amount of time a script has to acknowlege an event by calling
+     * propagate. If it fails to call propagate within this many milliseconds
+     * of receiving the event, the script will be uninstalled.
+     */
+    ScriptHandler.PROPAGATION_TIMEOUT = 5000; // 5 seconds
 
 
+    /*
+     * A set of events that cannot be intercepted by scripts.
+     */
     ScriptHandler.UNINTERCEPTABLE_EVENTS = {
       'command help': 'command help',
       'command about': 'command about',
@@ -41,28 +43,25 @@
     };
 
     /*
-       * Events that a script can listen for.
-    */
-
-
+     * Events that a script can listen for.
+     */
     ScriptHandler.HOOKABLE_EVENTS = ['command', 'server', 'message'];
 
     /*
-       * Events that are generated and sent by the script handler.
-    */
-
-
+     * Events that are generated and sent by the script handler.
+     */
     ScriptHandler.SCRIPTING_EVENTS = ['save', 'load'];
 
     function ScriptHandler() {
       this._handleMessage = __bind(this._handleMessage, this);
-
       this._handleEvent = __bind(this._handleEvent, this);
       ScriptHandler.__super__.constructor.apply(this, arguments);
       this._scripts = {};
       this._pendingEvents = {};
       this._eventCount = 0;
       this._emitters = [];
+      this._propagationTimeoutTimerId = null;
+      this._log = getLogger(this);
       addEventListener('message', this._handleMessage);
     }
 
@@ -81,13 +80,11 @@
       return this._scripts[script.id] = script;
     };
 
-    /*
-       * Remove a script to the list of currently active scripts. Once removed, the
-       * script will not longer receive events from the user or IRC server.
-       * @param {Script} script
-    */
-
-
+    /**
+     * Remove a script to the list of currently active scripts. Once removed,
+     * the script will not longer receive events from the user or IRC server.
+     * @param {Script} script
+     */
     ScriptHandler.prototype.removeScript = function(script) {
       var eventId, _i, _len, _ref1;
       _ref1 = this._getPendingEventsForScript(script);
@@ -161,7 +158,7 @@
     ScriptHandler.prototype._handleEvent = function(event) {
       event.id = this._eventCount++;
       if (this._eventCanBeForwarded(event)) {
-        this._forwardEventToScripts(event);
+        this._offerEventToScripts(event);
       }
       if (!this._eventIsBeingHandled(event.id)) {
         return this._emitEvent(event);
@@ -179,7 +176,7 @@
       return !(event.hook in ScriptHandler.UNINTERCEPTABLE_EVENTS);
     };
 
-    ScriptHandler.prototype._forwardEventToScripts = function(event) {
+    ScriptHandler.prototype._offerEventToScripts = function(event) {
       var script, scriptId, _ref1, _results;
       _ref1 = this._scripts;
       _results = [];
@@ -196,7 +193,11 @@
 
     ScriptHandler.prototype._sendEventToScript = function(event, script) {
       script.postMessage(event);
-      return this._markEventAsPending(event, script);
+      this._markEventAsPending(event, script);
+      if (!this._propagationTimeoutTimerId) {
+        this._propagationTimeoutTimerId = setTimeout(
+          this._checkPropagationTimeout.bind(this), ScriptHandler.PROPAGATION_TIMEOUT);
+      }
     };
 
     ScriptHandler.prototype._markEventAsPending = function(event, script) {
@@ -204,9 +205,64 @@
         this._pendingEvents[event.id] = {};
         this._pendingEvents[event.id].event = event;
         this._pendingEvents[event.id].scripts = [];
+        this._pendingEvents[event.id].timestamp = Date.now();
       }
       return this._pendingEvents[event.id].scripts.push(script);
     };
+
+    ScriptHandler.prototype._checkPropagationTimeout = function() {
+      var unresponsiveScripts = this._getUnresponsiveScripts();
+      for (var id in unresponsiveScripts) {
+        var script = unresponsiveScripts[id];
+        this._log('e', 'Removing unresponsive script ' + script.getName());
+        this.removeScript(script);
+      }
+      this._propagationTimeoutTimerId = null;
+      if (!this._isPendingEventQueueEmpty()) {
+        var nextTimeout = this._getNextPendingEventTimeout();
+        this._propagationTimeoutTimerId = setTimeout(
+            this._checkPropagationTimeout.bind(this), nextTimeout);
+      }
+    }
+
+    ScriptHandler.prototype._getUnresponsiveScripts = function() {
+      var now = Date.now();
+      var unresponsiveScripts = {}
+      for (var id in this._pendingEvents) {
+        var pendingEventInfo = this._pendingEvents[id];
+        if (pendingEventInfo.timestamp + ScriptHandler.PROPAGATION_TIMEOUT <=
+            now) {
+          for (var i = 0; i < pendingEventInfo.scripts.length; i++) {
+            var script = pendingEventInfo.scripts[i];
+            unresponsiveScripts[script.id] = script;
+          }
+        }
+      }
+      return unresponsiveScripts;
+    }
+
+    ScriptHandler.prototype._isPendingEventQueueEmpty = function() {
+      for (var id in this._pendingEvents) {
+        return false;
+      }
+      return true;
+    };
+
+    ScriptHandler.prototype._getNextPendingEventTimeout = function() {
+      var smallestTimestamp = Number.MAX_VALUE;
+      for (var id in this._pendingEvents) {
+        var pendingEventInfo = this._pendingEvents[id];
+        if (pendingEventInfo.timestamp < smallestTimestamp) {
+          smallestTimestamp = pendingEventInfo.timestamp;
+        }
+      }
+      var nextTimeout = smallestTimestamp + ScriptHandler.PROPAGATION_TIMEOUT -
+          Date.now();
+      if (nextTimeout > ScriptHandler.PROPAGATION_TIMEOUT || nextTimeout <= 0) {
+        nextTimeout = ScriptHandler.PROPAGATION_TIMEOUT;
+      }
+      return nextTimeout;
+    }
 
     ScriptHandler.prototype._eventIsBeingHandled = function(eventId) {
       if (!(eventId in this._pendingEvents)) {

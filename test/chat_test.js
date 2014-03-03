@@ -19,19 +19,16 @@
       return $(rooms()[index]);
     };
     var rooms = function() {
-      return $('#rooms-container .rooms .room');
+      return $('#rooms-container .rooms .room:not(.footer)');
     };
     var textOfRoom = function(index) {
       return $('.content-item', room(index)).text();
     };
     var nick = function(index) {
-      if (index === -1) {
-        return nicks().last();
-      }
       return $(nicks()[index]);
     };
     var nicks = function() {
-      return $('#nicks-container .nicks .nick');
+      return $('#nicks-container .nicks .nick:not(.footer)');
     };
     var textOfNick = function(index) {
       return $('.content-item', nick(index)).text();
@@ -58,7 +55,7 @@
       return client.switchToWindow(client.winList.get(index));
     };
     var noticeIsVisible = function() {
-      return $("#notice")[0].style.top === "0px";
+      return !$("#notice").hasClass('hide');
     };
     var getNoticeOption = function(index) {
       return $("#notice .option" + index);
@@ -108,7 +105,7 @@
       return client.tearDown();
     });
     it("displays the preferred nick in the status bar", function() {
-      return expect($('#status')).toHaveText('ournick');
+      return expect($('#nick')).toHaveText('ournick');
     });
     it("sets the document title to the version", function() {
       return expect(document.title).toMatch(/^CIRC \d{1,3}\.\d{1,3}\.\d{1,3}/);
@@ -289,8 +286,7 @@
           var script1 = loadScript(mocks.scripts.hiSourceCode);
           var script2 = loadScript(mocks.scripts.hiSourceCode);
           return runs(function() {
-            expect(script1.getName()).toBe('/hi');
-            return expect(script2.getName()).toBe('/hi2');
+            expect(script1.getName()).not.toBe(script2.getName());
           });
         });
         it("can only contain valid characters", function() {
@@ -417,7 +413,7 @@
       it("restores the previously used nick", function() {
         restart();
         return runs(function() {
-          return expect($('#status')).toHaveText('newNick');
+          return expect($('#nick')).toHaveText('newNick');
         });
       });
       it("generates random nick when no previously used nick is available", function() {
@@ -521,7 +517,7 @@
       it("updates the status bar on /away", function() {
         type('/away');
         currentIRC.handle('306');
-        return expect($('#status')).toHaveText('ournick' + 'away');
+        return expect($('#nick')).toHaveText('ournick' + 'away');
       });
       it("creates a new window when a direct private message is received", function() {
         currentIRC.handle('PRIVMSG', {
@@ -901,7 +897,7 @@
               var name = nicklist[i];
               expect(textOfNick(i)).toBe(name);
             }
-            return expect($('#status').text()).toBe('somenick' + 'away');
+            return expect($('#nick').text()).toBe('somenick' + 'away');
           });
           it("doesn't set the irc nick if the nick isn't saved", function() {
             type("/join-server 1.1.1.2 1336");

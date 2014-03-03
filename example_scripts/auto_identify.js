@@ -12,6 +12,8 @@ this.onMessage = function(e) {
     updatePasswords(e.args[0]);
   } else if (e.type == 'message' && e.name == 'privmsg') {
     handlePrivateMessage(e);
+  } else {
+    propagate(e);
   }
 };
 
@@ -70,7 +72,7 @@ var getHiddenPasswordText = function(length) {
 };
 
 var updatePasswords = function(loadedPasswords) {
-  for (server in loadedPasswords) {
+  for (var server in loadedPasswords) {
     if (!serverPasswords[server]) {
       serverPasswords[server] = loadedPasswords[server];
     }

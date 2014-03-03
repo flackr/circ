@@ -317,7 +317,7 @@
     RemoteDevice.prototype._onConnect = function(result, callback) {
       if (result < 0) {
         this._log('w', "Couldn't connect to server", this.addr, 'on port', this.port, '-',
-          chrome.runtime.lastError.message + " (error " +  (-result) + ")");
+          (chrome.runtime.lastError ? chrome.runtime.lastError.message : '') + " (error " +  (-result) + ")");
         return callback(false);
       } else {
         this._listenForData();
