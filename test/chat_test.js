@@ -1057,7 +1057,7 @@
             restart();
             return expect(client.remoteConnection.getState()).toBe('connecting');
           });
-          it("can't become a server if chrome.socket.tcpServer isn't defined", function() {
+          it("can't become a server if chrome.sockets.tcpServer isn't defined", function() {
             chrome.sockets.tcpServer = void 0;
             type("/make-server");
             return expect(client.remoteConnection.isIdle()).toBe(true);
