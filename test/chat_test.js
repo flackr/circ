@@ -1046,8 +1046,8 @@
             type("/make-server");
             return expect(rooms().length).toBe(2);
           });
-          it("is able to connect to servers even if chrome.socket.listen isn't supported", function() {
-            chrome.socket.listen = void 0;
+          it("is able to connect to servers even if chrome.sockets.tcpServer isn't supported", function() {
+            chrome.sockets.tcpServer = void 0;
             chrome.storage.sync.set({
               server_device: {
                 addr: '1.1.1.2',
@@ -1057,8 +1057,8 @@
             restart();
             return expect(client.remoteConnection.getState()).toBe('connecting');
           });
-          it("can't become a server if chrome.socket.listen isn't defined", function() {
-            chrome.socket.listen = void 0;
+          it("can't become a server if chrome.sockets.tcpServer isn't defined", function() {
+            chrome.sockets.tcpServer = void 0;
             type("/make-server");
             return expect(client.remoteConnection.isIdle()).toBe(true);
           });

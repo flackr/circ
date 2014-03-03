@@ -32,6 +32,8 @@ window.net.SslSocket = (function() {
   var SslSocket = function() {
     this._buffer = '';
     this._requiredBytes = 0;
+    this._onReceive = this._onReceive.bind(this);
+    this._onReceiveError = this._onReceiveError.bind(this);
     net.AbstractTCPSocket.apply(this);
   };
 
@@ -40,12 +42,13 @@ window.net.SslSocket = (function() {
   SslSocket.prototype.connect = function(addr, port) {
     var _this = this;
     this._active();
-    chrome.socket.create('tcp', {}, function(si) {
+    chrome.sockets.tcp.create({}, function(si) {
       _this.socketId = si.socketId;
       if (_this.socketId > 0) {
         registerSocketConnection(si.socketId);
+        chrome.sockets.tcp.setPaused(_this.socketId, true);
         // Port will be of the form +port# given that it is using SSL.
-        chrome.socket.connect(_this.socketId, addr, parseInt(port.substr(1)),
+        chrome.sockets.tcp.connect(_this.socketId, addr, parseInt(port.substr(1)),
             _this._onConnect.bind(_this));
       } else {
         _this.emit('error', "Couldn\'t create socket");
@@ -61,7 +64,9 @@ window.net.SslSocket = (function() {
     }
     this._initializeTls({});
     this._tls.handshake(this._tlsOptions.sessionId || null);
-    chrome.socket.read(this.socketId, this._onRead.bind(this));
+    chrome.sockets.tcp.onReceive.addListener(this._onReceive);
+    chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
+    chrome.sockets.tcp.setPaused(this.socketId, false);
   };
 
   SslSocket.prototype._initializeTls = function(options) {
@@ -93,19 +98,19 @@ window.net.SslSocket = (function() {
           // send TLS data over socket
           var bytes = c.tlsData.getBytes();
           string2ArrayBuffer(bytes, function(data) {
-            chrome.socket.write(_this.socketId, data, function(writeInfo) {
-              if (writeInfo.resultCode < 0) {
+            chrome.sockets.tcp.send(_this.socketId, data, function(sendInfo) {
+              if (sendInfo.resultCode < 0) {
                 console.error('SOCKET ERROR on write: ' +
-                    chrome.runtime.lastError.message + ' (error ' + (-writeInfo.resultCode) + ')');
+                    chrome.runtime.lastError.message + ' (error ' + (-sendInfo.resultCode) + ')');
               }
-              if (writeInfo.bytesWritten === data.byteLength) {
+              if (sendInfo.bytesSent === data.byteLength) {
                 _this.emit('drain');
               } else {
-                if (writeInfo.bytesWritten >= 0) {
+                if (sendInfo.bytesSent >= 0) {
                   console.error('Can\'t handle non-complete writes: wrote ' +
-                      writeInfo.bytesWritten + ' expected ' + data.byteLength);
+                      sendInfo.bytesSent + ' expected ' + data.byteLength);
                 }
-                _this.emit('error', 'Invalid write on socket, code: ' + writeInfo.bytesWritten);
+                _this.emit('error', 'Invalid write on socket, code: ' + sendInfo.resultCode);
               }
             });
           });
@@ -142,8 +147,10 @@ window.net.SslSocket = (function() {
 
   SslSocket.prototype._close = function() {
     if (this.socketId != null) {
-      chrome.socket.disconnect(this.socketId);
-      chrome.socket.destroy(this.socketId);
+      chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
+      chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
+      chrome.sockets.tcp.disconnect(this.socketId);
+      chrome.sockets.tcp.close(this.socketId);
       registerSocketConnection(this.socketId, true);
     }
     this.emit('close');
@@ -156,34 +163,38 @@ window.net.SslSocket = (function() {
     });
   };
 
-  SslSocket.prototype._onRead = function(readInfo) {
-    if (readInfo.resultCode === -1) {
-      console.error('Bad assumption: got -1 in _onRead');
-    }
+  SslSocket.prototype._onReceive = function(receiveInfo) {
+    if (receiveInfo.socketId != this.socketId)
+      return;
     this._active();
-    if (readInfo.resultCode < 0) {
+    if (!this._tls.open)
+      return;
+    var _this = this;
+    arrayBuffer2String(receiveInfo.data, function (data) {
+      _this._buffer += data;
+      if (_this._buffer.length >= _this._requiredBytes) {
+        _this._requiredBytes = _this._tls.process(_this._buffer);
+        _this._buffer = '';
+      }
+    });
+  };
+
+  SslSocket.prototype._onReceiveError = function (readInfo) {
+    if (readInfo.socketId != this.socketId)
+      return;
+    this._active();
+    if (info.resultCode === -100) {  // connection closed
+      this.emit('end');
+      this._close();
+    }
+    else {
       var message = '';
       if (chrome.runtime.lastError)
         message = chrome.runtime.lastError.message;
       this.emit('error', 'read from socket: ' + message + ' (error ' +
           (-readInfo.resultCode) + ')');
-      return;
-    } else if (readInfo.resultCode === 0) {
-      this.emit('end');
       this._close();
-    }
-    if (readInfo.data.byteLength) {
-      if (!this._tls.open)
-        return;
-      var _this = this;
-      arrayBuffer2String(readInfo.data, function(data) {
-        _this._buffer += data;
-        if (_this._buffer.length >= _this._requiredBytes) {
-          _this._requiredBytes = _this._tls.process(_this._buffer);
-          _this._buffer = '';
-        }
-        chrome.socket.read(_this.socketId, _this._onRead.bind(_this));
-      });
+      return;
     }
   };
 

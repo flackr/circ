@@ -37,7 +37,7 @@
     }
 
     Chat.prototype.init = function() {
-      if (api.socketSupported()) {
+      if (api.clientSocketSupported()) {
         this.storage.init();
         return this.remoteConnection.init();
       } else {
@@ -50,13 +50,13 @@
     };
 
     /*
-       * Tell the user that they need chrome.socket support to run CIRC.
+       * Tell the user that they need chrome.sockets support to run CIRC.
     */
 
 
     Chat.prototype._displaySocketSupportError = function() {
       var message;
-      message = "CIRC cannot run on this device. Support for " + "chrome.socket is required to connect to the IRC server. " + "Please update your version of Chrome and try again.";
+      message = "CIRC cannot run on this device. Support for " + "chrome.sockets is required to connect to the IRC server. " + "Please update your version of Chrome and try again.";
       return this.displayMessage('error', this.getCurrentContext(), message);
     };
 

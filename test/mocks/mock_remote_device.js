@@ -11,12 +11,12 @@
     __extends(RemoteDevice, _super);
 
     RemoteDevice.useMock = function() {
-      var _ref1;
       window.RemoteDevice = RemoteDevice;
-      ((_ref1 = window.chrome) != null ? _ref1 : window.chrome = {}).socket = {
-        create: function() {},
-        listen: function() {}
-      };
+      window.chrome.sockets = {};
+      window.chrome.sockets.tcp = {};
+      window.chrome.sockets.tcp.create = function() {};
+      window.chrome.sockets.tcpServer = {};
+      window.chrome.sockets.tcpServer.listen = function () { };
       this.state = 'finding_port';
       this.willConnect = true;
       this.devices = [];
