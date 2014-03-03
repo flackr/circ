@@ -46,7 +46,7 @@ window.net.SslSocket = (function() {
       _this.socketId = si.socketId;
       if (_this.socketId > 0) {
         registerSocketConnection(si.socketId);
-        chrome.sockets.tcp.setPaused(this.socketId, true);
+        chrome.sockets.tcp.setPaused(_this.socketId, true);
         // Port will be of the form +port# given that it is using SSL.
         chrome.sockets.tcp.connect(_this.socketId, addr, parseInt(port.substr(1)),
             _this._onConnect.bind(_this));
@@ -163,14 +163,14 @@ window.net.SslSocket = (function() {
     });
   };
 
-  SslSocket.prototype._onReceive = function(readInfo) {
-    if (readInfo.socketId != this.socketId)
+  SslSocket.prototype._onReceive = function(receiveInfo) {
+    if (receiveInfo.socketId != this.socketId)
       return;
     this._active();
     if (!this._tls.open)
       return;
     var _this = this;
-    arrayBuffer2String(readInfo.data, function(data) {
+    arrayBuffer2String(receiveInfo.data, function (data) {
       _this._buffer += data;
       if (_this._buffer.length >= _this._requiredBytes) {
         _this._requiredBytes = _this._tls.process(_this._buffer);
