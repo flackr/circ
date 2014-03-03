@@ -37,7 +37,7 @@
       this.socketId = si.socketId;
       if (this.socketId > 0) {
         registerSocketConnection(si.socketId);
-        chrome.sockets.tcp.setPaused(this.socketId, true, function() {});
+        chrome.sockets.tcp.setPaused(this.socketId, true);
         return chrome.sockets.tcp.connect(
             this.socketId, addr, port, this._onConnect);
       } else {
@@ -54,7 +54,7 @@
 
         chrome.sockets.tcp.onReceive.addListener(this._onReceive);
         chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
-        chrome.sockets.tcp.setPaused(this.socketId, false, function() {});
+        chrome.sockets.tcp.setPaused(this.socketId, false);
       }
     };
 
