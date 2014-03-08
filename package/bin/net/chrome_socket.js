@@ -31,7 +31,7 @@
         _this.socketId = si.socketId;
         if (_this.socketId > 0) {
           registerSocketConnection(si.socketId);
-          return chrome.socket.connect(_this.socketId, addr, port, _this._onConnect);
+          return chrome.socket.connect(_this.socketId, addr, parseInt(port), _this._onConnect);
         } else {
           return _this.emit('error', "couldn't create socket");
         }
