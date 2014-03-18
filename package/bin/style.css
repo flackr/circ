@@ -415,15 +415,15 @@ ul {
   padding-top: 5px;
 }
 
-#nick .name {
+#nick > span {
   padding-right: 10px;
 }
 
-#nick > span.name:before {
+#nick > .name:before {
   font-weight: bold;
   content: "[ "
 }
-#nick > span.name:after {
+#nick > .name:after {
   font-weight: bold;
   content: " ]"
 }
