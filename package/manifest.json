@@ -1,7 +1,7 @@
 {
   "name": "CIRC",
   "description": "An IRC client for Chrome",
-  "version": "0.6.5.1",
+  "version": "0.6.5.2",
   "manifest_version": 2,
   "icons": {
     "16": "static/icon/icon16.png",
