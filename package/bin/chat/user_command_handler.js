@@ -128,6 +128,9 @@
       this._addCommand('leave', {
          "extends": 'part'
       });
+      this._addCommand('close', {
+         "extends": 'part'
+      });
       this._addCommand('invite', {
          description: "invites the specified nick to the current or specified channel",
          category: 'common',
