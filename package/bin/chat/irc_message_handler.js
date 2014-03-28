@@ -162,7 +162,7 @@
       },
       list: function(channel, users, topic) {
         this._formatter.addStyle('list');
-        this._formatter.setContext(channel, users, topic);
+        this._formatter.setContent(topic);
         var msg = channel  + ' ' +  users + ' #content';
         return this._formatter.setMessage(msg);
       },
