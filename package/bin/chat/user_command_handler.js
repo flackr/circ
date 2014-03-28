@@ -175,6 +175,15 @@
           return this.displayMessage('privmsg', this.conn.irc.nick, this.text);
         }
       });
+      this._addCommand('list', {
+        description: 'lists all channels on the server.[',
+        category: 'uncommon',
+        params: ['opt_channels'],
+        requires: ['connection'],
+        run: function() {
+          return this.conn.irc.doCommand('LIST', this.channels);
+        }
+      });
       this._addCommand('me', {
         description: 'sends text to the current channel, spoken in the 3rd person',
         category: 'uncommon',

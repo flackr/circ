@@ -160,6 +160,12 @@
         this._formatter.setMessage('Topic set by #from on #content.');
         return this._formatter.setPrettyFormat(false);
       },
+      list: function(channel, users, topic) {
+        this._formatter.addStyle('list');
+        this._formatter.setContext(channel, users, topic);
+        var msg = channel  + ' ' +  users + ' #content';
+        return this._formatter.setMessage(msg);
+      },
       join: function(nick) {
         this._formatter.addStyle('update');
         this._formatter.setMessage('#from joined the channel');
