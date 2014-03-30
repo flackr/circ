@@ -39,6 +39,13 @@
     };
   };
 
+  exports.hashString = function(s) {
+    for(var ret = 0, i = 0, len = s.length; i < len; i++) {
+      ret = (31 * ret + s.charCodeAt(i)) << 0;
+    }
+    return Math.abs(ret);
+  }
+
   exports.parsePrefix = function(prefix) {
     var p;
     p = /^([^!]+?)(?:!(.+?)(?:@(.+?))?)?$/.exec(prefix);
