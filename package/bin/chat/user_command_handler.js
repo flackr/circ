@@ -128,6 +128,9 @@
       this._addCommand('leave', {
          "extends": 'part'
       });
+      this._addCommand('close', {
+         "extends": 'part'
+      });
       this._addCommand('invite', {
          description: "invites the specified nick to the current or specified channel",
          category: 'common',
@@ -585,7 +588,7 @@
           return _results;
         }
       });
-      this._addCommand('quit-server', {
+      this._addCommand('stop-server', {
         description: "stops connecting through another device's IRC " +
             "connection and starts using a new IRC connection (see /join-server)",
         category: 'one_identity',

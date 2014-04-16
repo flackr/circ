@@ -29,7 +29,7 @@
       this._active();
       var _this = this;
       return chrome.sockets.tcp.create({}, function(si) {
-        _this._onCreate(si, addr, port)
+        _this._onCreate(si, addr, parseInt(port))
       });
     };
 

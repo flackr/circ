@@ -6,14 +6,16 @@
     describe("truncateIfTooLarge", function() {
       it("does nothing if the length of the text is less then the given max size", function() {
         expect(truncateIfTooLarge('puppy', 5)).toBe('puppy');
-        return expect(truncateIfTooLarge('', 100)).toBe('');
+        expect(truncateIfTooLarge('', 100)).toBe('');
       });
+
       it("truncates the text and appends a suffix if the length text of the text        is greater then the max size", function() {
         expect(truncateIfTooLarge('puppy', 4)).toBe('p...');
-        return expect(truncateIfTooLarge('sally had a little lamb', 10)).toBe('sally h...');
+        expect(truncateIfTooLarge('sally had a little lamb', 10)).toBe('sally h...');
       });
-      return it("can have the suffix changed", function() {
-        return expect(truncateIfTooLarge('puppy', 4, '!')).toBe('pup!');
+
+      it("can have the suffix changed", function() {
+        expect(truncateIfTooLarge('puppy', 4, '!')).toBe('pup!');
       });
     });
     describe("stripColorCodes", function() {
@@ -22,22 +24,25 @@
         coloredText = "\u000315hey guy\u0003, how's it going?";
         expect(html.stripColorCodes(coloredText)).toBe("hey guy\u0003, how's it going?");
         coloredText = "\u00033hey guy\u000388, how's it going?";
-        return expect(html.stripColorCodes(coloredText)).toBe("hey guy, how's it going?");
+        expect(html.stripColorCodes(coloredText)).toBe("hey guy, how's it going?");
       });
+
       it("removes color codes even when they come before a number", function() {
         var coloredText;
         coloredText = "hi\u0003055";
-        return expect(html.stripColorCodes(coloredText)).toBe("hi5");
+        expect(html.stripColorCodes(coloredText)).toBe("hi5");
       });
+
       it("removes color codes that specify a forground and background color", function() {
         var coloredText;
         coloredText = "so \u00038,77how are you?";
-        return expect(html.stripColorCodes(coloredText)).toBe("so how are you?");
+        expect(html.stripColorCodes(coloredText)).toBe("so how are you?");
       });
-      return it("removes control codes that affect the style", function() {
+
+      it("removes control codes that affect the style", function() {
         var coloredText;
         coloredText = "what \x0F\x02\x1F\x1Dup";
-        return expect(html.stripColorCodes(coloredText)).toBe("what up");
+        expect(html.stripColorCodes(coloredText)).toBe("what up");
       });
     });
     describe("parseColorCodes", function() {
@@ -52,25 +57,28 @@
         coloredText = "\u00033hey guy\u00031,2, how's it going\u00031?";
         expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>?</font>");
         coloredText = "\u00033hey guy\u00031,2, how's it going\u00031?\x0F!";
-        return expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>?</font><font style=''>!</font>");
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>, how's it going</font><font style='color: rgb(0, 0, 0);background-color: rgb(0, 0, 128);'>?</font><font style=''>!</font>");
       });
+
       it("parses underline/italics/bold", function() {
         var coloredText;
         coloredText = "\x02Bold \x1FUnderline \x1DItalics \x0F\x1FUnderline \x0FNone";
-        return expect(html.parseColorCodes(coloredText)).toBe("<font style='font-weight: bold;'>Bold </font><font style='font-weight: bold;text-decoration: underline;'>Underline </font><font style='font-weight: bold;text-decoration: underline;font-style: italic;'>Italics </font><font style='text-decoration: underline;'>Underline </font><font style=''>None</font>");
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='font-weight: bold;'>Bold </font><font style='font-weight: bold;text-decoration: underline;'>Underline </font><font style='font-weight: bold;text-decoration: underline;font-style: italic;'>Italics </font><font style='text-decoration: underline;'>Underline </font><font style=''>None</font>");
       });
     });
     describe("pluralize", function() {
       it("does nothing if there is one of something", function() {
         expect(pluralize('dog', 1)).toBe('dog');
-        return expect(pluralize('stress', 1)).toBe('stress');
+        expect(pluralize('stress', 1)).toBe('stress');
       });
+
       it("adds an 's' when there is 0 or > 1 of something", function() {
         expect(pluralize('cat', 2)).toBe('cats');
-        return expect(pluralize('cat', 0)).toBe('cats');
+        expect(pluralize('cat', 0)).toBe('cats');
       });
-      return it("adds an 'es' when there is 0 or > 1 of something and the word ends in 's'", function() {
-        return expect(pluralize('stress', 2)).toBe('stresses');
+
+      it("adds an 'es' when there is 0 or > 1 of something and the word ends in 's'", function() {
+        expect(pluralize('stress', 2)).toBe('stresses');
       });
     });
     describe("getLogger", function() {
@@ -89,7 +97,7 @@
         return TestClass2;
 
       })();
-      return it("logs debug info", function() {
+      it("logs debug info", function() {
         var a, b, logA, logB;
         spyOn(window.console, 'log');
         spyOn(window.console, 'error');
@@ -103,25 +111,57 @@
         logA('e', 'error!', 'error msg');
         expect(console.log).toHaveBeenCalledWith('TestClass1:', 'this is my message!');
         expect(console.warn).toHaveBeenCalledWith('TestClass2:', 'warning', 5, 'is a great number');
-        return expect(console.error).toHaveBeenCalledWith('TestClass1:', 'error!', 'error msg');
+        expect(console.error).toHaveBeenCalledWith('TestClass1:', 'error!', 'error msg');
       });
     });
     describe("capitalizeString", function() {
-      return it("capitalizes the first letter of words", function() {
+      it("capitalizes the first letter of words", function() {
         expect(capitalizeString('bob')).toBe('Bob');
         expect(capitalizeString('BILL')).toBe('BILL');
-        return expect(capitalizeString('')).toBe('');
+        expect(capitalizeString('')).toBe('');
       });
     });
-    return describe("getReadableList", function() {
+    describe("getReadableList", function() {
       it("returns the single element when the list has a length of 1", function() {
-        return expect(getReadableList([5])).toBe('5');
+        expect(getReadableList([5])).toBe('5');
       });
+
       it("returns the two elements with an 'and' in between when the list has a length of 2", function() {
-        return expect(getReadableList(['sally', 'joe'])).toBe('sally and joe');
+        expect(getReadableList(['sally', 'joe'])).toBe('sally and joe');
       });
-      return it("returns a comma seperated list with the last element and'd onto the end when the list has a length > 3", function() {
-        return expect(getReadableList([1, 2, 3])).toBe('1, 2 and 3');
+
+      it("returns a comma seperated list with the last element and'd onto the end when the list has a length > 3", function() {
+        expect(getReadableList([1, 2, 3])).toBe('1, 2 and 3');
+      });
+    });
+    describe("display", function() {
+      beforeEach(function() {
+        this.addMatchers({
+          toBecomeALink: function() {
+            var htmlLink = '<a target="_blank" href="' + this.actual + '">' +
+                this.actual + '</a>'
+            return html.display(this.actual) == htmlLink;
+          }
+        });
+      });
+
+      it("makes links clickable", function() {
+        expect('http://google.com').toBecomeALink();
+        expect('https://google.net:8888/search?q=bears').toBecomeALink();
+      });
+
+      it("doesn't escape invalid links", function() {
+        expect('this awesome link').not.toBecomeALink();
+        expect('google.c0m').not.toBecomeALink();
+        expect('google.com*').not.toBecomeALink();
+      });
+
+      it("runs quickly", function() {
+        var text = 'a.aa/(aaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        var timer = new Timer();
+        timer.start()
+        html.display(text);
+        expect(timer.finish()).toBeLessThan(100);
       });
     });
   });

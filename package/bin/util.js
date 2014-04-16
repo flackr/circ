@@ -262,9 +262,9 @@
   exports.html.display = function(text, allowHtml) {
     var canonicalise, escape, m, res, rurl, textIndex;
     var escapeHTML = exports.html.escape;
+    // Url-finding regex from Jan Goyvaerts.
+    rurl = /\b(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/gi;
 
-    // Gruber's url-finding regex
-    rurl = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi;
     canonicalise = function(url) {
       url = exports.html.stripColorCodes(url);
       url = escapeHTML(url);
@@ -274,6 +274,7 @@
         return 'http://' + url;
       }
     };
+
     escape = function(str) {
       if (allowHtml)
         return str;
@@ -301,6 +302,7 @@
       }
       return result + str;
     };
+
     res = '';
     textIndex = 0;
     while (m = rurl.exec(text)) {
