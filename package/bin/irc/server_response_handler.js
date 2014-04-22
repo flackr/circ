@@ -323,6 +323,15 @@
         return this._emitUserNotice(to, nick, message);
       },
 
+      //321 LIST START
+      //322 LIST ENTRY
+      //323 END OF LIST
+      322: function(from, to, channel, users, topic) {
+        var message = channel + " " + users + " " + topic;
+        return this.irc.emitMessage('list', chat.SERVER_WINDOW, channel, users, topic);
+      },
+
+
       // RPL_CHANNELMODEIS
       324: function(from, to, channel, mode, modeParams) {
         var message = "Channel modes: " + mode + " " + (modeParams != null ? modeParams : '');

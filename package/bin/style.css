@@ -401,6 +401,10 @@ ul {
   padding-bottom: 0px;
 }
 
+.message.list {
+  /* empty style for now */
+}
+
 .longword { word-break: break-all; }
 
 #nick-and-input {
