@@ -100,6 +100,21 @@ ul {
   display: block;
 }
 
+.dragbar{
+  height: 100%;
+  width: 4px;
+  cursor: col-resize;
+}
+
+#ghostbar{
+  width:3px;
+  background-color:#000;
+  opacity:0.8;
+  position:absolute;
+  cursor: col-resize;
+  z-index:999
+}
+
 #rooms-container {
   -webkit-box-flex: 0;
   border-bottom: 1px solid #CCC;
