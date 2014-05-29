@@ -144,24 +144,32 @@
           args: [windowNumber]
         });
       }
+      var nextRoomArray = [
+        "Alt-DOWN",
+        "Ctrl-TAB",
+        "Alt-PAGEDOWN",
+      ];
+      var previousRoomArray = [
+        "Alt-UP",
+        "Ctrl-Shift-TAB",
+        "Alt-PAGEUP",
+      ];
+      for(var i = 0; i<nextRoomArray.length; i++){
+        this._addHotkey(nextRoomArray[i], {
+          command: 'next-room'
+        });
+      }
+      for(var i = 0; i<previousRoomArray.length; i++){
+        this._addHotkey(previousRoomArray[i], {
+          command: 'previous-room'
+        });
+      }
       this._addHotkey('Ctrl-W', {
         command: 'part',
         description: 'close current channel/private chat'
       });
       this._addHotkey('Alt-S', {
         command: 'next-server'
-      });
-      this._addHotkey('Alt-DOWN', {
-        command: 'next-room'
-      });
-      this._addHotkey('Alt-UP', {
-        command: 'previous-room'
-      });
-      this._addHotkey('Alt-PAGEDOWN', {
-        command: 'next-room'
-      });
-      this._addHotkey('Alt-PAGEUP', {
-        command: 'previous-room'
       });
       return this._addHotkey('TAB', {
         command: 'reply',
