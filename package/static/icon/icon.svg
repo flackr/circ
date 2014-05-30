@@ -7,65 +7,156 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    version="1.1"
-   width="256"
-   height="256"
+   width="512"
+   height="512"
    id="svg2">
   <defs
      id="defs4">
     <linearGradient
-       id="linearGradient5209">
+       id="linearGradient5207">
       <stop
-         id="stop5211"
-         style="stop-color:#fdd901;stop-opacity:1"
+         id="stop5209"
+         style="stop-color:#000000;stop-opacity:1"
          offset="0" />
       <stop
-         id="stop5219"
-         style="stop-color:#ccb61c;stop-opacity:1"
-         offset="0.65277779" />
-      <stop
-         id="stop5213"
-         style="stop-color:#9b9338;stop-opacity:1"
+         id="stop5211"
+         style="stop-color:#000000;stop-opacity:0"
          offset="1" />
     </linearGradient>
     <linearGradient
-       id="linearGradient5201">
+       id="linearGradient5199">
       <stop
-         id="stop5203"
+         id="stop5201"
          style="stop-color:#000000;stop-opacity:1"
          offset="0" />
     </linearGradient>
     <linearGradient
-       id="linearGradient3759">
+       id="linearGradient3755">
       <stop
-         id="stop3761"
-         style="stop-color:#ff0000;stop-opacity:1"
+         id="stop3757"
+         style="stop-color:#000000;stop-opacity:1"
          offset="0" />
       <stop
-         id="stop3763"
-         style="stop-color:#18dd00;stop-opacity:1"
+         id="stop3759"
+         style="stop-color:#000000;stop-opacity:0"
          offset="1" />
     </linearGradient>
-    <linearGradient
-       x1="49.698746"
-       y1="925.09277"
-       x2="207.45193"
-       y2="925.09277"
-       id="linearGradient3765"
-       xlink:href="#linearGradient3759"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-0.50311141,-0.73059882)" />
-    <radialGradient
-       cx="128.57533"
-       cy="925.09277"
-       r="79.876595"
-       fx="128.57533"
-       fy="925.09277"
-       id="radialGradient5215"
-       xlink:href="#linearGradient5209"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1,0,0,1.3834174,-0.50311141,-355.42728)" />
+    <filter
+       color-interpolation-filters="sRGB"
+       id="filter5310">
+      <feGaussianBlur
+         result="result8"
+         stdDeviation="4"
+         id="feGaussianBlur5312" />
+      <feOffset
+         result="result11"
+         dy="4"
+         dx="4"
+         id="feOffset5314" />
+      <feComposite
+         in2="result11"
+         operator="in"
+         in="SourceGraphic"
+         result="result6"
+         id="feComposite5316" />
+      <feFlood
+         flood-color="rgb(0,0,0)"
+         flood-opacity="1"
+         in="result6"
+         result="result10"
+         id="feFlood5318" />
+      <feBlend
+         in2="result10"
+         mode="normal"
+         in="result6"
+         result="result12"
+         id="feBlend5320" />
+      <feComposite
+         in2="SourceGraphic"
+         operator="in"
+         result="result2"
+         id="feComposite5322" />
+    </filter>
+    <filter
+       color-interpolation-filters="sRGB"
+       id="filter5324">
+      <feGaussianBlur
+         result="result8"
+         stdDeviation="4"
+         id="feGaussianBlur5326" />
+      <feOffset
+         result="result11"
+         dy="4"
+         dx="4"
+         id="feOffset5328" />
+      <feComposite
+         in2="result11"
+         operator="in"
+         in="SourceGraphic"
+         result="result6"
+         id="feComposite5330" />
+      <feFlood
+         flood-color="rgb(0,0,0)"
+         flood-opacity="1"
+         in="result6"
+         result="result10"
+         id="feFlood5332" />
+      <feBlend
+         in2="result10"
+         mode="normal"
+         in="result6"
+         result="result12"
+         id="feBlend5334" />
+      <feComposite
+         in2="SourceGraphic"
+         operator="in"
+         result="result2"
+         id="feComposite5336" />
+    </filter>
+    <filter
+       color-interpolation-filters="sRGB"
+       id="filter5338">
+      <feGaussianBlur
+         result="result8"
+         stdDeviation="4"
+         id="feGaussianBlur5340" />
+      <feOffset
+         result="result11"
+         dy="4"
+         dx="4"
+         id="feOffset5342" />
+      <feComposite
+         in2="result11"
+         operator="in"
+         in="SourceGraphic"
+         result="result6"
+         id="feComposite5344" />
+      <feFlood
+         flood-color="rgb(0,0,0)"
+         flood-opacity="1"
+         in="result6"
+         result="result10"
+         id="feFlood5346" />
+      <feBlend
+         in2="result10"
+         mode="normal"
+         in="result6"
+         result="result12"
+         id="feBlend5348" />
+      <feComposite
+         in2="SourceGraphic"
+         operator="in"
+         result="result2"
+         id="feComposite5350" />
+    </filter>
+    <filter
+       color-interpolation-filters="sRGB"
+       id="filter5408">
+      <feGaussianBlur
+         id="feGaussianBlur5410"
+         stdDeviation="7.1056928" />
+    </filter>
   </defs>
   <metadata
      id="metadata7">
@@ -80,17 +171,37 @@
     </rdf:RDF>
   </metadata>
   <g
-     transform="translate(0,-796.36218)"
+     transform="translate(0,-540.36218)"
      id="layer1">
+    <path
+       d="m 256,557.14343 c -81.78722,0 -153.98394,41.06732 -197.125,103.6875 l 28.6875,49.6875 C 118.83773,649.2705 182.51321,607.33093 256,607.33093 c 61.71994,0 116.53104,29.58365 151.03125,75.34375 l 59.5,0 C 426.07676,607.91648 346.96495,557.14343 256,557.14343 z"
+       id="path5237"
+       style="fill:#e94b40;fill-opacity:1;filter:url(#filter5324)" />
+    <path
+       d="m 53.71875,668.61218 c -23.393689,36.96211 -36.9375,80.77424 -36.9375,127.75 0,125.28907 96.33564,228.06212 218.96875,238.34372 l 28.5625,-49.49997 c -2.75923,0.11955 -5.52384,0.1875 -8.3125,0.1875 -104.39463,0 -189.03125,-84.63662 -189.03125,-189.03125 0,-27.30824 5.797102,-53.24455 16.21875,-76.6875 l -29.46875,-51.0625 z"
+       id="path5235"
+       style="fill:#4cbb45;fill-opacity:1;filter:url(#filter5338)" />
+    <path
+       d="m 413,691.04968 c 20.22913,30.09625 32.03125,66.32576 32.03125,105.3125 0,98.19021 -74.89054,178.90939 -170.65625,188.15625 l -29.3125,50.81247 c 3.62465,0.1631 7.27262,0.25 10.9375,0.25 132.11002,0 239.21875,-107.1087 239.21875,-239.21872 0,-37.78918 -8.76923,-73.53623 -24.375,-105.3125 l -57.84375,0 z"
+       id="path2985"
+       style="fill:#ffd300;fill-opacity:1;filter:url(#filter5310)" />
     <text
-       x="46.161919"
-       y="1030.2533"
-       id="text2985"
+       x="22.422728"
+       y="1001.8318"
+       id="text5352"
        xml:space="preserve"
-       style="font-size:295.85946655px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:url(#radialGradient5215);fill-opacity:1;stroke:url(#linearGradient3765);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;font-family:Arial;-inkscape-font-specification:Arial Bold"><tspan
-         x="46.161919"
-         y="1030.2533"
-         id="tspan2987"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:url(#radialGradient5215);fill-opacity:1;stroke:url(#linearGradient3765);stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;font-family:Arial;-inkscape-font-specification:Arial Bold">#</tspan></text>
+       style="font-size:563.19744873px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;opacity:0.5;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:15;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter5408);font-family:Sans"><tspan
+         x="22.422728"
+         y="1001.8318"
+         id="tspan5354">#</tspan></text>
+    <text
+       x="19.91357"
+       y="998.48627"
+       id="text5239"
+       xml:space="preserve"
+       style="font-size:563.19744873px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#3864de;fill-opacity:1;stroke:#ffffff;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter5294);font-family:Sans"><tspan
+         x="19.91357"
+         y="998.48627"
+         id="tspan5241">#</tspan></text>
   </g>
 </svg>
