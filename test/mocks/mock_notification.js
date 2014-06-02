@@ -8,9 +8,7 @@
   Notification = (function() {
 
     Notification.useMock = function() {
-      webkitNotifications.createNotification = function() {
-        return new Notification();
-      };
+      window.Notification = Notification;
       chrome.app.window = {
         current: function() {
           return {

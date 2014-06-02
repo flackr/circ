@@ -35,7 +35,8 @@
     }
 
     Notification.prototype._createNotification = function() {
-      return this.notification = webkitNotifications.createNotification(this._image, this._title, this._message);
+      return this.notification = new window.Notification(this._title, {'body': this._message,
+                                                                       'icon': this._image});
     };
 
     Notification.prototype._addOnClickListener = function() {
