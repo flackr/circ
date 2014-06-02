@@ -60,31 +60,22 @@
 
 
     Notification.prototype.show = function() {
-      var _base, _base1, _ref1;
-      if ((_ref1 = this.notification) != null) {
-        _ref1.show();
-      }
-      return typeof (_base = chrome.app.window).current === "function" ? typeof (_base1 = _base.current()).drawAttention === "function" ? _base1.drawAttention() : void 0 : void 0;
+      // Notifications are automatically shown.
+      chrome.app.window.current().drawAttention();
     };
 
     /*
        * Close the notification.
     */
-
-
     Notification.prototype.cancel = function() {
-      var _base, _base1, _ref1;
-      if ((_ref1 = this.notification) != null) {
-        _ref1.cancel();
-      }
-      return typeof (_base = chrome.app.window).current === "function" ? typeof (_base1 = _base.current()).clearAttention === "function" ? _base1.clearAttention() : void 0 : void 0;
+      if (this.notification)
+        this.notification.close();
+      chrome.app.window.current().clearAttention();
     };
 
     /*
        * Used as a hash function for notifications.
     */
-
-
     Notification.prototype.toString = function() {
       return this._title + this._message;
     };

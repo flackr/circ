@@ -12,6 +12,7 @@
       chrome.app.window = {
         current: function() {
           return {
+            clearAttention: (function() {}),
             drawAttention: (function() {}),
             focus: (function() {})
           };
@@ -20,13 +21,11 @@
       return this.numActive = 0;
     };
 
-    function Notification() {}
-
-    Notification.prototype.show = function() {
+    function Notification() {
       return Notification.numActive++;
-    };
+    }
 
-    Notification.prototype.cancel = function() {
+    Notification.prototype.close = function() {
       Notification.numActive--;
       return typeof this.onclose === "function" ? this.onclose() : void 0;
     };
