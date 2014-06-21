@@ -81,7 +81,7 @@
           environment = 'Chrome';
           return [' ' + [name, irc.VERSION, environment].join(' ')];
         case 'SOURCE':
-          return [''];
+          return [' https://github.com/flackr/circ/'];
         case 'PING':
           return [' ' + args[0]];
         case 'TIME':
