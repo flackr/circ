@@ -84,6 +84,9 @@
           return [''];
         case 'PING':
           return [' ' + args[0]];
+        case 'TIME':
+          var d = new Date();
+          return [' ' + d.toUTCString()];
         default:
           return [];
       }
