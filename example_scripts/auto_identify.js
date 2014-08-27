@@ -47,7 +47,11 @@ var autoIdentify = function(context, message) {
 
 var nickServPasswordIsVisible = function(message) {
   var words = message.split(' ');
-  return words.length == 2 && words[0].toLowerCase() == 'identify';
+
+  // Handle both "/msg NickServ IDENTIFY user pass" and
+  // "/msg NickServ IDENTIFY pass"
+  return ((words.length == 1 || words.length == 2) &&
+          words[0].toLowerCase() == 'identify');
 };
 
 var snoopPassword = function(context, message) {
