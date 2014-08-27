@@ -6,8 +6,17 @@
   "manifest_version": 2,
   "icons": {
     "16": "static/icon/icon16.png",
+    "36": "static/icon/icon36.png",
     "48": "static/icon/icon48.png",
-    "128": "static/icon/icon128.png"
+    "57": "static/icon/icon57.png",
+    "72": "static/icon/icon72.png",
+    "78": "static/icon/icon78.png",
+    "96": "static/icon/icon96.png",
+    "114": "static/icon/icon114.png",
+    "120": "static/icon/icon120.png",
+    "128": "static/icon/icon128.png",
+    "144": "static/icon/icon144.png",
+    "152": "static/icon/icon152.png"
   },
 
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDwi17PnlCWAHUvLhT+eMKZ4kJExfxtiRgWTBamyFdR0pMRO2sPmMD2lJSe1n6zZ4f52kuGzLPVLfexG1Exlgyfl6C+OGfHAhvBc6cUDmWSzCwjKAf1jFBQmDI5En1Oo+2eE3CcOefxIRTLl5Ug6QnbUQcAZQx3ChiFi05DL9ldBwIDAQAB",
