@@ -50,7 +50,7 @@ var nickServPasswordIsVisible = function(message) {
 
   // Handle both "/msg NickServ IDENTIFY user pass" and
   // "/msg NickServ IDENTIFY pass"
-  return ((words.length == 1 || words.length == 2) &&
+  return ((words.length == 2 || words.length == 3) &&
           words[0].toLowerCase() == 'identify');
 };
 
