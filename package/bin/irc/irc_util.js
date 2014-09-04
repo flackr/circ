@@ -200,15 +200,22 @@
 
   arrayBuffer2String = function(buf, callback) {
     dumpBuffer(buf);
-    var blob, f;
+    var blob, f, hadReplacements;
     exports.arrayBufferConversionCount++;
     blob = createBlob(buf);
     f = new FileReader();
+    hadReplacements = false;
     f.onload = function(e) {
-      exports.arrayBufferConversionCount--;
-      return callback(e.target.result);
+      if(e.target.result.match(/\ufffd/) && !hadReplacements) {
+        console.log('Retrying with ISO-8859-1', e.target.result);
+        hadReplacements = true;
+        return f.readAsText(blob, 'ISO-8859-1');
+      } else {
+        exports.arrayBufferConversionCount--;
+        return callback(e.target.result);
+      }
     };
-    return f.readAsText(blob, 'ISO-8859-1');
+    return f.readAsText(blob);
   };
 
 }).call(this);

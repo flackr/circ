@@ -1,4 +1,3 @@
-var utf8 = '✓';
 (function() {
   "use strict";
 
@@ -18,26 +17,20 @@ var utf8 = '✓';
         cb = jasmine.createSpy('cb');
       });
 
-      it("calls the callback", function() {
-        ab = irc.util.arrayToArrayBuffer([65]);
-        fromSocketData(ab, cb);
-        waitsForArrayBufferConversion();
-        return runs(function() {
-          expect(cb).toHaveBeenCalledWith('A');
-        });
-      });
-
       describe("handles encoding", function() {
-
         [
-          'ISO 8859-1'
-        ].forEach(function(encoding) {
+          ['UTF-8', [0x61, 0xE2, 0x9C, 0x93], 'a✓'],
+          ['ISO 8859-1', [0x74, 0x73, 0x63, 0x68, 0xFC, 0xDF], 'tschüß']
+        ].forEach(function(parts) {
+          var encoding = parts[0],
+              array = parts[1],
+              text = parts[2];
           it(encoding, function() {
-            ab = irc.util.arrayToArrayBuffer([116, 115, 99, 104, 246]);
+            ab = irc.util.arrayToArrayBuffer(array);
             fromSocketData(ab, cb);
             waitsForArrayBufferConversion();
             return runs(function() {
-              expect(cb).toHaveBeenCalledWith('tschö✓');
+              expect(cb).toHaveBeenCalledWith(text);
             });
           });
         });
