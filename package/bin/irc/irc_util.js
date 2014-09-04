@@ -144,6 +144,21 @@
     return arrayBuffer;
   };
 
+  exports.dumpBuffer = function(buffer) {
+    try {
+      var view, arr, hexes;
+      view = new Uint8Array(buffer);
+      arr = view.subarray();
+      arr = Array.prototype.slice.call(arr);
+      hexes = arr.map(function(n) {
+        return (n < 16 ? '0' : '') + Number(n).toString(16).toUpperCase();
+      });
+      console.log(hexes.join(' '));
+    } catch(e) {
+      console.err(e);
+    }
+  };
+
   function createBlob(src) {
     var BB = window.BlobBuilder || window.WebKitBlobBuilder;
     if (BB) {
@@ -175,31 +190,8 @@
     return f.readAsArrayBuffer(blob);
   };
 
-  var dumpBuffer = function(buffer) {
-    console.groupCollapsed('<= Buffer [' + buffer.byteLength + ']');
-    try {
-      var view, arr, hexes;
-      view = new Uint8Array(buffer);
-      arr = view.subarray();
-      arr = Array.prototype.slice.call(arr);
-      hexes = arr.map(function(n) {
-        return Number(n).toString(16).toUpperCase();
-      });
-      // var offsets = new Array(16);
-      // for(var i=0; i<16; i++) {
-      //   offsets[i] = Number(i).toString(16).toUpperCase();
-      // }
-      // console.table([offsets, hexes]);
-      console.log(arr);
-      console.log(hexes.join(' '));
-    } catch(e) {
-      console.err(e);
-    }
-    console.groupEnd();
-  };
 
   arrayBuffer2String = function(buf, callback) {
-    dumpBuffer(buf);
     var blob, f, hadReplacements;
     exports.arrayBufferConversionCount++;
     blob = createBlob(buf);

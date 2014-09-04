@@ -232,7 +232,9 @@
           this.data = this.data.slice(crlf + 1);
           dataView = new Uint8Array(this.data);
           _results.push(this.util.fromSocketData(line, function(lineStr) {
-            console.log('<=', "(" + _this.server + ")", lineStr);
+            console.groupCollapsed('<=', "(" + _this.server + ")", lineStr);
+            _this.util.dumpBuffer(line);
+            console.groupEnd();
             return _this.onServerMessage(_this.util.parseCommand(lineStr));
           }));
         } else {
