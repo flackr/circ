@@ -231,8 +231,13 @@
           var line = this.data.slice(0, cr ? crlf - 1 : crlf);
           this.data = this.data.slice(crlf + 1);
           dataView = new Uint8Array(this.data);
-          _results.push(this.util.fromSocketData(line, function(lineStr) {
+          _results.push(this.util.fromSocketData(line, function(lineStr, encoding) {
             console.groupCollapsed('<=', "(" + _this.server + ")", lineStr);
+            console.log(
+              encoding,
+              lineStr.length + ' characters',
+              line.byteLength + ' bytes'
+            );
             _this.util.dumpBuffer(line);
             console.groupEnd();
             return _this.onServerMessage(_this.util.parseCommand(lineStr));

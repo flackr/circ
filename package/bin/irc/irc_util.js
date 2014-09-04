@@ -199,12 +199,11 @@
     hadReplacements = false;
     f.onload = function(e) {
       if(e.target.result.match(/\ufffd/) && !hadReplacements) {
-        console.log('Retrying with ISO-8859-1', e.target.result);
         hadReplacements = true;
         return f.readAsText(blob, 'ISO-8859-1');
       } else {
         exports.arrayBufferConversionCount--;
-        return callback(e.target.result);
+        return callback(e.target.result, hadReplacements ? 'ISO-8859-1' : 'UTF-8');
       }
     };
     return f.readAsText(blob);
