@@ -144,6 +144,21 @@
     return arrayBuffer;
   };
 
+  exports.dumpBuffer = function(buffer) {
+    try {
+      var view, arr, hexes;
+      view = new Uint8Array(buffer);
+      arr = view.subarray();
+      arr = Array.prototype.slice.call(arr);
+      hexes = arr.map(function(n) {
+        return (n < 16 ? '0' : '') + Number(n).toString(16).toUpperCase();
+      });
+      console.log(hexes.join(' '));
+    } catch(e) {
+      console.err(e);
+    }
+  };
+
   function createBlob(src) {
     var BB = window.BlobBuilder || window.WebKitBlobBuilder;
     if (BB) {
@@ -175,14 +190,21 @@
     return f.readAsArrayBuffer(blob);
   };
 
+
   arrayBuffer2String = function(buf, callback) {
-    var blob, f;
+    var blob, f, hadReplacements;
     exports.arrayBufferConversionCount++;
     blob = createBlob(buf);
     f = new FileReader();
+    hadReplacements = false;
     f.onload = function(e) {
-      exports.arrayBufferConversionCount--;
-      return callback(e.target.result);
+      if(e.target.result.match(/\ufffd/) && !hadReplacements) {
+        hadReplacements = true;
+        return f.readAsText(blob, 'ISO-8859-1');
+      } else {
+        exports.arrayBufferConversionCount--;
+        return callback(e.target.result, hadReplacements ? 'ISO-8859-1' : 'UTF-8');
+      }
     };
     return f.readAsText(blob);
   };
