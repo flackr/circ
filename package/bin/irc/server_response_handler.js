@@ -234,28 +234,31 @@
 
       KICK: function(from, channel, to, reason) {
         if (!this.irc.channels[channel]) {
-          console.warn("Got KICK message from " + from + " to " + to + " in channel we are not in (" + channel + ")");
+          console.warn("Got KICK message from " + from + " to " + to +
+                       " in channel we are not in (" + channel + ")");
           return;
         }
         delete this.irc.channels[channel].names[to];
         this.irc.emitMessage('kick', channel, from.nick, to, reason);
         if (this.irc.isOwnNick(to)) {
-          return this.irc.emit('parted', channel);
+          this.irc.emit('parted', channel);
         }
       },
 
       MODE: function() {
         var from, chan, modelist, tolist, modifier, i, j;
-        if (arguments.length < 4)
+        if (arguments.length < 4) {
           return;
+        }
         from = arguments[0], chan = arguments[1], modelist = arguments[2].split('');
-        tolist = __slice.call( arguments, 3 ) || [];
+        tolist = __slice.call(arguments, 3) || [];
         j = 0, modifier = "+";
-        for( i=0; i<modelist.length, j<tolist.length; i++ ) {
-          if( modelist[i] == "+" || modelist[i] == "-" ) {
+        for (i = 0; i < modelist.length, j < tolist.length; i++) {
+          if (modelist[i] == "+" || modelist[i] == "-") {
             modifier = modelist[i];
           } else {
-            this.irc.emitMessage('mode', chan, from.nick, tolist[j], modifier+modelist[i]);
+            this.irc.emitMessage(
+                'mode', chan, from.nick, tolist[j], modifier+modelist[i]);
             j++;
           }
         }

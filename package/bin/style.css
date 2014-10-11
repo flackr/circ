@@ -100,9 +100,14 @@ ul {
   display: block;
 }
 
-.dragbar{
+.dragbar:hover {
+  width: 6px;
+  transition: width .1s;
+}
+
+.dragbar {
   height: 100%;
-  width: 4px;
+  width: 1px;
   cursor: col-resize;
 }
 

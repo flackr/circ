@@ -93,7 +93,7 @@
         completions = [];
         for (norm in nicks) {
           nick = nicks[norm];
-            completions.push(new Completion(nick, Completion.NICK));
+          completions.push(new Completion(nick, Completion.NICK));
         }
         return completions;
       }
