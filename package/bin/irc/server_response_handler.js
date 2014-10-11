@@ -244,8 +244,22 @@
         }
       },
 
-      MODE: function(from, chan, mode, to) {
-        return this.irc.emitMessage('mode', chan, from.nick, to, mode);
+      MODE: function() {
+        var from, chan, modelist, tolist, modifier, i, j;
+        if (arguments.length < 4)
+          return;
+        from = arguments[0], chan = arguments[1], modelist = arguments[2].split('');
+        tolist = __slice.call( arguments, 3 ) || [];
+        j = 0, modifier = "+";
+        for( i=0; i<modelist.length, j<tolist.length; i++ ) {
+          if( modelist[i] == "+" || modelist[i] == "-" ) {
+            modifier = modelist[i];
+          } else {
+            this.irc.emitMessage('mode', chan, from.nick, tolist[j], modifier+modelist[i]);
+            j++;
+          }
+        }
+        return;
       },
 
       // RPL_UMODEIS
