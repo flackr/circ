@@ -93,9 +93,7 @@
         completions = [];
         for (norm in nicks) {
           nick = nicks[norm];
-          if (nick !== ownNick) {
             completions.push(new Completion(nick, Completion.NICK));
-          }
         }
         return completions;
       }
