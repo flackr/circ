@@ -142,6 +142,9 @@
       if (!(typeof from.text === "function" ? from.text() : void 0)) {
         $('.source', message).addClass('empty');
       }
+      if (typeof from.text === "function") {
+        $('.source', message).attr("colornumber", irc.util.hashString(from.text().toLocaleLowerCase()) % 31);
+      }
       return message;
     };
 
