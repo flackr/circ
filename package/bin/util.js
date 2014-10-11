@@ -5,6 +5,15 @@
 
   var exports = window;
 
+  exports.globals = {
+    PROJECT_URL: 'http://flackr.github.com/circ',
+
+    ISSUES_URL: 'https://github.com/flackr/circ/issues',
+
+    // Should match the version in the manifest.
+    VERSION: '0.6.5.8'
+  };
+
   /*
    * determine API support
   */
@@ -84,16 +93,17 @@
     return array.splice(i, 1);
   };
 
-  getLoggerForType = function(type) {
+  function getLoggerForType(type) {
     var _this = this;
     switch (type) {
       case 'w':  // warning
         return function() {
-          if (!loggingEnabled)
-            return;
           var msg;
           msg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          console.warn.apply(console, msg);
+          if (loggingEnabled)
+            console.warn.apply(console, msg);
+          else
+            storeLog('warn', msg);
         };
       case 'e':  // error
         return function() {
@@ -103,14 +113,15 @@
         };
       default:  // info
         return function() {
-          if (!loggingEnabled)
-            return;
           var msg;
           msg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          console.log.apply(console, msg);
+          if (loggingEnabled)
+            console.log.apply(console, msg);
+          else
+            storeLog('log', msg);
         };
     }
-  };
+  }
 
   exports.getLogger = function(caller) {
     return function() {
@@ -125,9 +136,25 @@
     };
   };
 
+  var storedLogs = [];
+  var MAX_NUM_STORED_LOGS = 400;
+  function storeLog(type, msg) {
+    storedLogs.push({type: type, msg: msg});
+    if (storedLogs.length > MAX_NUM_STORED_LOGS) {
+      storedLogs = storedLogs.slice(100);
+    }
+  };
+
   var loggingEnabled = false;
   exports.enableLogging = function() {
     loggingEnabled = true;
+    // Display the last 300-400 logs.
+    storedLogs.forEach(function(log) {
+      console[log.type].apply(console, log.msg);
+    });
+    console.log('---------------------------------------------------');
+    console.log('DEBUG: printed the last', storedLogs.length, 'logs.');
+    console.log('---------------------------------------------------');
   };
 
   exports.pluralize = function(word, number) {

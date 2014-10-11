@@ -331,13 +331,6 @@
 
   })(EventEmitter);
 
-  /*
-   * Our IRC version - should match the version in the manifest.
-  */
-
-
-  exports.VERSION = "0.6.5.8";
-
   exports.IRC = IRC;
 
 }).call(this);

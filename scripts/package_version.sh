@@ -10,10 +10,10 @@ then
 fi
 
 VERSION="$1"
-sed -i 's/"version": "[^"]*",/"version": "'"$VERSION"'",/g' \
+sed -i "s/'version': '[^']*',/'version': '$VERSION',/g" \
   package/manifest.json
-sed -i 's/exports\.VERSION = "[^"]*"/exports.VERSION = "'"$VERSION"'"/g' \
-  package/bin/irc/irc.js
+sed -i "s/VERSION: '[^']*'/VERSION: '$VERSION'/g" \
+  package/bin/util.js
 
 rm -rf circ circ.zip
 cp -rv package circ

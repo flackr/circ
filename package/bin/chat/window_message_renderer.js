@@ -15,8 +15,6 @@
 
   MessageRenderer = (function() {
 
-    MessageRenderer.PROJECT_URL = "http://flackr.github.com/circ";
-
     // The max number of messages a room can display at once.
     MessageRenderer.MAX_MESSAGES = 3500;
 
@@ -53,14 +51,15 @@
     MessageRenderer.prototype.displayAbout = function() {
       this._addWhitespace();
       this.systemMessage("CIRC is a packaged Chrome app developed by Google Inc. " + this._getWebsiteBlurb(), 'notice about');
-      this.systemMessage("Version: " + irc.VERSION, 'notice about');
+      this.systemMessage("Version: " + globals.VERSION, 'notice about');
       this.systemMessage("Contributors:", 'notice about group');
       this.systemMessage("    * Icon by Michael Cook (themichaelcook@gmail.com)", 'notice about group');
       return this.systemMessage("    * UI mocks by Fravic Fernando (fravicf@gmail.com)", 'notice about group');
     };
 
     MessageRenderer.prototype._getWebsiteBlurb = function() {
-      return "Documentation, issues and source code live at " + ("" + MessageRenderer.PROJECT_URL + ".");
+      return 'Documentation, issues and source code live at ' +
+          globals.PROJECT_URL + '.';
     };
 
     /*

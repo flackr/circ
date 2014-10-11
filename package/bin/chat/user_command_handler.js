@@ -166,12 +166,14 @@
         }
       });
       this._addCommand('debug', {
-        description: 'enables info and warning messages to display in the ' +
-            'developer console, useful for debugging',
+        description: 'prints the last 300-400 logs to the developer console ' +
+            'and enables future logging of info and warning messages',
         category: 'misc',
         run: function() {
           window.enableLogging();
-          this.displayMessage('notice', "logging enabled");
+          this.displayMessage('notice', 'logging enabled. See developer ' +
+              'console for previous logs. Have a bug to report? File an ' +
+              'issue at ' + globals.ISSUES_URL);
         }
       });
       this._addCommand('say', {

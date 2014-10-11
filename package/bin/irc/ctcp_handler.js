@@ -79,7 +79,7 @@
         case 'VERSION':
           name = 'CIRC';
           environment = 'Chrome';
-          return [' ' + [name, irc.VERSION, environment].join(' ')];
+          return [' ' + [name, globals.VERSION, environment].join(' ')];
         case 'SOURCE':
           return [' https://github.com/flackr/circ/'];
         case 'PING':
