@@ -41,6 +41,7 @@
       this.serverResponseHandler = new irc.ServerResponseHandler(this);
       this.state = 'disconnected';
       this.support = {};
+      this._log = window.getLogger(this);
     }
 
     IRC.prototype.setSocket = function(socket) {
@@ -232,7 +233,7 @@
           this.data = this.data.slice(crlf + 1);
           dataView = new Uint8Array(this.data);
           _results.push(this.util.fromSocketData(line, function(lineStr) {
-            console.log('<=', "(" + _this.server + ")", lineStr);
+            _this._log('<=', "(" + _this.server + ")", lineStr);
             return _this.onServerMessage(_this.util.parseCommand(lineStr));
           }));
         } else {
@@ -254,7 +255,7 @@
         _this = this;
       args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
       msg = (_ref1 = this.util).makeCommand.apply(_ref1, args);
-      console.log('=>', "(" + this.server + ")", msg.slice(0, msg.length - 2));
+      this._log('=>', "(" + this.server + ")", msg.slice(0, msg.length - 2));
       return this.util.toSocketData(msg, function(arr) {
         return _this.socket.write(arr);
       });

@@ -87,23 +87,27 @@
   getLoggerForType = function(type) {
     var _this = this;
     switch (type) {
-      case 'w':
+      case 'w':  // warning
         return function() {
+          if (!loggingEnabled)
+            return;
           var msg;
           msg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          return console.warn.apply(console, msg);
+          console.warn.apply(console, msg);
         };
-      case 'e':
+      case 'e':  // error
         return function() {
           var msg;
           msg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          return console.error.apply(console, msg);
+          console.error.apply(console, msg);
         };
-      default:
+      default:  // info
         return function() {
+          if (!loggingEnabled)
+            return;
           var msg;
           msg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-          return console.log.apply(console, msg);
+          console.log.apply(console, msg);
         };
     }
   };
@@ -119,6 +123,11 @@
       }
       return getLoggerForType(type).apply(null, ["" + caller.constructor.name + ":"].concat(__slice.call(msg)));
     };
+  };
+
+  var loggingEnabled = false;
+  exports.enableLogging = function() {
+    loggingEnabled = true;
   };
 
   exports.pluralize = function(word, number) {

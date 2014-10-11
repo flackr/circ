@@ -21,6 +21,7 @@
       this.nodes = {};
       this.nodeNames = [];
       this._addFooterNode();
+      this._log = window.getLogger(this);
       HTMLList.__super__.constructor.apply(this, arguments);
     }
 
@@ -55,7 +56,7 @@
 
     HTMLList.prototype._insertHTML = function(index, newNode) {
       var nextNode = this.get(index) || this._footerNode;
-      console.log('adding', newNode, 'at', index, 'with next node', nextNode);
+      this._log('adding', newNode, 'at', index, 'with next node', nextNode);
       newNode.html.insertBefore(nextNode.html);
     };
 

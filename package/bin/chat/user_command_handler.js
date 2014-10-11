@@ -165,6 +165,15 @@
           return this.chat.switchToChannelByIndex(this.windowNum - 1);
         }
       });
+      this._addCommand('debug', {
+        description: 'enables info and warning messages to display in the ' +
+            'developer console, useful for debugging',
+        category: 'misc',
+        run: function() {
+          window.enableLogging();
+          this.displayMessage('notice', "logging enabled");
+        }
+      });
       this._addCommand('say', {
         description: 'sends text to the current channel',
         category: 'uncommon',
