@@ -29,9 +29,34 @@
       this.notifications = new chat.NotificationGroup(opt_channel);
       this._isVisible = false;
       this._isFocused = false;
+      var dragging;
       this._height = 0;
       $(window).focus(this._onFocus);
       $(window).blur(this._onBlur);
+      $('.dragbar').mousedown(function(e){
+        e.preventDefault();
+        dragging = true;
+        var main = $('#messages-and-input');
+        var ghostbar = $('<div>',
+          {id:'ghostbar',
+           css: {
+                  height: main.outerHeight(),
+                  top: main.offset().top,
+                  left: main.offset().left-4
+                 }
+          }).appendTo('body');
+        $(document).mousemove(function(e){
+          ghostbar.css("left",e.pageX);
+        });
+      });
+      $(document).mouseup(function(e){
+        if (dragging){
+          $('#rooms-and-nicks').css("width",e.pageX);
+          $('#ghostbar').remove();
+          $(document).unbind('mousemove');
+          dragging = false;
+        }
+      });
     }
 
     Window.prototype.getContext = function() {
