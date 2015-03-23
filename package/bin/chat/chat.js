@@ -623,7 +623,7 @@
     Chat.prototype._updateDocumentTitle = function() {
       var connectedDevices, titleList, _ref1, _ref2;
       titleList = [];
-      titleList.push("CIRC " + irc.VERSION);
+      titleList.push("CIRC " + globals.VERSION);
       if ((_ref1 = this.remoteConnection) != null ? _ref1.isClient() : void 0) {
         titleList.push('- Connected through ' + this.remoteConnection.serverDevice.addr);
       } else if ((_ref2 = this.remoteConnection) != null ? _ref2.isServer() : void 0) {
