@@ -102,13 +102,18 @@ ul {
 
 .dragbar:hover {
   width: 6px;
-  transition: width .1s;
+  margin-right: -5px;
+  transition: width .1s, margin .1s;
+  position: relative;
+  z-index: 998;
 }
 
 .dragbar {
   height: 100%;
   width: 1px;
   cursor: col-resize;
+  background-color: #ECECEC;
+  border-right: 1px solid rgba(0, 0, 0, .15);
 }
 
 #ghostbar{
