@@ -729,7 +729,12 @@
         run: function() {
           var _this = this;
           return loadFromFileSystem(function(content) {
-            return webkitRequestFileSystem(TEMPORARY, 50 * 1024, function(fileSystem) {
+		  window.webkitStorageInfo.requestQuota(PERSISTENT, 50*1024, function(grantedBytes) {
+		    window.requestFileSystem(PERSISTENT, grantedBytes, onInitFs, errorHandler);
+		    }, function(e) {
+		      console.log('Error', e);
+			 });
+            return webkitRequestFileSystem(PERSISTENT, 50 * 1024, function(fileSystem) {
               return fileSystem.root.getFile('custom_style.css', {
                 create: true
               }, function(fileEntry) {
@@ -748,6 +753,22 @@
           });
         }
       });
+      this._addCommand('untheme', {
+        description: "Remove the custom CSS file",
+        category: 'misc',
+        run: function() {
+          var _this = this;
+          return webkitRequestFileSystem(PERSISTENT, 50 * 1024, function(fileSystem) {
+            fileSystem.root.getFile('custom_style.css', { create: false },
+		    function(fileEntry) {
+		      fileEntry.remove(function() {
+			   console.log('custom_style.css removed');
+                  return $('#main-style').attr('href', 'style.css');
+			 });
+              });
+            });
+		}
+        });
       /*
            * Hidden commands.
            * These commands don't display in /help or autocomplete. They're used for
