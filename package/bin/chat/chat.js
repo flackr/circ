@@ -34,6 +34,13 @@
       this._listenForUpdates();
       this._keyboardShortcutMap = new KeyboardShortcutMap;
       this.updateStatus();
+
+      webkitRequestFileSystem(PERSISTENT, 50 * 1024, function(fileSystem) {
+        fileSystem.root.getFile('custom_style.css', { create: false },
+	     function(fileEntry) {
+            return $('#main-style').attr('href', fileEntry.toURL());
+          });
+        });
     }
 
     Chat.prototype.init = function() {
