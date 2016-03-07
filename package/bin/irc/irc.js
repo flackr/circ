@@ -127,8 +127,9 @@
         } else {
           return this.doCommand('JOIN', channel);
         }
-      } else if (!this.channels[channel]) {
-        return this.channels[channel] = {
+      } else if (!this.channels[channel.toLowerCase()]) {
+        return this.channels[channel.toLowerCase()] = {
+	  channel: channel,
           names: [],
           key: key
         };
@@ -138,8 +139,8 @@
     IRC.prototype.part = function(channel, opt_reason) {
       if (this.state === 'connected') {
         return this.doCommand('PART', channel, opt_reason);
-      } else if (this.channels[channel]) {
-        return delete this.channels[channel];
+      } else if (this.channels[channel.toLowerCase()]) {
+        return delete this.channels[channel.toLowerCase()];
       }
     };
 

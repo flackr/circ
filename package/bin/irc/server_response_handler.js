@@ -94,7 +94,7 @@
       // RPL_NAMREPLY
       353: function(from, target, privacy, channel, names) {
         var n, nameList, newNames, _base, _i, _len, _ref1, _ref2;
-        nameList = (_ref1 = (_base = this.irc.partialNameLists)[channel]) != null ? _ref1 : _base[channel] = {};
+        nameList = (_ref1 = (_base = this.irc.partialNameLists)[channel.toLowerCase()]) != null ? _ref1 : _base[channel.toLowerCase()] = {};
         newNames = [];
         _ref2 = names.split(/\x20/);
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -115,10 +115,10 @@
 
       // RPL_ENDOFNAMES
       366: function(from, target, channel, _) {
-        if (this.irc.channels[channel]) {
-          this.irc.channels[channel].names = this.irc.partialNameLists[channel];
+        if (this.irc.channels[channel.toLowerCase()]) {
+          this.irc.channels[channel.toLowerCase()].names = this.irc.partialNameLists[channel.toLowerCase()];
         }
-        return delete this.irc.partialNameLists[channel];
+        return delete this.irc.partialNameLists[channel.toLowerCase()];
       },
 
       NICK: function(from, newNick, msg) {
@@ -145,12 +145,13 @@
       },
 
       JOIN: function(from, chanName) {
-        var chan = this.irc.channels[chanName];
+        var chan = this.irc.channels[chanName.toLowerCase()];
         if (this.irc.isOwnNick(from.nick)) {
           if (chan != null) {
             chan.names = [];
           } else {
-            chan = this.irc.channels[chanName] = {
+            chan = this.irc.channels[chanName.toLowerCase()] = {
+	      channel: chanName,
               names: []
             };
           }
@@ -166,10 +167,10 @@
 
       PART: function(from, chan) {
         var c;
-        if (c = this.irc.channels[chan]) {
+        if (c = this.irc.channels[chan.toLowerCase()]) {
           this.irc.emitMessage('part', chan, from.nick);
           if (this.irc.isOwnNick(from.nick)) {
-            delete this.irc.channels[chan];
+            delete this.irc.channels[chan.toLowerCase()];
             return this.irc.emit('parted', chan);
           } else {
             return delete c.names[irc.util.normaliseNick(from.nick)];
@@ -224,8 +225,8 @@
       PONG: function(from, payload) {},
 
       TOPIC: function(from, channel, topic) {
-        if (this.irc.channels[channel] != null) {
-          this.irc.channels[channel].topic = topic;
+        if (this.irc.channels[channel.toLowerCase()] != null) {
+          this.irc.channels[channel.toLowerCase()].topic = topic;
           return this.irc.emitMessage('topic', channel, from.nick, topic);
         } else {
           return console.warn("Got TOPIC for a channel we're not in (" + channel + ")");
@@ -233,12 +234,12 @@
       },
 
       KICK: function(from, channel, to, reason) {
-        if (!this.irc.channels[channel]) {
+        if (!this.irc.channels[channel.toLowerCase()]) {
           console.warn("Got KICK message from " + from + " to " + to +
                        " in channel we are not in (" + channel + ")");
           return;
         }
-        delete this.irc.channels[channel].names[to];
+        delete this.irc.channels[channel.toLowerCase()].names[to];
         this.irc.emitMessage('kick', channel, from.nick, to, reason);
         if (this.irc.isOwnNick(to)) {
           this.irc.emit('parted', channel);

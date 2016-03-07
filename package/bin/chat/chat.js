@@ -590,7 +590,8 @@
     };
 
     Chat.prototype._makeWin = function(conn, opt_chan) {
-      var win = new chat.Window(conn.name, opt_chan);
+      var channel = (((conn.irc || {}).channels || {})[opt_chan || ''] || {}).channel || opt_chan,
+          win = new chat.Window(conn.name, channel);
       win.conn = conn;
       if (opt_chan) {
         conn.windows[opt_chan.toLowerCase()] = win;
