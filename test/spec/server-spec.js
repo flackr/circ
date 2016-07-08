@@ -1,5 +1,5 @@
 describe('circ.Server', function() {
-  
+
   var server;
   var testPort = '1234';
 
@@ -15,7 +15,7 @@ describe('circ.Server', function() {
     uninstallWebSocketMock();
     uninstallXMLHttpRequestMock();
   });
-  
+
   it("can create a user", function(done) {
     expect(server.users['johndoe']).toBe(undefined);
     var request = new XMLHttpRequest();
@@ -28,7 +28,7 @@ describe('circ.Server', function() {
     });
     request.send();
   });
-  
+
   it("rejects a host for an unknown user", function(done) {
     var host = new WebSocket('wss://circ-server.com/foobar/host');
     var receivedError = false;
@@ -40,10 +40,10 @@ describe('circ.Server', function() {
       done();
     });
   });
-  
+
   describe("with a user and a couple hosts", function(done) {
     var hosts = [];
-    
+
     beforeEach(function(done) {
       hosts[0] = new WebSocket('wss://circ-server.com/test/host');
       hosts[1] = new WebSocket('wss://circ-server.com/test/host');
@@ -57,13 +57,13 @@ describe('circ.Server', function() {
       }
       server.users['test'] = {'name': 'test'};
     });
-    
+
     afterEach(function() {
       hosts[0].close();
       hosts[1].close();
       delete server.users['test'];
     });
-    
+
     it("can send exchange messages with both hosts", function(done) {
       var totalNegotiations = 0;
       var negotiations = [false, false];

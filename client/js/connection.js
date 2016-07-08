@@ -1,13 +1,14 @@
 
 circ.ClientSession = function(server, name) {
   this.socket = new WebSocket(server + '/' + name + '/connect')
-  this.state = 'connecting';
+  this.hosts = {};
   this.configuration = {
     iceServers: [
         {urls: "stun:stun.l.google.com:19302"},
     ],
   };
-  this.addEventTypes(['open', 'message', 'close', 'state', 'error']);
+  this.addEventTypes(['connection', 'hosts']);
+  /*
   if (window.RTCPeerConnection) {
     this.rtcConnection_ = new RTCPeerConnection(this.configuration, null);
     this.dataChannel_ = this.rtcConnection_.createDataChannel('data', null);
@@ -16,20 +17,11 @@ circ.ClientSession = function(server, name) {
     this.rtcConnection_.onicecandidate = this.onIceCandidate_.bind(this);
     this.rtcConnection_.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this);
   }
-  this.websocket_ = new WebSocket(host + '/' + identifier);
-  this.websocket_.addEventListener('open', this.onOpen_.bind(this));
-  this.websocket_.addEventListener('message', this.onMessage_.bind(this));
-  this.websocket_.addEventListener('close', this.onWebSocketClose_.bind(this));
+  */
+  this.socket.addEventListener('message', this.onServerMessage_.bind(this));
 }
 
 circ.ClientSession.prototype = circ.util.extend(circ.util.EventSource.prototype, {
-  changeState: function(state) {
-    if (state == this.state)
-      return false;
-    this.state = state;
-    this.dispatchEvent('state', state);
-    return true;
-  },
   onOpen_: function() {
     if (this.rtcConnection_) {
       this.rtcConnection_.createOffer(this.onOffer_.bind(this), function(e) {
@@ -46,10 +38,24 @@ circ.ClientSession.prototype = circ.util.extend(circ.util.EventSource.prototype,
     if (event.candidate && this.websocket_ && this.websocket_.readyState == 1)
       this.websocket_.send(JSON.stringify({'type' : 'candidate', 'data' : event.candidate}));
   },
-  onMessage_: function(e) {
+  onServerMessage_: function(e) {
     var data = JSON.parse(e.data);
-    if (data.type == 'error') {
-      this.dispatchEvent('error', data.error, data.errorText || '');
+    if (data.type == 'hosts') {
+      this.dispatchEvent('hosts', data.hosts);
+      for (var i = 0; i < data.hosts.length; i++) {
+        var rtc = new RTCPeerConnection(this.configuration, null);
+        rtc.onicecandidate = function(hostId, event) {
+          if (event.candidate && this.socket.readyState == 1)
+            this.socket.send(JSON.stringify({'host': hostId, 'type' : 'candidate', 'data' : event.candidate}));
+        }.bind(this, data.hosts[i]);
+        rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, data.hosts[i]);
+        var dataChannel = rtc.createDataChannel('data', null);
+        dataChannel.addEventListener('open', this.onHostConnected_.bind(this, data.hosts[i]));
+        this.hosts[data.hosts[i]] = {
+          'rtc': rtc,
+          'dataChannel': dataChannel,
+        };
+      }
     } else if (data.type == 'answer' && this.rtcConnection_.signalingState != 'closed') {
       this.rtcConnection_.setRemoteDescription(new RTCSessionDescription(data.data));
     } else if (data.type == 'candidate' && this.rtcConnection_.signalingState != 'closed') {
@@ -64,6 +70,10 @@ circ.ClientSession.prototype = circ.util.extend(circ.util.EventSource.prototype,
       this.websocket_.close();
       this.onWebSocketClose_();
     }
+  },
+  onHostConnected_: function(hostId) {
+    var details = this.hosts[i];
+    this.dispatchEvent('connection', details.rtc, details.dataChannel);
   },
   onWebSocketClose_: function() {
     delete this.websocket_;

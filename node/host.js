@@ -83,6 +83,7 @@ exports.Host = function() {
       }
     },
     onClientMessage_: function(dataChannel, e) {
+      // TODO(flackr): Move message handling into irc connection.
       console.log('Message received: ' + e.data);
     },
   };

@@ -38,7 +38,7 @@ exports.Server = function() {
         this.serve(req, res, done);
       }
     },
-    
+
     registerUser: function(req, res) {
       var name = req.url.substring(10);
       if (!name) {
@@ -109,7 +109,7 @@ exports.Server = function() {
 
       var self = this;
       var session = this.sessions[user.name];
-      
+
       if (!session || session.hosts.length == 0) {
         console.log("Client attempted to connect to a user with no hosts.");
         websocket.send(JSON.stringify({'type': 'error', 'error': 404, 'errorText': 'Your user doesn\'t have any connected hosts.'}));
@@ -122,7 +122,7 @@ exports.Server = function() {
         'socket': websocket
       };
       console.log("Client " + user.name + " attempting to connect to session");
-      
+
       websocket.on('message', function(message) {
         if (!session) {
           console.log("Client attempted to deliver a message on ended session.");
@@ -220,10 +220,10 @@ exports.Server = function() {
       });
       websocket.on('close', function() {
         console.log("Host " + hostId + " left.");
-        
+
         delete session.hosts[hostId];
         session.hostCount--;
-        
+
         for (var clientId in session.clients) {
           // Server went away while client was connecting.
           if (session.clients[clientId].socket.readyState == 1) {
