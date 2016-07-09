@@ -39,7 +39,7 @@ XMLHttpRequestMock.prototype = circ.util.extend(circ.util.EventSource.prototype,
     this.data = data;
     if (this.readyState != 1)
       return;
-    var req = {url: this.address};
+    var req = {url: this.address.match(/^(?:[^/]*\/){2}[^/]*(.*)/)[1]};
     setTimeout(listener.handler_.bind(listener, req, new XMLHttpRequestMockServer(this)), 0);
   },
 });

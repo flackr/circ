@@ -2,6 +2,7 @@ describe('circ.Server', function() {
 
   var server;
   var testPort = '1234';
+  var serverAddress = 'http://www.example.com';
 
   beforeEach(function() {
     installXMLHttpRequestMock();
@@ -19,7 +20,7 @@ describe('circ.Server', function() {
   it("can create a user", function(done) {
     expect(server.users['johndoe']).toBe(undefined);
     var request = new XMLHttpRequest();
-    request.open('GET', '/register/johndoe', true);
+    request.open('GET', serverAddress + '/register/johndoe', true);
     request.addEventListener('loadend', function() {
       expect(request.responseCode).toBe(200);
       expect(request.response.type).toBe('success');

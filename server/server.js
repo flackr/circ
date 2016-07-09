@@ -152,16 +152,10 @@ exports.Server = function() {
         delete session.clients[clientId];
         // TODO(flackr): Test if this is called sychronously when host socket
         // closes, if so remove.
-        if (!self.sessions[sessionId]) {
-          console.log('client ' + clientId + ' disconnected for already closed server');
-        }
-
-        if (self.sessions[sessionId]) {
-          console.log('Client ' + clientId + ' closing connection');
-          broadcast(JSON.stringify({
-              'client': clientId,
-              'type': 'close'}));
-        }
+        console.log('Client ' + clientId + ' closing connection');
+        broadcast(JSON.stringify({
+            'client': clientId,
+            'type': 'close'}));
       });
       // Inform the server that a client connected.
       // broadcast(JSON.stringify({'client': clientId}));
