@@ -1,4 +1,6 @@
 describe('circ.ClientSession', function() {
+  var Server = require('./server.js').Server;
+  var Host = require('./host.js').Host;
   var server;
   var serverAddress = 'http://www.example.com';
   var testPort = '1234';

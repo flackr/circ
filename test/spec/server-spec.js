@@ -1,5 +1,6 @@
 describe('circ.Server', function() {
 
+  var Server = require('./server.js').Server;
   var server;
   var testPort = '1234';
   var serverAddress = 'http://www.example.com';

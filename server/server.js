@@ -1,13 +1,12 @@
 /**
  * CIRC server helps connect clients to hosts.
  */
-var http = require('http');
-var https = require('https');
-var WebSocketServer = require('ws').Server;
-var finalhandler = require('finalhandler');
-var serveStatic = require('serve-static');
-
 exports.Server = function() {
+  var http = require('http');
+  var https = require('https');
+  var WebSocketServer = require('ws').Server;
+  var finalhandler = require('finalhandler');
+  var serveStatic = require('serve-static');
 
   var Server = function(options) {
     // TODO(flackr): Load users from disk / database.

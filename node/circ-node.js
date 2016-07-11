@@ -1,8 +1,7 @@
-var Host = require('./host.js').Host;
-var IrcConnection = require('./irc-connection.js').IrcConnection;
-
 exports.CircNode = function() {
-  
+  var Host = require('./host.js').Host;
+  var IrcConnection = require('./irc-connection.js').IrcConnection;
+
   function CircNode(server, name) {
     this.host = new Host(server, name);
     this.host.onconnection = this.onConnection_.bind(this);
@@ -34,7 +33,8 @@ exports.CircNode = function() {
           this.connections_[clientId].dataChannel.send(JSON.stringify({'type': 'error', 'text': 'The specified server ' + name + ' already exists'}));
           return;
         }
-        var server = this.servers_[name] = new IrcConnection(message.address, message.port, message.nick, message.options || {});
+        // TODO(flackr): Use a default nick if the options doesn't contain one.
+        var server = this.servers_[name] = new IrcConnection(message.address, message.port, message.options.nick, message.options);
         server.onmessage = this.onServerMessage.bind(this, name);
         this.broadcast(message);
         server.onopen = function() {
