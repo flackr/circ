@@ -1,3 +1,4 @@
+window.circ = window.circ || {};
 
 circ.ClientSession = function(server, name) {
   this.connectingHosts = 0;

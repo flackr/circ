@@ -3,12 +3,15 @@
  * connected apps over WebRTC.
  */
 
-var ws = require('ws');
-
-console.log(ws);
+var WebSocket = require('ws');
+var webrtc = require('wrtc');
+var RTCPeerConnection     = webrtc.RTCPeerConnection;
+var RTCSessionDescription = webrtc.RTCSessionDescription;
+var RTCIceCandidate       = webrtc.RTCIceCandidate;
 
 exports.Host = function() {
   function Host(server, user) {
+    this.user_ = user;
     this.socket = new WebSocket(server + '/' + user + '/host');
     this.socket.addEventListener('open', this.onServerConnected_.bind(this));
     this.socket.addEventListener('message', this.onServerMessage_.bind(this));
@@ -28,6 +31,7 @@ exports.Host = function() {
     onconnecting: function(clientCount) {},
     
     onServerConnected_: function(e) {
+      console.log('Connected to server as ' + this.user_);
       this.onopen();
     },
     onServerMessage_: function(e) {

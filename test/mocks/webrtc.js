@@ -2,7 +2,6 @@ var mockRTCConnections = [];
 var mockRTCConnectionIndex = 1;
 var mockRTCConnectionShouldSucceed = true;
 var connectPendingMockRTCConnections = undefined
-
 function MockRTCPeerConnection(configuration) {
   this.id_ = mockRTCConnectionIndex++;
   this.remote_ = null;
@@ -128,6 +127,13 @@ function MockRTCIceCandidate(options) {
 window.originalRTCPeerConnection = window.RTCPeerConnection
 window.originalRTCSessionDescription = window.RTCSessionDescription;
 window.originalRTCIceCandidate = window.RTCIceCandidate;
+
+packages['wrtc'] = {
+  'RTCPeerConnection': MockRTCPeerConnection,
+  'RTCSessionDescription': MockRTCSessionDescription,
+  'RTCIceCandidate': MockRTCIceCandidate,
+};
+
 function installWebRTCMock() {
   window.RTCPeerConnection = MockRTCPeerConnection;
   window.RTCSessionDescription = MockRTCSessionDescription;

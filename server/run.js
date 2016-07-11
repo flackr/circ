@@ -1,5 +1,5 @@
 var lobby = require("./server.js");
 
-var options = {port: 8000};
+var options = {port: process.env.PORT};
 
 new lobby.Server(options);

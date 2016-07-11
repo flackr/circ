@@ -22,7 +22,7 @@ exports.Server = function() {
     this.webSocketServer_ = new WebSocketServer({'server': this.webServer_});
     this.webSocketServer_.on('connection', this.onConnection_.bind(this));
     this.webServer_.listen(options.port);
-    this.serve = serveStatic('../client/');
+    this.serve = serveStatic('../');
     console.log('Listening on ' + options.port);
   };
 
