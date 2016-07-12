@@ -80,6 +80,19 @@ circ.CircClient = function() {
         this.send(hostId, {'type': 'connect', 'address': address, 'port': port, 'options': options});
       }.bind(this));
     },
+    join: function(hostId, server, channel) {
+      return new Promise(function(resolve, reject) {
+        var listener = function(hostId, serverName, message) {
+          var words = message.split(' ', 3);
+          if (words[1] != "JOIN" || words[2] != ":" + channel)
+            return;
+          this.removeEventListener('message', listener);
+          resolve();
+        }.bind(this);
+        this.addEventListener('message', listener);
+        this.send(hostId, {'type': 'irc', 'server': server, 'command': 'JOIN ' + channel});
+      }.bind(this));
+    },
     send: function(hostId, data) {
       this.connections_[hostId].dataChannel.send(JSON.stringify(data));
     },

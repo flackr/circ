@@ -44,10 +44,9 @@ describe('circ.CircClient', function() {
     
     it('can join a server', function(done) {
       client.connect(hostId, 'irc.server', 6667).then(function() {
-        done();
-        //client.join('#join').then(function(details) {
-            // TODO(flackr): Expect things on details.});
-        //})
+        client.join(hostId, 'irc.server', '#join').then(function(details) {
+          done();
+        })
       });
     });
   });
