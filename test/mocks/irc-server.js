@@ -19,10 +19,12 @@ IRCServer.prototype = {
     var cmds = data.split('\r\n');
     for (var i = 0; i < cmds.length; i++) {
       var cmd = cmds[i].split(' ');
-      if (cmd == 'NICK') {
+      if (cmd[0] == 'NICK') {
         this.connections[id].nick = cmd[1];
-      } else if (cmd == 'USER') {
+      } else if (cmd[0] == 'USER') {
         // Send preamble.
+      } else if (cmd[0] == 'JOIN') {
+        this.connections[id].socket.write('asdf JOIN :' + cmd[1] + EOL);
       }
     }
   },
