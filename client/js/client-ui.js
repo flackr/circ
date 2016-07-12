@@ -3,6 +3,7 @@
 window.client = null;
 // TODO(flackr): Support multiple connected hosts.
 window.hostId = 0;
+window.serverName = 'irc';
 
 class SlideNav {
   constructor() {
@@ -52,11 +53,13 @@ class ServerConnection {
     var server_address = this.elem.querySelector('.server_address').value;
     var server_port = this.elem.querySelector('.server_port').value;
     var server_nick = this.elem.querySelector('.server_nick').value;
-    client.connect(hostId, server_address, server_port, {'nick': server_nick})
+    var server_name = 'irc';
+    client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
           this.elem.classList.remove('server_connection_visible');
           document.querySelector('.settings').classList.add('settings_hidden');
+          // TODO update side panel       
         }.bind(this));
   }
 }
@@ -77,7 +80,9 @@ class BaseUI {
   
   onKeyPress(evt) {
     if (evt.keyCode == 13) {
-      this.client.send();
+      var elem = this.elem.querySelector('.input_text')
+      this.client.send(hostId, serverName, elem.value);
+      elem.value = '';
     }
   }
 }
