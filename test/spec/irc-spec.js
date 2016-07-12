@@ -57,6 +57,30 @@ describe('circ.CircClient', function() {
         })
       });
     });
+    
+    describe('connected to channel', function() {
+      beforeEach(function(done) {
+        client.connect(hostId, 'irc.server', 6667, {'name': 'test server'})
+          .then(function() { return client.join(hostId, 'test server', '#join'); })
+          .then(done);
+      });
+      
+      it('can send a message to a server', function(done) {
+        client.send(hostId, 'test server', 'some message').then(done);
+      });
+      
+      it('can send multiple messages', function(done) {
+        Promise.all([0, 1].map(function(e) {
+          return client.send(hostId, 'test server', 'some message');
+        })).then(done);
+      });
+      
+      it('does not send to nonexistent servers', function(done) {
+        client.send(hostId, 'nonexistent server', 'some message').then(function() {
+          fail('The message should not have been sent.');
+        }, done);
+      });
+    });
   });
 
   afterEach(function() {

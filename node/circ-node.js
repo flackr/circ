@@ -44,11 +44,10 @@ exports.CircNode = function() {
       } else if (message.type == 'irc') {
         var server = this.servers_[message.server];
         if (!server) {
-          this.connections_[clientId].dataChannel.send(JSON.stringify({'type': 'error', 'text': 'The specified server ' + message.server + ' does not exist'}));
+          this.connections_[clientId].dataChannel.send(JSON.stringify({'type': 'nack', 'reason': 'The specified server ' + message.server + ' does not exist'}));
           return;
         }
-        // TODO(flackr): Add an id to messages on the client side so we know when
-        // it has been processed.
+        this.connections_[clientId].dataChannel.send(JSON.stringify({'type': 'ack'}));
         server.send(message.command);
         this.broadcast(message);
       } else {
