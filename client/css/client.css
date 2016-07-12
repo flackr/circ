@@ -1,0 +1,106 @@
+html, body {
+  padding: 0;
+  margin: 0;
+  background: #00F;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Main Content */
+
+.main_container {
+  position: absolute;
+  background-color: #F00;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.main_container > * {
+  /* TODO: Remove this once side panels can be hidden. */
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+.header {
+  height: 64px;
+  background-color: #333;
+}
+.main_panel {
+  background-color: #666;
+  overflow-y: scroll;
+  flex: 1;
+  white-space: pre;
+}
+.input_region {
+  background-color: #F00;
+}
+.input_text {
+  width: 100%;
+}
+
+/* Settings and related screens */
+
+.settings {
+  position: absolute;
+  background-color: #F00;
+  height: 100%;
+  width: 100%;
+}
+
+.settings_hidden {
+  visibility: hidden;
+}
+
+.host_connection_hidden {
+  visibility: hidden;
+}
+
+.server_connection {
+  visibility: hidden;
+}
+
+.server_connection_visible {
+  visibility: visible;
+}
+
+/* SIDE PANELS */
+
+.nav_panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 90%;
+  background-color: #0F0;
+  height: 100%;
+  transform: translateX(-102%);
+}
+.nav_panel_first_pass {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10%;
+  background-color: #0F0;
+  height: 100%;
+}
+.nav_panel_visible {
+  transform: translateX(0);
+}
+.nick_panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 90%;
+  background-color: #00F;
+  height: 100%;
+  transform: translateX(102%);
+}
+.nick_panel_first_pass {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 10%;
+  background-color: #00F;
+  height: 100%;
+}
