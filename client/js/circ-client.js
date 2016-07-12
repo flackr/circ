@@ -64,20 +64,18 @@ circ.CircClient = function() {
      */
     connect: function(hostId, address, port, options) {
       options = options || {};
-      // TODO(flackr): Name should no longer be part of options as it's always
-      // generated on the client and passed across the data channel.
-      options.name = options.name || address;
+      var name = options.name || address;
       return new Promise(function(resolve, reject) {
         // TODO(flackr): Listen for failures like host disconnecting or server
         // not reachable and call reject.
         var listener = function(host, serverName) {
-          if (host != hostId || serverName != options.name)
+          if (host != hostId || serverName != name)
             return;
           this.removeEventListener('server', listener);
           resolve();
         }.bind(this);
         this.addEventListener('server', listener);
-        this.send(hostId, {'type': 'connect', 'address': address, 'port': port, 'options': options});
+        this.send(hostId, {'type': 'connect', 'address': address, 'port': port, 'name': name, 'options': options});
       }.bind(this));
     },
     join: function(hostId, server, channel) {
