@@ -6,6 +6,11 @@ html, body {
   overflow: hidden;
 }
 
+/* General Styles */
+.input_text {
+  width: 100%;
+}
+
 /* Main Content */
 
 .main_container {
@@ -35,9 +40,6 @@ html, body {
 }
 .input_region {
   background-color: #F00;
-}
-.input_text {
-  width: 100%;
 }
 
 /* Settings and related screens */

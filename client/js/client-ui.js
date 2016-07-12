@@ -24,6 +24,15 @@ class HostConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
+    var input_text = this.elem.querySelector('.input_text');
+    input_text.addEventListener('keypress', this.onKeyPress.bind(this));
+    input_text.focus();
+  }
+  
+  onKeyPress(evt) {
+    if (evt.keyCode == 13) {
+      this.applyConnection();
+    }
   }
   
   applyConnection() {
@@ -39,6 +48,8 @@ class HostConnection {
     this.server_dialog = document.querySelector('.server_connection');
     this.server_dialog.classList.add('server_connection_visible');
     window.hostId = hostId;
+    
+    new ServerConnection(document.querySelector('.server_connection'));
   }
 }
 
@@ -47,18 +58,47 @@ class ServerConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
+    
+    this.server_address_el = this.elem.querySelector('.server_address');
+    this.server_address_el.addEventListener('keypress', this.serverAddressKeyPress.bind(this));
+    this.server_address_el.focus();
+  
+    this.server_port_el = this.elem.querySelector('.server_port');
+    this.server_port_el.addEventListener('keypress', this.serverPortKeyPress.bind(this));
+    
+    this.server_nick_el = this.elem.querySelector('.server_nick');
+    this.server_nick_el.addEventListener('keypress', this.serverNickKeyPress.bind(this));
+  }
+  
+  serverAddressKeyPress(evt) {
+    if (evt.keyCode == 13) {
+      this.server_port_el.focus();
+    }
+  }
+  
+  serverPortKeyPress(evt) {
+    if (evt.keyCode == 13) {
+      this.server_nick_el.focus();
+    }
+  }
+  
+  serverNickKeyPress(evt) {
+    if (evt.keyCode == 13) {
+      this.applyConnection(); 
+    }
   }
   
   applyConnection() {
-    var server_address = this.elem.querySelector('.server_address').value;
-    var server_port = this.elem.querySelector('.server_port').value;
-    var server_nick = this.elem.querySelector('.server_nick').value;
+    var server_address = this.server_address_el.value;
+    var server_port = this.server_port_el.value;
+    var server_nick = this.server_nick_el.value;
     var server_name = 'irc';
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
           this.elem.classList.remove('server_connection_visible');
           document.querySelector('.settings').classList.add('settings_hidden');
+          document.querySelector('.main_container').querySelector('.input_text').focus();
           // TODO update side panel       
         }.bind(this));
   }
@@ -88,5 +128,3 @@ class BaseUI {
 }
 
 new HostConnection(document.querySelector('.host_connection'));
-new ServerConnection(document.querySelector('.server_connection'));
-//new SlideNav();
