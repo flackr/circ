@@ -6,7 +6,6 @@ exports.IrcConnection = function() {
 
   function IrcConnection(address, port, nick, options) {
     // TODO(flackr): Support SSL connections
-    // TODO(flackr): Name servers.
     this.nick = nick;
     this.options = options;
     // Use the nickname as the user if not specified.

@@ -7,6 +7,7 @@ circ.CircClient = function() {
     this.connections_ = {};
     this.hostId_ = 1;
     this.servers_ = {};
+    this.pendingMessages_ = [];
   }
   
   CircClient.prototype = circ.util.extend(circ.util.EventSource.prototype, {
@@ -44,8 +45,12 @@ circ.CircClient = function() {
       } else if (message.type == 'server') {
         this.dispatchEvent('message', hostId, message.server, message.data);
         console.log('< ' + message.data);
+      } else if (message.type == 'ack') {
+        this.pendingMessages_.shift().resolve();
+      } else if (message.type == 'nack') {
+        this.pendingMessages_.shift().reject();
       } else {
-        console.error('Unrecognized message type ' + message.type);
+        console.warn('Unrecognized message type', message);
       }
     },
 
@@ -75,23 +80,31 @@ circ.CircClient = function() {
           resolve();
         }.bind(this);
         this.addEventListener('server', listener);
-        this.send(hostId, {'type': 'connect', 'address': address, 'port': port, 'name': name, 'options': options});
+        this.send_(hostId, {'type': 'connect', 'address': address, 'port': port, 'name': name, 'options': options});
       }.bind(this));
     },
     join: function(hostId, server, channel) {
       return new Promise(function(resolve, reject) {
-        var listener = function(hostId, serverName, message) {
-          var words = message.split(' ', 3);
-          if (words[1] != "JOIN" || words[2] != ":" + channel)
-            return;
-          this.removeEventListener('message', listener);
-          resolve();
-        }.bind(this);
-        this.addEventListener('message', listener);
-        this.send(hostId, {'type': 'irc', 'server': server, 'command': 'JOIN ' + channel});
+        this.pendingMessages_.push({'resolve': function() {
+          var listener = function(hostId, serverName, message) {
+            var words = message.split(' ', 3);
+            if (words[1] != "JOIN" || words[2] != ":" + channel)
+              return;
+            this.removeEventListener('message', listener);
+            resolve();
+          }.bind(this);
+          this.addEventListener('message', listener);
+        }.bind(this), 'reject': reject});
+        this.send_(hostId, {'type': 'irc', 'server': server, 'command': 'JOIN ' + channel});
       }.bind(this));
     },
-    send: function(hostId, data) {
+    send: function(hostId, server, message) {
+      return new Promise(function(resolve, reject) {
+        this.pendingMessages_.push({'resolve': resolve, 'reject': reject});
+        this.send_(hostId, {'type': 'irc', 'server': server, 'command': message});
+      }.bind(this));
+    },
+    send_: function(hostId, data) {
       this.connections_[hostId].dataChannel.send(JSON.stringify(data));
     },
   });
