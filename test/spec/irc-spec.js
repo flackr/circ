@@ -49,6 +49,14 @@ describe('circ.CircClient', function() {
         })
       });
     });
+    
+    it('can join a named server', function(done) {
+      client.connect(hostId, 'irc.server', 6667, {'name': 'test server'}).then(function() {
+        client.join(hostId, 'test server', '#join').then(function(details) {
+          done();
+        })
+      });
+    });
   });
 
   afterEach(function() {
