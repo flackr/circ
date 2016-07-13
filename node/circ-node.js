@@ -45,7 +45,7 @@ exports.CircNode = function() {
         server.onmessage = this.onServerMessage.bind(this, name);
         this.broadcast(message);
         server.onopen = function() {
-          this.state_[name] = new CircState({});
+          this.state_[name] = new CircState({'nick': message.options.nick});
           this.broadcast({'type': 'connected', 'server': name});
         }.bind(this);
         // TODO(flackr): Confirm when the server is actually connected.

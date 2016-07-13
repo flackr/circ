@@ -51,10 +51,10 @@ circ.CircClient = function() {
         // Ignored for now - the server isn't actually connected yet. We'll add
         // it to the list when we confirm it's connected.
         console.log('connect ' + message.data)
+        var server = message.name;
+        this.state_[hostId][server] = new CircState({'nick': message.options.nick});
       } else if (message.type == 'connected') {
-        var server = message.server;
-        this.state_[hostId][server] = new CircState({});
-        this.dispatchEvent('server', hostId, server);
+        this.dispatchEvent('server', hostId, message.server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
         console.log('> ' + message.command);

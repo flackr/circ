@@ -39,7 +39,7 @@ describe('circ.CircClient', function() {
     });
 
     it('can join a server', function(done) {
-      client.connect(hostId, 'irc.server', 6667).then(function() {
+      client.connect(hostId, 'irc.server', 6667, {'nick': user}).then(function() {
         client.join(hostId, 'irc.server', '#join').then(function(details) {
           done();
         })
@@ -47,7 +47,7 @@ describe('circ.CircClient', function() {
     });
 
     it('can join a named server', function(done) {
-      client.connect(hostId, 'irc.server', 6667, {'name': 'test server'}).then(function() {
+      client.connect(hostId, 'irc.server', 6667, {'name': 'test server', 'nick': user}).then(function() {
         client.join(hostId, 'test server', '#join').then(function(details) {
           done();
         })
@@ -56,7 +56,7 @@ describe('circ.CircClient', function() {
 
     describe('connected to channel', function() {
       beforeEach(function(done) {
-        client.connect(hostId, 'irc.server', 6667, {'name': 'test server'})
+        client.connect(hostId, 'irc.server', 6667, {'name': 'test server', 'nick': user})
           .then(function() { return client.join(hostId, 'test server', '#join'); })
           .then(done);
       });
@@ -78,7 +78,7 @@ describe('circ.CircClient', function() {
       });
 
       it('has the server and channel state', function() {
-        expect(JSON.stringify(client.state()[hostId])).toBe(JSON.stringify({'test server': {'#join': {}}}));
+        expect(JSON.stringify(client.state()[hostId])).toBe(JSON.stringify({'test server': {'nick': user, 'channels': {'#join': {}}}}));
       });
 
       describe('newly connected users', function() {
