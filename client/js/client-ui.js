@@ -24,6 +24,7 @@ class HostConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
+<<<<<<< HEAD
     var input_text = this.elem.querySelector('.input_text');
     input_text.addEventListener('keypress', this.onKeyPress.bind(this));
     input_text.focus();
@@ -37,6 +38,11 @@ class HostConnection {
   
   applyConnection() {
     this.connect.disabled = true;
+=======
+  }
+  
+  applyConnection() {
+>>>>>>> server
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
         this.elem.querySelector('input').value);
@@ -49,8 +55,11 @@ class HostConnection {
     this.server_dialog = document.querySelector('.server_connection');
     this.server_dialog.classList.add('server_connection_visible');
     window.hostId = hostId;
+<<<<<<< HEAD
     
     new ServerConnection(document.querySelector('.server_connection'));
+=======
+>>>>>>> server
   }
 }
 
@@ -59,6 +68,7 @@ class ServerConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
+<<<<<<< HEAD
     
     this.server_address_el = this.elem.querySelector('.server_address');
     this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
@@ -82,13 +92,24 @@ class ServerConnection {
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
     var server_nick = this.server_nick_el.value;
+=======
+  }
+  
+  applyConnection() {
+    var server_address = this.elem.querySelector('.server_address').value;
+    var server_port = this.elem.querySelector('.server_port').value;
+    var server_nick = this.elem.querySelector('.server_nick').value;
+>>>>>>> server
     var server_name = 'irc';
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
           this.elem.classList.remove('server_connection_visible');
           document.querySelector('.settings').classList.add('settings_hidden');
+<<<<<<< HEAD
           document.querySelector('.main_container').querySelector('.input_text').focus();
+=======
+>>>>>>> server
           // TODO update side panel       
         }.bind(this));
   }
@@ -109,15 +130,21 @@ class BaseUI {
   }
   
   onKeyPress(evt) {
+<<<<<<< HEAD
     //TODO parse irc commands here
     if (evt.keyCode == 13) {
       var elem = this.elem.querySelector('.main_input_text')
+=======
+    if (evt.keyCode == 13) {
+      var elem = this.elem.querySelector('.input_text')
+>>>>>>> server
       this.client.send(hostId, serverName, elem.value);
       elem.value = '';
     }
   }
 }
 
+<<<<<<< HEAD
 class RoomList {
   constructor(room_el, initial_rooms) {
     this.room_el = room_el;
@@ -158,3 +185,8 @@ var serverData = { "hostId" : "id",
                                }
                  };
 new RoomList(document.querySelector('.rooms'), serverData);
+=======
+new HostConnection(document.querySelector('.host_connection'));
+new ServerConnection(document.querySelector('.server_connection'));
+//new SlideNav();
+>>>>>>> server

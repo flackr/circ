@@ -101,7 +101,7 @@ function MockRTCDataChannel(pc, remoteDC, name, options) {
 
 MockRTCDataChannel.prototype = circ.util.extend(circ.util.EventSource.prototype, {
   send: function(msg) {
-    this.remote_.onMessage_(msg);
+    setTimeout(this.remote_.onMessage_.bind(this.remote_, msg), 0);
   },
   onMessage_: function(msg) {
     this.dispatchEvent('message', {'data': msg});

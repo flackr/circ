@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 * {
   box-sizing: border-box;
 }
 
+=======
+>>>>>>> server
 html, body {
   padding: 0;
   margin: 0;
@@ -10,6 +13,7 @@ html, body {
   overflow: hidden;
 }
 
+<<<<<<< HEAD
 /* General Styles */
 
 .horizontal_fields {
@@ -31,6 +35,8 @@ html, body {
   width: 80%;
 }
 
+=======
+>>>>>>> server
 /* Main Content */
 
 .main_container {
@@ -44,8 +50,13 @@ html, body {
 
 .main_container > * {
   /* TODO: Remove this once side panels can be hidden. */
+<<<<<<< HEAD
   padding-left: 10%;
   padding-right: 10%;
+=======
+  padding-left: 20%;
+  padding-right: 20%;
+>>>>>>> server
 }
 
 .header {
@@ -61,8 +72,12 @@ html, body {
 .input_region {
   background-color: #F00;
 }
+<<<<<<< HEAD
 
 .main_input_text {
+=======
+.input_text {
+>>>>>>> server
   width: 100%;
 }
 
@@ -84,9 +99,12 @@ html, body {
 }
 
 .server_connection {
+<<<<<<< HEAD
   position: absolute;
   top: 0;
   width: 100%;
+=======
+>>>>>>> server
   visibility: hidden;
 }
 
@@ -116,11 +134,14 @@ html, body {
 .nav_panel_visible {
   transform: translateX(0);
 }
+<<<<<<< HEAD
 
 .room_item {
   background-color: #F00;
 }
 
+=======
+>>>>>>> server
 .nick_panel {
   position: absolute;
   right: 0;
