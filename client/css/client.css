@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   padding: 0;
   margin: 0;
@@ -7,8 +11,24 @@ html, body {
 }
 
 /* General Styles */
-.input_text {
+
+.horizontal_fields {
+  padding: 0;
+  margin: 0;
   width: 100%;
+}
+
+.label_text {
+  display: inline-block; 
+  *display: inline;
+  width: 20%;
+  background-color: #0F0;
+}
+
+.input_text {
+  display: inline-block; 
+  *display: inline;
+  width: 80%;
 }
 
 /* Main Content */
@@ -60,6 +80,9 @@ html, body {
 }
 
 .server_connection {
+  position: absolute;
+  top: 0;
+  width: 100%;
   visibility: hidden;
 }
 

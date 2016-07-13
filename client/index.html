@@ -43,13 +43,15 @@ document.addEventListener('DOMContentLoaded', function() {
   </aside>
   <div class="settings">
     <div class="host_connection">
+      <p>Host Connection:</p>
       Username: <input class="input_text" type="text"><br>
       <button class='connect'>Connect</button>
     </div>
     <div class="server_connection">
-      Address: <input type="text" class="server_address"><br>
-      Port: <input type="text" class="server_port"><br>
-      Nick: <input type="text" class="server_nick"><br>
+      <p>Server Connection:</p>
+      <label class="label_text">Address:</label><input type="text" class="input_text server_address"><br>
+      <label class="label_text">Port:</label><input type="text" class="input_text server_port"><br>
+      <label class="label_text">Nick:</label><input type="text" class="input_text server_nick"><br>
       <button class="connect">Add server</button>
     </div>
     <div class="register">
