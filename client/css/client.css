@@ -121,6 +121,10 @@ html, body {
   background-color: #F00;
 }
 
+.channel_list {
+  padding-left: 10px;
+}
+
 .nick_panel {
   position: absolute;
   right: 0;

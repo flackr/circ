@@ -5,6 +5,16 @@ window.client = null;
 window.hostId = 0;
 window.serverName = 'irc';
 
+function transitionToMainUI() {
+  document.querySelector('.settings').classList.add('settings_hidden');
+  document.querySelector('.main_container').querySelector('.main_input_text').focus();
+  for (var server in client.state[hostId]) {
+    console.log(server);
+    new RoomList(document.querySelector('.rooms'), client.state[hostId]);
+    
+  }
+}
+
 class SlideNav {
   constructor() {
     this.nav_panel = document.querySelector('.nav_panel');
@@ -53,8 +63,7 @@ class HostConnection {
       break;
     }
     if (isConnectedToServer) {
-      document.querySelector('.settings').classList.add('settings_hidden');
-      document.querySelector('.main_container').querySelector('.input_text').focus();
+      transitionToMainUI();
     } else {
       this.server_dialog = document.querySelector('.server_connection');
       this.server_dialog.classList.add('server_connection_visible');
@@ -96,8 +105,7 @@ class ServerConnection {
         .then(function() {
           // Show main UI.
           this.elem.classList.remove('server_connection_visible');
-          document.querySelector('.settings').classList.add('settings_hidden');
-          document.querySelector('.main_container').querySelector('.input_text').focus();
+          transitionToMainUI();
           // TODO update side panel       
         }.bind(this));
   }
@@ -131,25 +139,27 @@ class RoomList {
   constructor(room_el, initial_rooms) {
     this.room_el = room_el;
     this.list = document.createElement('ul');
-    this.insertRooms(initial_rooms["servers"]);
+    this.insertRooms(initial_rooms);
     this.room_el.appendChild(this.list);
   }
 
   // TODO call this on each update to server/channels  
   insertRooms(room_list) {
-    //console.log(room_list.keys());
-    /*
-    room_list.forEach(function(value, key) {
-  console.log(key + " = " + value);
-}, room_list)
-    */
     for(var key in room_list) {
        console.log(key); 
-    //}
-    //for(var i = 0; i < room_list.length; i++) {
       var item = document.createElement('li');
-      item.appendChild(document.createTextNode(room_list[key]));
+      item.appendChild(document.createTextNode(key));//room_list[key]));
       item.classList.add('room_item');
+      
+      var channel_list = document.createElement('ul');
+     // channel_list.classList.add('channel_list');
+      for (var channel in room_list[key]) {
+        var channel_item = document.createElement('li');
+        channel_item.appendChild(document.createTextNode(channel));
+        channel_list.appendChild(channel_item);
+      }
+      item.appendChild(channel_list);
+      
       // TODO add click handlers
       this.list.appendChild(item);
     }
@@ -159,11 +169,10 @@ class RoomList {
 
 new HostConnection(document.querySelector('.host_connection'));
 
-var rooms = ["Hey Listen", "Look", "HEY!"]
 var serverData = { "hostId" : "id", 
                    "servers" : { "server_name 1" : { "chanel_name_1": "channel 1",
                                                    "chanel_name_2": "channel 2" },
                                  "server_name 2" : { "channel_name_3": "channel 3"}                   
                                }
                  };
-new RoomList(document.querySelector('.rooms'), serverData);
+
