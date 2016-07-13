@@ -44,7 +44,7 @@ html, body {
 
 .main_container > * {
   /* TODO: Remove this once side panels can be hidden. */
-  padding-left: 10%;
+  padding-left: 20%;
   padding-right: 10%;
 }
 
@@ -109,7 +109,7 @@ html, body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 10%;
+  width: 20%;
   background-color: #0F0;
   height: 100%;
 }

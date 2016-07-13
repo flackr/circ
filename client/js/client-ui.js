@@ -138,9 +138,15 @@ class RoomList {
     this.room_el.appendChild(this.list);
   }
 
+  switchChannel(channel) {
+    //TODO update scroll region with history for channel
+    document.querySelector('.main_container').querySelector('.header').textContent = channel;
+  }
+
   insertChannel(channel_list, channel) {
     var channel_item = document.createElement('li');
     channel_item.appendChild(document.createTextNode(channel));
+    channel_item.addEventListener('click', this.switchChannel.bind(this, channel));
     channel_list.appendChild(channel_item);
   }
 
