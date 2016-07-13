@@ -35,14 +35,18 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
     <div class="main_panel"></div>
-    <div class="input_region"><input class="input_text" type="text"></div>
+    <div class="input_region"><input class="main_input_text" type="text"></div>
   </div>
   <aside class="nav_panel_first_pass">
+    <div class="header">
+      Rooms
+    </div>
+    <div class="rooms"></div>
   </aside>
   <aside class="nick_panel_first_pass">
   </aside>
-  <div class="settings">
-    <div class="host_connection">
+  <div class="settings settings_hidden">
+    <div class="host_connection host_connection_hidden">
       <div class="header">Host Connection:</div>
       <label class="label_text">Username:</label><input class="input_text" type="text"><br>
       <button class='connect'>Connect</button>

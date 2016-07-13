@@ -44,8 +44,8 @@ html, body {
 
 .main_container > * {
   /* TODO: Remove this once side panels can be hidden. */
-  padding-left: 20%;
-  padding-right: 20%;
+  padding-left: 10%;
+  padding-right: 10%;
 }
 
 .header {
@@ -60,6 +60,10 @@ html, body {
 }
 .input_region {
   background-color: #F00;
+}
+
+.main_input_text {
+  width: 100%;
 }
 
 /* Settings and related screens */
@@ -112,6 +116,11 @@ html, body {
 .nav_panel_visible {
   transform: translateX(0);
 }
+
+.room_item {
+  background-color: #F00;
+}
+
 .nick_panel {
   position: absolute;
   right: 0;

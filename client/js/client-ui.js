@@ -111,11 +111,35 @@ class BaseUI {
   onKeyPress(evt) {
     //TODO parse irc commands here
     if (evt.keyCode == 13) {
-      var elem = this.elem.querySelector('.input_text')
+      var elem = this.elem.querySelector('.main_input_text')
       this.client.send(hostId, serverName, elem.value);
       elem.value = '';
     }
   }
 }
 
+class RoomList {
+  constructor(room_el, initial_rooms) {
+    this.room_el = room_el;
+    this.list = document.createElement('ul');
+    this.insertRooms(initial_rooms);
+    this.room_el.appendChild(this.list);
+  }
+
+  // TODO call this on each update to server/channels  
+  insertRooms(room_list) {
+    for(var i = 0; i < room_list.length; i++) {
+      var item = document.createElement('li');
+      item.appendChild(document.createTextNode(room_list[i]));
+      item.classList.add('room_item');
+      // TODO add click handlers
+      this.list.appendChild(item);
+    }
+  }
+  
+}
+
 new HostConnection(document.querySelector('.host_connection'));
+
+var rooms = ["Hey Listen", "Look", "HEY!"]
+new RoomList(document.querySelector('.rooms'), rooms);
