@@ -8,6 +8,7 @@ exports.CircNode = function() {
     this.connections_ = {};
     this.clientId_ = 1;
     this.servers_ = {};
+    this.state_ = {};
   }
   
   CircNode.prototype = {
@@ -16,6 +17,8 @@ exports.CircNode = function() {
       this.connections_[clientId] = {'rtc': rtc, 'dataChannel': dataChannel};
       rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, clientId);
       dataChannel.addEventListener('message', this.onClientMessage_.bind(this, clientId));
+      // TODO: send actual state.
+      dataChannel.send(JSON.stringify({'type': 'state', 'state': this.state_}));
     },
     onIceConnectionStateChange_: function(clientId) {
       var clientInfo = this.connections_[clientId];
@@ -38,6 +41,7 @@ exports.CircNode = function() {
         server.onmessage = this.onServerMessage.bind(this, name);
         this.broadcast(message);
         server.onopen = function() {
+          this.state_[name] = {};
           this.broadcast({'type': 'connected', 'server': name});
         }.bind(this);
         // TODO(flackr): Confirm when the server is actually connected.
@@ -55,6 +59,11 @@ exports.CircNode = function() {
       }
     },
     onServerMessage: function(serverId, data) {
+      var words = data.split(' ', 3);
+      // TODO(flackr): Check user who has joined.
+      if (words[1] == "JOIN")
+        this.state_[serverId][words[2].substring(1)] = {};
+      // TODO(flackr): Check for part.
       this.broadcast({'type': 'server', 'server': serverId, 'data': data});
     },
     broadcast: function(data) {

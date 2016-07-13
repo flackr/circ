@@ -4,9 +4,9 @@ circ.CircClient = function() {
     this.addEventTypes(['connection', 'message', 'server']);
     this.session = new circ.ClientSession(server, name);
     this.session.onconnection = this.onConnection_.bind(this);
+    this.state = {};
     this.connections_ = {};
     this.hostId_ = 1;
-    this.servers_ = {};
     this.pendingMessages_ = [];
   }
   
@@ -16,7 +16,6 @@ circ.CircClient = function() {
       this.connections_[hostId] = {'rtc': rtc, 'dataChannel': dataChannel};
       rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, hostId);
       dataChannel.addEventListener('message', this.onHostMessage_.bind(this, hostId));
-      this.dispatchEvent('connection', hostId);
     },
     onIceConnectionStateChange_: function(hostId) {
       // TODO(flackr): When a host goes away, we lose our connection to every
@@ -31,18 +30,27 @@ circ.CircClient = function() {
     },
     onHostMessage_: function(hostId, evt) {
       var message = JSON.parse(evt.data);
-      if (message.type == 'connect') {
+      if (message.type == 'state') {
+        this.state[hostId] = message.state;
+        this.dispatchEvent('connection', hostId);
+      } else if (message.type == 'connect') {
         // Ignored for now - the server isn't actually connected yet. We'll add
         // it to the list when we confirm it's connected.
         console.log('connect ' + message.data)
       } else if (message.type == 'connected') {
         var server = message.server;
-        this.servers_[server] = hostId;
-        this.dispatchEvent('server', hostId, message.server);
+        this.state[hostId][server] = {};
+        this.dispatchEvent('server', hostId, server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
         console.log('> ' + message.command);
       } else if (message.type == 'server') {
+        var cmd = message.data.split(' ', 3);
+        if (cmd[1] == 'JOIN') {
+          // TODO: Add the user specified to the user list if this is an already
+          // connected channel.
+          this.state[hostId][message.server][cmd[2].substring(1)] = {};
+        }
         this.dispatchEvent('message', hostId, message.server, message.data);
         console.log('< ' + message.data);
       } else if (message.type == 'ack') {
