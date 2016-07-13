@@ -1,4 +1,5 @@
-window.exports = window.exports || {};
+if (typeof window !== 'undefined')
+  window.exports = window.exports || {};
 
 exports.CircState = function() {
 
@@ -9,7 +10,7 @@ exports.CircState = function() {
     return source[0].substring(1);
   }
 
-  function CircState(state = {}) {
+  function CircState(state/* = {}*/) {
     state['channels'] = state['channels'] || {}
     this.state = state;
   }

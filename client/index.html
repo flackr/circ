@@ -19,21 +19,27 @@
       </div>
     </div>
     <div class="main_panel"></div>
-    <div class="input_region"><input class="input_text" type="text"></div>
+    <div class="input_region"><input class="main_input_text" type="text"></div>
   </div>
   <aside class="nav_panel_first_pass">
+    <div class="header">
+      Rooms
+    </div>
+    <div class="rooms"></div>
   </aside>
   <aside class="nick_panel_first_pass">
   </aside>
   <div class="settings">
     <div class="host_connection">
-      Username: <input type="text"><br>
+      <div class="header">Host Connection:</div>
+      <label class="label_text">Username:</label><input class="input_text" type="text"><br>
       <button class='connect'>Connect</button>
     </div>
     <div class="server_connection">
-      Address: <input type="text" class="server_address"><br>
-      Port: <input type="text" class="server_port"><br>
-      Nick: <input type="text" class="server_nick"><br>
+      <div class="header">Server Connection:</div>
+      <label class="label_text">Address:</label><input type="text" class="input_text server_address"><br>
+      <label class="label_text">Port:</label><input type="text" class="input_text server_port"><br>
+      <label class="label_text">Nick:</label><input type="text" class="input_text server_nick"><br>
       <button class="connect">Add server</button>
     </div>
     <div class="register">
