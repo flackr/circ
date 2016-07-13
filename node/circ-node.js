@@ -1,6 +1,7 @@
 exports.CircNode = function() {
   var Host = require('./host.js').Host;
   var IrcConnection = require('./irc-connection.js').IrcConnection;
+  var CircState = require('../client/js/circ-state.js').CircState;
 
   function CircNode(server, name) {
     this.host = new Host(server, name);
@@ -10,15 +11,18 @@ exports.CircNode = function() {
     this.servers_ = {};
     this.state_ = {};
   }
-  
+
   CircNode.prototype = {
     onConnection_: function(rtc, dataChannel) {
       var clientId = this.clientId_++;
       this.connections_[clientId] = {'rtc': rtc, 'dataChannel': dataChannel};
       rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, clientId);
       dataChannel.addEventListener('message', this.onClientMessage_.bind(this, clientId));
-      // TODO: send actual state.
-      dataChannel.send(JSON.stringify({'type': 'state', 'state': this.state_}));
+      var stateJson = {};
+      for (var serverId in this.state_) {
+        stateJson[serverId] = this.state_[serverId].state;
+      }
+      dataChannel.send(JSON.stringify({'type': 'state', 'state': stateJson}));
     },
     onIceConnectionStateChange_: function(clientId) {
       var clientInfo = this.connections_[clientId];
@@ -41,7 +45,7 @@ exports.CircNode = function() {
         server.onmessage = this.onServerMessage.bind(this, name);
         this.broadcast(message);
         server.onopen = function() {
-          this.state_[name] = {};
+          this.state_[name] = new CircState({});
           this.broadcast({'type': 'connected', 'server': name});
         }.bind(this);
         // TODO(flackr): Confirm when the server is actually connected.
@@ -59,11 +63,7 @@ exports.CircNode = function() {
       }
     },
     onServerMessage: function(serverId, data) {
-      var words = data.split(' ', 3);
-      // TODO(flackr): Check user who has joined.
-      if (words[1] == "JOIN")
-        this.state_[serverId][words[2].substring(1)] = {};
-      // TODO(flackr): Check for part.
+      this.state_[serverId].process(data);
       this.broadcast({'type': 'server', 'server': serverId, 'data': data});
     },
     broadcast: function(data) {
@@ -72,6 +72,6 @@ exports.CircNode = function() {
       }
     },
   };
-  
+
   return CircNode;
 }()

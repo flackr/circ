@@ -4,24 +4,8 @@
   <title>CIRC</title>
   <script src="js/util.js"></script>
   <script src="js/connection.js"></script>
+  <script src="js/circ-state.js"></script>
   <script src="js/circ-client.js"></script>
-  <!--
-  <script>
-function $(id) {
-  return document.getElementById(id);
-}
-
-var client;
-document.addEventListener('DOMContentLoaded', function() {
-  $('user').addEventListener('keypress', function(e) {
-    if (e.keyCode != 13)
-      return;
-    client = new circ.CircClient(window.location.origin.replace(/^http/, 'ws'), $('user').value);
-  })
-});  
-  </script>
-  -->
-  
   <link href="./css/client.css" rel="stylesheet">
 </head>
 <body>
@@ -55,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="register">
     </div>
   </div>
-  
+
   <script src="js/client-ui.js"></script>
 </body>
 </html>

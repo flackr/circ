@@ -19,13 +19,13 @@ describe('circ.CircClient', function() {
     });
     request.send();
   });
-  
+
   describe('connected host', function(done) {
     var host;
     var client;
     var hostId;
     var ircServer;
-    
+
     beforeEach(function(done) {
       ircServer = new IRCServer('irc.server', 6667);
       host = new CircNode(serverAddress, user);
@@ -37,7 +37,7 @@ describe('circ.CircClient', function() {
         });
       };
     });
-    
+
     it('can join a server', function(done) {
       client.connect(hostId, 'irc.server', 6667).then(function() {
         client.join(hostId, 'irc.server', '#join').then(function(details) {
@@ -45,7 +45,7 @@ describe('circ.CircClient', function() {
         })
       });
     });
-    
+
     it('can join a named server', function(done) {
       client.connect(hostId, 'irc.server', 6667, {'name': 'test server'}).then(function() {
         client.join(hostId, 'test server', '#join').then(function(details) {
@@ -53,38 +53,38 @@ describe('circ.CircClient', function() {
         })
       });
     });
-    
+
     describe('connected to channel', function() {
       beforeEach(function(done) {
         client.connect(hostId, 'irc.server', 6667, {'name': 'test server'})
           .then(function() { return client.join(hostId, 'test server', '#join'); })
           .then(done);
       });
-      
+
       it('can send a message to a server', function(done) {
         client.send(hostId, 'test server', 'some message').then(done);
       });
-      
+
       it('can send multiple messages', function(done) {
         Promise.all([0, 1].map(function(e) {
           return client.send(hostId, 'test server', 'some message');
         })).then(done);
       });
-      
+
       it('does not send to nonexistent servers', function(done) {
         client.send(hostId, 'nonexistent server', 'some message').then(function() {
           fail('The message should not have been sent.');
         }, done);
       });
-      
+
       it('has the server and channel state', function() {
-        expect(JSON.stringify(client.state[hostId])).toBe(JSON.stringify({'test server': {'#join': {}}}));
+        expect(JSON.stringify(client.state()[hostId])).toBe(JSON.stringify({'test server': {'#join': {}}}));
       });
-      
+
       describe('newly connected users', function() {
         var client2;
         var hostId2;
-        
+
         beforeEach(function(done) {
           client2 = new circ.CircClient(serverAddress, user);
           client2.addEventListener('connection', function(actualHostId) {
@@ -92,9 +92,9 @@ describe('circ.CircClient', function() {
             done();
           });
         });
-        
+
         it('receives a list of connected servers and channels', function() {
-          expect(JSON.stringify(client2.state[hostId2])).toBe(JSON.stringify(client.state[hostId]));
+          expect(JSON.stringify(client2.state()[hostId2])).toBe(JSON.stringify(client.state()[hostId]));
         });
       });
     });
