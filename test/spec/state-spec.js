@@ -8,6 +8,7 @@ describe('circ.CircState', function() {
     spyOn(state, 'onpart');
     spyOn(state, 'onnick');
     spyOn(state, 'onownnick');
+    spyOn(state, 'onmessage');
   });
 
   it('has no channels by default', function() {
@@ -28,6 +29,16 @@ describe('circ.CircState', function() {
     expect(state.state.nick).toBe('janedoe');
     expect(state.onnick).toHaveBeenCalledWith('notjanedoe', 'johndoe');
     expect(state.onownnick).not.toHaveBeenCalled();
+  });
+
+  it('processes sent private messages', function() {
+    state.processOutbound('PRIVMSG johndoe :Hello John');
+    expect(state.onmessage).toHaveBeenCalledWith('janedoe', 'johndoe', 'Hello John');
+  });
+
+  it('processes private messages from others', function() {
+    state.process(':johndoe!address PRIVMSG janedoe :Hello Jane');
+    expect(state.onmessage).toHaveBeenCalledWith('johndoe', 'janedoe', 'Hello Jane');
   });
 
   describe('joined a channel', function() {

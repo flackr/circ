@@ -1,9 +1,34 @@
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   padding: 0;
   margin: 0;
   background: #00F;
   font-family: Arial, sans-serif;
   overflow: hidden;
+}
+
+/* General Styles */
+
+.horizontal_fields {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.label_text {
+  display: inline-block; 
+  *display: inline;
+  width: 20%;
+  background-color: #0F0;
+}
+
+.input_text {
+  display: inline-block; 
+  *display: inline;
+  width: 80%;
 }
 
 /* Main Content */
@@ -19,8 +44,8 @@ html, body {
 
 .main_container > * {
   /* TODO: Remove this once side panels can be hidden. */
-  padding-left: 20%;
-  padding-right: 20%;
+  padding-left: 10%;
+  padding-right: 10%;
 }
 
 .header {
@@ -36,7 +61,8 @@ html, body {
 .input_region {
   background-color: #F00;
 }
-.input_text {
+
+.main_input_text {
   width: 100%;
 }
 
@@ -58,6 +84,9 @@ html, body {
 }
 
 .server_connection {
+  position: absolute;
+  top: 0;
+  width: 100%;
   visibility: hidden;
 }
 
@@ -87,6 +116,15 @@ html, body {
 .nav_panel_visible {
   transform: translateX(0);
 }
+
+.room_item {
+  background-color: #F00;
+}
+
+.channel_list {
+  padding-left: 10px;
+}
+
 .nick_panel {
   position: absolute;
   right: 0;

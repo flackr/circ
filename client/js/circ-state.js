@@ -21,6 +21,7 @@ exports.CircState = function() {
     onpart: function(channel) {},
     onnick: function(oldNick, newNick) {},
     onownnick: function(nick) {},
+    onmessage: function(from, to, message) {},
 
     process: function(message) {
       var words = message.split(' ', 3);
@@ -43,6 +44,17 @@ exports.CircState = function() {
           this.onownnick(newNick);
         }
         this.onnick(user, newNick);
+      } else if (words[1] == "PRIVMSG") {
+        var message = message.substring(words[0].length + words[2].length + 11);
+        this.onmessage(getUser(words[0]), words[2], message);
+      }
+    },
+
+    processOutbound: function(message) {
+      var words = message.split(' ', 2);
+      if (words[0] == 'PRIVMSG') {
+        var rest = message.substring(words[0].length + words[1].length + 3);
+        this.onmessage(this.state.nick, words[1], rest);
       }
     },
   }
