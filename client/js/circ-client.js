@@ -57,6 +57,7 @@ circ.CircClient = function() {
         this.dispatchEvent('server', hostId, message.server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
+        this.state_[hostId][message.server].processOutbound(message.command);
         console.log('> ' + message.command);
       } else if (message.type == 'server') {
         this.state_[hostId][message.server].process(message.data);
