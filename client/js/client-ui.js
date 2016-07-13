@@ -8,11 +8,7 @@ window.serverName = 'irc';
 function transitionToMainUI() {
   document.querySelector('.settings').classList.add('settings_hidden');
   document.querySelector('.main_container').querySelector('.main_input_text').focus();
-  for (var server in client.state[hostId]) {
-    console.log(server);
-    new RoomList(document.querySelector('.rooms'), client.state[hostId]);
-    
-  }
+  new RoomList(document.querySelector('.rooms'));
 }
 
 class SlideNav {
@@ -58,7 +54,7 @@ class HostConnection {
     this.elem.classList.add('host_connection_hidden');
     window.hostId = hostId;
     var isConnectedToServer = false;
-    for (var server in client.state[hostId]) {
+    for (var server in client.state_[hostId]) {
       isConnectedToServer = true;
       break;
     }
@@ -136,24 +132,23 @@ class BaseUI {
 }
 
 class RoomList {
-  constructor(room_el, initial_rooms) {
+  constructor(room_el) {
     this.room_el = room_el;
     this.list = document.createElement('ul');
-    this.insertRooms(initial_rooms);
+    this.insertRooms();
     this.room_el.appendChild(this.list);
   }
 
   // TODO call this on each update to server/channels  
-  insertRooms(room_list) {
-    for(var key in room_list) {
-       console.log(key); 
+  insertRooms() {
+    for (var server in client.state_[hostId]) {
+      console.log(server); 
       var item = document.createElement('li');
-      item.appendChild(document.createTextNode(key));//room_list[key]));
+      item.appendChild(document.createTextNode(server));
       item.classList.add('room_item');
       
       var channel_list = document.createElement('ul');
-     // channel_list.classList.add('channel_list');
-      for (var channel in room_list[key]) {
+      for (var channel in client.state_[hostId][server].state.channels) {
         var channel_item = document.createElement('li');
         channel_item.appendChild(document.createTextNode(channel));
         channel_list.appendChild(channel_item);
@@ -164,15 +159,6 @@ class RoomList {
       this.list.appendChild(item);
     }
   }
-  
 }
 
 new HostConnection(document.querySelector('.host_connection'));
-
-var serverData = { "hostId" : "id", 
-                   "servers" : { "server_name 1" : { "chanel_name_1": "channel 1",
-                                                   "chanel_name_2": "channel 2" },
-                                 "server_name 2" : { "channel_name_3": "channel 3"}                   
-                               }
-                 };
-
