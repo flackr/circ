@@ -14,6 +14,7 @@
   <!-- include source files here... -->
   <script src="client/js/util.js"></script>
   <script src="client/js/connection.js"></script>
+  <script src="client/js/circ-state.js"></script>
   <script src="client/js/circ-client.js"></script>
 
   <!-- NodeJS mocks -->
@@ -32,6 +33,8 @@
   <script>packages['./host.js'] = {'Host': exports.Host};</script>
   <script src="node/irc-connection.js"></script>
   <script>packages['./irc-connection.js'] =  {'IrcConnection': exports.IrcConnection};</script>
+  <script src="client/js/circ-state.js"></script>
+  <script>packages['../client/js/circ-state.js'] = {'CircState': exports.CircState};</script>
   <script src="node/circ-node.js"></script>
   <script>packages['./circ-node.js'] =  {'CircNode': exports.CircNode};</script>
 
