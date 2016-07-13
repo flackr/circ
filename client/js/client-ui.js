@@ -20,7 +20,6 @@ class SlideNav {
   }
   
   showSideNav () {
-    console.log("HEY LISTEN");
     this.nav_panel.classList.add('nav_panel_visible'); 
   }
 }
@@ -139,24 +138,31 @@ class RoomList {
     this.room_el.appendChild(this.list);
   }
 
+  insertChannel(channel_list, channel) {
+    var channel_item = document.createElement('li');
+    channel_item.appendChild(document.createTextNode(channel));
+    channel_list.appendChild(channel_item);
+  }
+
   // TODO call this on each update to server/channels  
+  // TODO add click handlers
   insertRooms() {
     for (var server in client.state_[hostId]) {
-      console.log(server); 
       var item = document.createElement('li');
       item.appendChild(document.createTextNode(server));
       item.classList.add('room_item');
       
       var channel_list = document.createElement('ul');
       for (var channel in client.state_[hostId][server].state.channels) {
-        var channel_item = document.createElement('li');
-        channel_item.appendChild(document.createTextNode(channel));
-        channel_list.appendChild(channel_item);
+        insertChannel(channel_list, channel);
       }
       item.appendChild(channel_list);
-      
-      // TODO add click handlers
       this.list.appendChild(item);
+
+      // Listen for new channels
+      client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
+        insertChannel(channel_list, channel_joined)
+      }.bind(this, channel_list);
     }
   }
 }
