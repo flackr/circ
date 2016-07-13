@@ -46,11 +46,20 @@ class HostConnection {
   
   onConnection(hostId) {
     this.elem.classList.add('host_connection_hidden');
-    this.server_dialog = document.querySelector('.server_connection');
-    this.server_dialog.classList.add('server_connection_visible');
     window.hostId = hostId;
-    
-    new ServerConnection(document.querySelector('.server_connection'));
+    var isConnectedToServer = false;
+    for (var server in client.state[hostId]) {
+      isConnectedToServer = true;
+      break;
+    }
+    if (isConnectedToServer) {
+      document.querySelector('.settings').classList.add('settings_hidden');
+      document.querySelector('.main_container').querySelector('.input_text').focus();
+    } else {
+      this.server_dialog = document.querySelector('.server_connection');
+      this.server_dialog.classList.add('server_connection_visible');
+      new ServerConnection(document.querySelector('.server_connection'));
+    }
   }
 }
 
@@ -99,7 +108,7 @@ class BaseUI {
     this.elem = elem;
     this.client = client;
     this.client.addEventListener('message', this.onMessage.bind(this));
-    this.elem.querySelector('.input_text').addEventListener('keypress', this.onKeyPress.bind(this));
+    this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
   }
   
   onMessage(host, server, data) {
