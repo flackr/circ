@@ -36,6 +36,7 @@ class HostConnection {
   }
   
   applyConnection() {
+    this.connect.disabled = true;
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
         this.elem.querySelector('input').value);
@@ -60,35 +61,24 @@ class ServerConnection {
     this.connect.addEventListener('click', this.applyConnection.bind(this));
     
     this.server_address_el = this.elem.querySelector('.server_address');
-    this.server_address_el.addEventListener('keypress', this.serverAddressKeyPress.bind(this));
+    this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
     this.server_address_el.focus();
   
     this.server_port_el = this.elem.querySelector('.server_port');
-    this.server_port_el.addEventListener('keypress', this.serverPortKeyPress.bind(this));
+    this.server_port_el.addEventListener('keypress', this.onKeyPress.bind(this));
     
     this.server_nick_el = this.elem.querySelector('.server_nick');
-    this.server_nick_el.addEventListener('keypress', this.serverNickKeyPress.bind(this));
+    this.server_nick_el.addEventListener('keypress', this.onKeyPress.bind(this));
   }
   
-  serverAddressKeyPress(evt) {
-    if (evt.keyCode == 13) {
-      this.server_port_el.focus();
-    }
-  }
-  
-  serverPortKeyPress(evt) {
-    if (evt.keyCode == 13) {
-      this.server_nick_el.focus();
-    }
-  }
-  
-  serverNickKeyPress(evt) {
+  onKeyPress(evt) {
     if (evt.keyCode == 13) {
       this.applyConnection(); 
     }
   }
   
   applyConnection() {
+    this.connect.disabled = true;
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
     var server_nick = this.server_nick_el.value;
@@ -119,6 +109,7 @@ class BaseUI {
   }
   
   onKeyPress(evt) {
+    //TODO parse irc commands here
     if (evt.keyCode == 13) {
       var elem = this.elem.querySelector('.input_text')
       this.client.send(hostId, serverName, elem.value);
