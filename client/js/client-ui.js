@@ -154,14 +154,14 @@ class RoomList {
       
       var channel_list = document.createElement('ul');
       for (var channel in client.state_[hostId][server].state.channels) {
-        insertChannel(channel_list, channel);
+        this.insertChannel(channel_list, channel);
       }
       item.appendChild(channel_list);
       this.list.appendChild(item);
 
       // Listen for new channels
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
-        insertChannel(channel_list, channel_joined)
+        this.insertChannel(channel_list, channel_joined)
       }.bind(this, channel_list);
     }
   }
