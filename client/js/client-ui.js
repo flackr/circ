@@ -122,15 +122,24 @@ class RoomList {
   constructor(room_el, initial_rooms) {
     this.room_el = room_el;
     this.list = document.createElement('ul');
-    this.insertRooms(initial_rooms);
+    this.insertRooms(initial_rooms["servers"]);
     this.room_el.appendChild(this.list);
   }
 
   // TODO call this on each update to server/channels  
   insertRooms(room_list) {
-    for(var i = 0; i < room_list.length; i++) {
+    //console.log(room_list.keys());
+    /*
+    room_list.forEach(function(value, key) {
+  console.log(key + " = " + value);
+}, room_list)
+    */
+    for(var key in room_list) {
+       console.log(key); 
+    //}
+    //for(var i = 0; i < room_list.length; i++) {
       var item = document.createElement('li');
-      item.appendChild(document.createTextNode(room_list[i]));
+      item.appendChild(document.createTextNode(room_list[key]));
       item.classList.add('room_item');
       // TODO add click handlers
       this.list.appendChild(item);
@@ -142,4 +151,10 @@ class RoomList {
 new HostConnection(document.querySelector('.host_connection'));
 
 var rooms = ["Hey Listen", "Look", "HEY!"]
-new RoomList(document.querySelector('.rooms'), rooms);
+var serverData = { "hostId" : "id", 
+                   "servers" : { "server_name 1" : { "chanel_name_1": "channel 1",
+                                                   "chanel_name_2": "channel 2" },
+                                 "server_name 2" : { "channel_name_3": "channel 3"}                   
+                               }
+                 };
+new RoomList(document.querySelector('.rooms'), serverData);
