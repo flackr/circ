@@ -1,16 +1,28 @@
 circ.CircClient = function() {
-  
+
+  var CircState = exports.CircState;
+
   function CircClient(server, name) {
     this.addEventTypes(['connection', 'message', 'server']);
     this.session = new circ.ClientSession(server, name);
     this.session.onconnection = this.onConnection_.bind(this);
-    this.state = {};
+    this.state_ = {};
     this.connections_ = {};
     this.hostId_ = 1;
     this.pendingMessages_ = [];
   }
-  
+
   CircClient.prototype = circ.util.extend(circ.util.EventSource.prototype, {
+    state: function() {
+      var stateJson = {};
+      for (var hostId in this.state_) {
+        stateJson[hostId] = {};
+        for (var serverId in this.state_[hostId]) {
+          stateJson[hostId][serverId] = this.state_[hostId][serverId].state
+        }
+      }
+      return stateJson;
+    },
     onConnection_: function(rtc, dataChannel) {
       var hostId = this.hostId_++;
       this.connections_[hostId] = {'rtc': rtc, 'dataChannel': dataChannel};
@@ -31,26 +43,23 @@ circ.CircClient = function() {
     onHostMessage_: function(hostId, evt) {
       var message = JSON.parse(evt.data);
       if (message.type == 'state') {
-        this.state[hostId] = message.state;
+        this.state_[hostId] = {};
+        for (var server in message.state)
+          this.state_[hostId][server] = new CircState(message.state[server]);
         this.dispatchEvent('connection', hostId);
       } else if (message.type == 'connect') {
         // Ignored for now - the server isn't actually connected yet. We'll add
         // it to the list when we confirm it's connected.
         console.log('connect ' + message.data)
+        var server = message.name;
+        this.state_[hostId][server] = new CircState({'nick': message.options.nick});
       } else if (message.type == 'connected') {
-        var server = message.server;
-        this.state[hostId][server] = {};
-        this.dispatchEvent('server', hostId, server);
+        this.dispatchEvent('server', hostId, message.server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
         console.log('> ' + message.command);
       } else if (message.type == 'server') {
-        var cmd = message.data.split(' ', 3);
-        if (cmd[1] == 'JOIN') {
-          // TODO: Add the user specified to the user list if this is an already
-          // connected channel.
-          this.state[hostId][message.server][cmd[2].substring(1)] = {};
-        }
+        this.state_[hostId][message.server].process(message.data);
         this.dispatchEvent('message', hostId, message.server, message.data);
         console.log('< ' + message.data);
       } else if (message.type == 'ack') {
@@ -64,7 +73,7 @@ circ.CircClient = function() {
 
     /**
      * Connect to a new IRC server.
-     * 
+     *
      * @param {number} hostId The host to connect to the IRC server on.
      * @param {string} address The address for the IRC server (e.g. chat.freenode.net)
      * @param {number} port The port number to connect (e.g. 6667).
@@ -116,6 +125,6 @@ circ.CircClient = function() {
       this.connections_[hostId].dataChannel.send(JSON.stringify(data));
     },
   });
-  
+
   return CircClient;
 }()
