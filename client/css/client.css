@@ -56,6 +56,7 @@ html, body {
   font-size: 2.0em;
   padding-left: 10px;
   padding-top: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 .main_panel {
   background: var(--main-bg-color);
@@ -65,11 +66,15 @@ html, body {
   white-space: pre;
 }
 .input_region {
-  background-color: #F00;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .main_input_text {
   width: 100%;
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  font-size: 1.0em;
 }
 
 .header__menu-toggle {
@@ -80,6 +85,13 @@ html, body {
   padding: 0;
   margin: 0;
   color: var(--light-text-color);
+}
+
+.channel_name {
+  position: absolute;
+  left: 48px;
+  top: 10px;
+  font-size: 1.0em;
 }
 
 /* Settings and related screens */
