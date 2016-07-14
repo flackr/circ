@@ -8,7 +8,6 @@ window.serverName = 'irc';
 function transitionToMainUI() {
   document.querySelector('.settings').classList.add('settings_hidden');
   document.querySelector('.main_container').querySelector('.main_input_text').focus();
-  new RoomList(document.querySelector('.rooms'));
 }
 
 class SideNav {
@@ -189,6 +188,7 @@ class HostConnection {
       this.server_dialog.classList.add('server_connection_visible');
       new ServerConnection(document.querySelector('.server_connection'));
     }
+    new RoomList(document.querySelector('.rooms'));
   }
 }
 
