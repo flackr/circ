@@ -47,7 +47,7 @@ constructor () {
     // feature detect
     let isSupported = false;
     try {
-      document.addEventListener('test', null, {get passive () {c 
+      document.addEventListener('test', null, {get passive () {
         isSupported = true;
       }});
     } catch (e) { }
@@ -149,13 +149,13 @@ class HostConnection {
     input_text.addEventListener('keypress', this.onKeyPress.bind(this));
     input_text.focus();
   }
-  
+
   onKeyPress(evt) {
     if (evt.keyCode == 13) {
       this.applyConnection();
     }
   }
-  
+
   applyConnection() {
     this.connect.disabled = true;
     client = new circ.CircClient(
@@ -164,7 +164,7 @@ class HostConnection {
     new BaseUI(document.querySelector('.main_container'), client);
     client.addEventListener('connection', this.onConnection.bind(this));
   }
-  
+
   onConnection(hostId) {
     this.elem.classList.add('host_connection_hidden');
     window.hostId = hostId;
@@ -188,24 +188,24 @@ class ServerConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
-    
+
     this.server_address_el = this.elem.querySelector('.server_address');
     this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
     this.server_address_el.focus();
-  
+
     this.server_port_el = this.elem.querySelector('.server_port');
     this.server_port_el.addEventListener('keypress', this.onKeyPress.bind(this));
-    
+
     this.server_nick_el = this.elem.querySelector('.server_nick');
     this.server_nick_el.addEventListener('keypress', this.onKeyPress.bind(this));
   }
-  
+
   onKeyPress(evt) {
     if (evt.keyCode == 13) {
-      this.applyConnection(); 
+      this.applyConnection();
     }
   }
-  
+
   applyConnection() {
     this.connect.disabled = true;
     var server_address = this.server_address_el.value;
@@ -217,7 +217,7 @@ class ServerConnection {
           // Show main UI.
           this.elem.classList.remove('server_connection_visible');
           transitionToMainUI();
-          // TODO update side panel       
+          // TODO update side panel
         }.bind(this));
   }
 }
@@ -229,13 +229,13 @@ class BaseUI {
     this.client.addEventListener('message', this.onMessage.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
   }
-  
+
   onMessage(host, server, data) {
     // |host| may not be user visible.
     this.elem.querySelector('.main_panel').textContent += server + " " + data + '\n';
     this.elem.querySelector('.main_panel').scrollTop = this.elem.querySelector('.main_panel').scrollHeight;
   }
-  
+
   onKeyPress(evt) {
     //TODO parse irc commands here
     if (evt.keyCode == 13) {
@@ -267,14 +267,14 @@ class RoomList {
     channel_list.appendChild(channel_item);
   }
 
-  // TODO call this on each update to server/channels  
+  // TODO call this on each update to server/channels
   // TODO add click handlers
   insertRooms() {
     for (var server in client.state_[hostId]) {
       var item = document.createElement('li');
       item.appendChild(document.createTextNode(server));
       item.classList.add('room_item');
-      
+
       var channel_list = document.createElement('ul');
       channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
@@ -287,23 +287,23 @@ class RoomList {
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
         this.insertChannel(channel_list, channel_joined)
       }.bind(this, channel_list);
-      
+
       client.state_[hostId][server].onevent = function(channel_target, event) {
         console.log("JR EVENT!");
         var main_panel = document.querySelector('.main_panel');
-/*        
+/*
 data : "llo"
 from : "jonross"
 time : 1468516760742
 type : "PRIVMSG"*/
         var timestamp = new Date(event.time);
         main_panel.textContent += timestamp.toLocaleDateString() + " "
-                                + timestamp.toLocaleTimeString() + " " 
-                                + event.from + ": " 
+                                + timestamp.toLocaleTimeString() + " "
+                                + event.from + ": "
                                 + event.data + '\n';
         main_panel.scrollTop = main_panel.scrollHeight;
       }.bind(this);
-      
+
     }
   }
 }
