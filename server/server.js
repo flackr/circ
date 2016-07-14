@@ -7,12 +7,20 @@ exports.Server = function() {
   var WebSocketServer = require('ws').Server;
   var finalhandler = require('finalhandler');
   var serveStatic = require('serve-static');
+  var OAuth2 = require('google-auth-library').prototype.OAuth2;
 
   var Server = function(options) {
     // TODO(flackr): Load users from disk / database.
     this.users = {};
     this.sessions = {};
     this.nextId_ = 1;
+    this.authenticator = null;
+    if (process.env.AUTH_CLIENT_SECRET) {
+      this.authenticator = new OAuth2('143277396652-uibcos8vorqf1ouls7eom9po0cftjgl8.apps.googleusercontent.com',
+                                      process.env.AUTH_CLIENT_SECRET, '' /* redirect_uri */);
+    }
+    if (!this.authenticator)
+      console.warn('Warning: Running without authentication support');
     options.port = options.port || (options.key ? 443 : 80);
     if (options.key)
       this.webServer_ = https.createServer(options, this.onRequest_.bind(this));
@@ -64,31 +72,55 @@ exports.Server = function() {
     onConnection_: function(websocket) {
       // Origin is of the form 'https://www.lobbyjs.com'
       var origin = websocket.upgradeReq.headers.origin || 'unknown';
-      var parts = websocket.upgradeReq.url.split('/', 3);
+      var parts = websocket.upgradeReq.url.split('/', 2);
       console.log('connection for ' + origin);
-      var user = parts[1];
-      var action = parts[2];
-      if (!user || !action) {
+      var action = parts[1];
+      if (!action) {
         websocket.send(JSON.stringify({'type': 'error', 'error': 404, 'errorText': 'Invalid request URL'}));
         websocket.close();
         return;
       }
-      if (!this.users[user]) {
-        websocket.send(JSON.stringify({'type': 'error', 'error': 404, 'errorText': 'Unknown user ' + user}));
-        console.log('No user ' + user);
-        websocket.close();
-        return;
-      }
-      // TODO(flackr): Authenticate user.
-      if (action == 'connect') {
-        this.connectClient_(websocket, this.users[user]);
-      } else if (action == 'host') {
-        this.createNode_(websocket, this.users[user]);
-      } else {
-        websocket.send(JSON.stringify({'type': 'error', 'error': 404, 'errorText': 'Unrecognized action ' + action}));
-        console.log('Unrecognized action ' + action);
-        websocket.close();
-      }
+      this.authenticate_(websocket, action);
+    },
+
+    authenticate_: function(websocket, action) {
+      // TODO(flackr): Time out the connection if the credentials aren't sent.
+      // The first message should contain the authentication details.
+      var authenticated, continueWithUser;
+      websocket.once('message', function(authTokenId) {
+        if (this.authenticator) {
+          this.authenticator.verifyIdToken(authTokenId, process.env.AUTH_CLIENT_ID, authenticated);
+        } else {
+          // In tests, we let the user be specified directly.
+          continueWithUser(authTokenId);
+        }
+      }.bind(this));
+
+      authenticated = function(err, login) {
+        if (err) {
+          // TODO(flackr): Send an error message.
+          websocket.close();
+          return;
+        }
+        continueWithUser(login.getUserId());
+      }.bind(this);
+
+      continueWithUser = function(user) {
+        this.users[user] = this.users[user] || {
+          // TODO(flackr): Insert name here?
+          'name': user,
+        }
+        // TODO(flackr): Create the user if it doesn't exist.
+        if (action == 'connect') {
+          this.connectClient_(websocket, this.users[user]);
+        } else if (action == 'host') {
+          this.createNode_(websocket, this.users[user]);
+        } else {
+          websocket.send(JSON.stringify({'type': 'error', 'error': 404, 'errorText': 'Unrecognized action ' + action}));
+          console.log('Unrecognized action ' + action);
+          websocket.close();
+        }
+      }.bind(this);
     },
 
     /**
@@ -108,6 +140,7 @@ exports.Server = function() {
 
       var self = this;
       var session = this.sessions[user.name];
+      console.log('Connecting ' + user.name);
 
       if (!session || session.hosts.length == 0) {
         console.log("Client attempted to connect to a user with no hosts.");
@@ -189,7 +222,6 @@ exports.Server = function() {
       };
       session.hostCount++;
 
-      console.log('Created session ' + hostId);
       // Could broadcast to active clients, but this seems like overkill. There's
       // no need for connecting clients to know about newly added hosts.
       websocket.on('message', function(message) {
@@ -231,6 +263,8 @@ exports.Server = function() {
           delete self.sessions[user.name];
         }
       });
+      console.log('Created session ' + hostId);
+      websocket.send(hostId);
     },
 
     /**

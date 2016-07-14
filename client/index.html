@@ -7,6 +7,9 @@
   <script src="js/circ-state.js"></script>
   <script src="js/circ-client.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <meta name="google-signin-client_id" content="143277396652-uibcos8vorqf1ouls7eom9po0cftjgl8.apps.googleusercontent.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <link href="./css/client.css" rel="stylesheet">
 </head>
 <body>
@@ -22,7 +25,7 @@
   </div>
   <aside class="nick_panel">
   </aside>
-  
+
   <aside class="js-side-nav side-nav">
     <nav class="js-side-nav-container side-nav__container">
       <button class="js-menu-hide side-nav__hide material-icons">close</button>
@@ -37,7 +40,9 @@
     <div class="host_connection">
       <div class="header">Host Connection:</div>
       <div class="settings_content">
-        <label class="label_text">Username:</label>
+        <!-- TODO(flackr): Don't show the auth token unless needed for user to run host. -->
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <label class="label_text">Auth Token:</label>
         <input class="input_text" type="text"><br>
         <button class='connect settings_button'>Connect</button>
       </div>

@@ -1,8 +1,9 @@
 window.circ = window.circ || {};
 
-circ.ClientSession = function(server, name) {
+circ.ClientSession = function(server, clientIdToken) {
   this.connectingHosts = 0;
-  this.socket = new WebSocket(server + '/' + name + '/connect')
+  this.clientIdToken_ = clientIdToken;
+  this.socket = new WebSocket(server + '/connect')
   this.hosts = {};
   this.configuration = {
     iceServers: [
@@ -10,10 +11,14 @@ circ.ClientSession = function(server, name) {
     ],
   };
   this.addEventTypes(['connection', 'hosts']);
+  this.socket.addEventListener('open', this.sendAuthToken_.bind(this));
   this.socket.addEventListener('message', this.onServerMessage_.bind(this));
 }
 
 circ.ClientSession.prototype = circ.util.extend(circ.util.EventSource.prototype, {
+  sendAuthToken_: function() {
+    this.socket.send(this.clientIdToken_);
+  },
   onServerMessage_: function(e) {
     var data = JSON.parse(e.data);
     if (data.type == 'hosts') {

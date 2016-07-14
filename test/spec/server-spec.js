@@ -5,6 +5,14 @@ describe('circ.Server', function() {
   var testPort = '1234';
   var serverAddress = 'http://www.example.com';
 
+  function addOneShotEventListener(obj, type, fn) {
+    var listener = function() {
+      obj.removeEventListener(type, listener);
+      fn.apply(null, Array.prototype.slice.call(arguments, 0));
+    };
+    obj.addEventListener(type, listener)
+  }
+
   beforeEach(function() {
     installXMLHttpRequestMock();
     installWebSocketMock();
@@ -31,31 +39,26 @@ describe('circ.Server', function() {
     request.send();
   });
 
-  it("rejects a host for an unknown user", function(done) {
-    var host = new WebSocket('wss://circ-server.com/foobar/host');
-    var receivedError = false;
-    host.addEventListener('message', function(e) {
-      expect(JSON.parse(e.data).type).toBe('error');
-      receivedError = true;
-    });
-    host.addEventListener('close', function() {
-      done();
-    });
-  });
-
   describe("with a user and a couple hosts", function(done) {
     var hosts = [];
 
     beforeEach(function(done) {
-      hosts[0] = new WebSocket('wss://circ-server.com/test/host');
-      hosts[1] = new WebSocket('wss://circ-server.com/test/host');
+      hosts[0] = new WebSocket('wss://circ-server.com/host');
+      hosts[1] = new WebSocket('wss://circ-server.com/host');
       var connected = 0;
       var hostConnected = function() {
-        if (++connected == 2)
+        this.send('test');
+      };
+      var listener = function(e) {
+        if (++connected == 2) {
+          hosts[0].removeEventListener('message', listener);
+          hosts[1].removeEventListener('message', listener);
           done();
+        }
       };
       for (var i = 0; i < 2; i++) {
-        hosts[i].addEventListener('open', hostConnected);
+        hosts[i].addEventListener('open', hostConnected.bind(hosts[i]));
+        addOneShotEventListener(hosts[i], 'message', listener)
       }
       server.users['test'] = {'name': 'test'};
     });
@@ -70,7 +73,10 @@ describe('circ.Server', function() {
       var totalNegotiations = 0;
       var negotiations = [false, false];
       var hostArry;
-      var client = new WebSocket('wss://circ-server.com/test/connect');
+      var client = new WebSocket('wss://circ-server.com/connect');
+      client.addEventListener('open', function(e) {
+        client.send('test');
+      });
       client.addEventListener('message', function(e) {
         var data = JSON.parse(e.data);
         if (data.type == 'hosts') {
