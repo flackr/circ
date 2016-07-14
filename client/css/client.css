@@ -5,7 +5,6 @@
 html, body {
   padding: 0;
   margin: 0;
-  background: #00F;
   font-family: Arial, sans-serif;
   overflow: hidden;
 }
@@ -42,18 +41,12 @@ html, body {
   width: 100%;
 }
 
-.main_container > * {
-  /* TODO: Remove this once side panels can be hidden. */
-  padding-left: 20%;
-  padding-right: 10%;
-}
-
 .header {
   height: 64px;
   background-color: #333;
 }
 .main_panel {
-  background-color: #666;
+  background-color: #FFF;
   overflow-y: scroll;
   flex: 1;
   white-space: pre;
@@ -94,7 +87,7 @@ html, body {
   visibility: visible;
 }
 
-/* SIDE PANELS */
+/* Right Side User List Panel */
 
 .nick_panel {
   position: absolute;
@@ -105,16 +98,8 @@ html, body {
   height: 100%;
   transform: translateX(102%);
 }
-.nick_panel_first_pass {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 10%;
-  background-color: #00F;
-  height: 100%;
-}
 
-/* Trust Me */
+/* Left Side Servers + Channels Panel */
 .side-nav {
   position: fixed;
   left: 0;
