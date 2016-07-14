@@ -287,6 +287,23 @@ class RoomList {
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
         this.insertChannel(channel_list, channel_joined)
       }.bind(this, channel_list);
+      
+      client.state_[hostId][server].onevent = function(channel_target, event) {
+        console.log("JR EVENT!");
+        var main_panel = document.querySelector('.main_panel');
+/*        
+data : "llo"
+from : "jonross"
+time : 1468516760742
+type : "PRIVMSG"*/
+        var timestamp = new Date(event.time);
+        main_panel.textContent += timestamp.toLocaleDateString() + " "
+                                + timestamp.toLocaleTimeString() + " " 
+                                + event.from + ": " 
+                                + event.data + '\n';
+        main_panel.scrollTop = main_panel.scrollHeight;
+      }.bind(this);
+      
     }
   }
 }
