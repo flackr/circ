@@ -56,15 +56,18 @@ exports.CircNode = function() {
           return;
         }
         this.connections_[clientId].dataChannel.send(JSON.stringify({'type': 'ack'}));
+        message.time = Date.now();
         server.send(message.command);
         this.broadcast(message);
+        this.state_[message.server].processOutbound(message.command, message.time);
       } else {
         console.error('Unrecognized message type ' + message.type);
       }
     },
     onServerMessage: function(serverId, data) {
-      this.state_[serverId].process(data);
-      this.broadcast({'type': 'server', 'server': serverId, 'data': data});
+      var timestamp = Date.now();
+      this.state_[serverId].process(data, timestamp);
+      this.broadcast({'type': 'server', 'server': serverId, 'data': data, 'time': timestamp});
     },
     broadcast: function(data) {
       for (var clientId in this.connections_) {

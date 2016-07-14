@@ -57,10 +57,10 @@ circ.CircClient = function() {
         this.dispatchEvent('server', hostId, message.server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
-        this.state_[hostId][message.server].processOutbound(message.command);
+        this.state_[hostId][message.server].processOutbound(message.command, message.time);
         console.log('> ' + message.command);
       } else if (message.type == 'server') {
-        this.state_[hostId][message.server].process(message.data);
+        this.state_[hostId][message.server].process(message.data, message.time);
         this.dispatchEvent('message', hostId, message.server, message.data);
         console.log('< ' + message.data);
       } else if (message.type == 'ack') {
@@ -119,7 +119,7 @@ circ.CircClient = function() {
     send: function(hostId, server, message) {
       return new Promise(function(resolve, reject) {
         this.pendingMessages_.push({'resolve': resolve, 'reject': reject});
-        this.send_(hostId, {'type': 'irc', 'server': server, 'command': message});
+        this.send_(hostId, {'type': 'irc', 'server': server, 'command': message, 'time': 0});
       }.bind(this));
     },
     send_: function(hostId, data) {
