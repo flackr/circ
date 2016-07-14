@@ -78,7 +78,9 @@ describe('circ.CircClient', function() {
       });
 
       it('has the server and channel state', function() {
-        expect(JSON.stringify(client.state()[hostId])).toBe(JSON.stringify({'test server': {'nick': user, 'channels': {'#join': {}}}}));
+        var state = client.state()[hostId]['test server'];
+        expect(state.channels['#join']).toBeDefined();
+        expect(state.nick).toBe(user);
       });
 
       describe('newly connected users', function() {
