@@ -11,18 +11,134 @@ function transitionToMainUI() {
   new RoomList(document.querySelector('.rooms'));
 }
 
-class SlideNav {
-  constructor() {
-    this.nav_panel = document.querySelector('.nav_panel');
- 
-    this.show_nav = document.querySelector('.show_nav');
-    this.show_nav.addEventListener('click', this.showSideNav.bind(this));
+class SideNav {
+constructor () {
+    this.showButtonEl = document.querySelector('.js-menu-show');
+    this.hideButtonEl = document.querySelector('.js-menu-hide');
+    this.sideNavEl = document.querySelector('.js-side-nav');
+    this.sideNavContainerEl = document.querySelector('.js-side-nav-container');
+    // Control whether the container's children can be focused
+    // Set initial state to inert since the drawer is offscreen
+    this.detabinator = new Detabinator(this.sideNavContainerEl);
+    this.detabinator.inert = true;
+
+    this.showSideNav = this.showSideNav.bind(this);
+    this.hideSideNav = this.hideSideNav.bind(this);
+    this.blockClicks = this.blockClicks.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
+    this.onTransitionEnd = this.onTransitionEnd.bind(this);
+    this.update = this.update.bind(this);
+
+    this.startX = 0;
+    this.currentX = 0;
+    this.touchingSideNav = false;
+
+    this.supportsPassive = undefined;
+    this.addEventListeners();
   }
-  
+
+  // apply passive event listening if it's supported
+  applyPassive () {
+    if (this.supportsPassive !== undefined) {
+      return this.supportsPassive ? {passive: true} : false;
+    }
+    // feature detect
+    let isSupported = false;
+    try {
+      document.addEventListener('test', null, {get passive () {c 
+        isSupported = true;
+      }});
+    } catch (e) { }
+    this.supportsPassive = isSupported;
+    return this.applyPassive();
+  }
+
+  addEventListeners () {
+    this.showButtonEl.addEventListener('click', this.showSideNav);
+    this.hideButtonEl.addEventListener('click', this.hideSideNav);
+    this.sideNavEl.addEventListener('click', this.hideSideNav);
+    this.sideNavContainerEl.addEventListener('click', this.blockClicks);
+
+    this.sideNavEl.addEventListener('touchstart', this.onTouchStart, this.applyPassive());
+    this.sideNavEl.addEventListener('touchmove', this.onTouchMove, this.applyPassive());
+    this.sideNavEl.addEventListener('touchend', this.onTouchEnd);
+  }
+
+  onTouchStart (evt) {
+    if (!this.sideNavEl.classList.contains('side-nav--visible'))
+      return;
+
+    this.startX = evt.touches[0].pageX;
+    this.currentX = this.startX;
+
+    this.touchingSideNav = true;
+    requestAnimationFrame(this.update);
+  }
+
+  onTouchMove (evt) {
+    if (!this.touchingSideNav)
+      return;
+
+    this.currentX = evt.touches[0].pageX;
+    const translateX = Math.min(0, this.currentX - this.startX);
+
+    if (translateX < 0) {
+      evt.preventDefault();
+    }
+  }
+
+  onTouchEnd (evt) {
+    if (!this.touchingSideNav)
+      return;
+
+    this.touchingSideNav = false;
+
+    const translateX = Math.min(0, this.currentX - this.startX);
+    this.sideNavContainerEl.style.transform = '';
+
+    if (translateX < 0) {
+      this.hideSideNav();
+    }
+  }
+
+  update () {
+    if (!this.touchingSideNav)
+      return;
+
+    requestAnimationFrame(this.update);
+
+    const translateX = Math.min(0, this.currentX - this.startX);
+    this.sideNavContainerEl.style.transform = `translateX(${translateX}px)`;
+  }
+
+  blockClicks (evt) {
+    evt.stopPropagation();
+  }
+
+  onTransitionEnd (evt) {
+    this.sideNavEl.classList.remove('side-nav--animatable');
+    this.sideNavEl.removeEventListener('transitionend', this.onTransitionEnd);
+  }
+
   showSideNav () {
-    this.nav_panel.classList.add('nav_panel_visible'); 
+    this.sideNavEl.classList.add('side-nav--animatable');
+    this.sideNavEl.classList.add('side-nav--visible');
+    this.detabinator.inert = false;
+    this.sideNavEl.addEventListener('transitionend', this.onTransitionEnd);
+  }
+
+  hideSideNav () {
+    this.sideNavEl.classList.add('side-nav--animatable');
+    this.sideNavEl.classList.remove('side-nav--visible');
+    this.detabinator.inert = true;
+    this.sideNavEl.addEventListener('transitionend', this.onTransitionEnd);
   }
 }
+
+
+var side_nav = new SideNav();
 
 class HostConnection {
   constructor(elem) {
@@ -138,9 +254,16 @@ class RoomList {
     this.room_el.appendChild(this.list);
   }
 
+  switchChannel(channel) {
+    //TODO update scroll region with history for channel
+    document.querySelector('.channel_name').textContent = channel;
+    side_nav.hideSideNav();
+  }
+
   insertChannel(channel_list, channel) {
     var channel_item = document.createElement('li');
     channel_item.appendChild(document.createTextNode(channel));
+    channel_item.addEventListener('click', this.switchChannel.bind(this, channel));
     channel_list.appendChild(channel_item);
   }
 
@@ -153,6 +276,7 @@ class RoomList {
       item.classList.add('room_item');
       
       var channel_list = document.createElement('ul');
+      channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
         this.insertChannel(channel_list, channel);
       }
