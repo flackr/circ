@@ -2,9 +2,11 @@
   --primary-color: #5E35B1;
   --secondary-color: #311B92;
   --accent-color: #FFFF00;
+  --accent-color-secondary: #FFFF8D;
   --main-bg-color: #FAFAFA;
   --text-color: rgba(0,0,0,.87);
   --light-text-color: #FFFFFF;
+  --light-text-color-disabled: rgba(1,1,1,.38);
 }
 
 * {
@@ -122,6 +124,11 @@ html, body {
   border-radius: 25px;
   border-color: var(--secondary-color);
   font-size: 0.75em;
+}
+
+.settings_button:disabled {
+  background: var(--accent-color-secondary);
+  color: var(--light-text-color-disabled);
 }
 
 .host_connection_hidden {
