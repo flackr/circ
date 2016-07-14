@@ -37,6 +37,15 @@ constructor () {
 
     this.supportsPassive = undefined;
     this.addEventListeners();
+    
+    document.querySelector('.join_server').addEventListener('click', this.joinServer.bind(this));
+  }
+
+  joinServer() {
+    this.hideSideNav();
+    document.querySelector('.settings').classList.remove('.settings_hidden'); 
+    document.querySelector('.server_connection').classList.add('server_connection_visible');
+    new ServerConnection(document.querySelector('.server_connection')); 
   }
 
   // apply passive event listening if it's supported
