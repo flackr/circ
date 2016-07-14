@@ -252,18 +252,43 @@ class RoomList {
     this.list = document.createElement('ul');
     this.insertRooms();
     this.room_el.appendChild(this.list);
+    this.current_channel = '';
+  }
+  parseEvent(event) {
+    var main_panel = document.querySelector('.main_panel');
+    var timestamp = new Date(event.time);
+    main_panel.textContent += timestamp.toLocaleDateString() + " "
+                            + timestamp.toLocaleTimeString() + " " 
+                            + event.from + ": " 
+                            + event.data + '\n';
+    // TODO don't scroll if the user has manually scrolled
+    main_panel.scrollTop = main_panel.scrollHeight;
   }
 
-  switchChannel(channel) {
+  switchChannel(server, channel) {
     //TODO update scroll region with history for channel
     document.querySelector('.channel_name').textContent = channel;
+    this.current_channel = channel;
     side_nav.hideSideNav();
+    document.querySelector('.main_panel').textContent='';
+    
+    for (var channels in client.state_[hostId][server].state.channels) {
+      if (channels === this.current_channel) {
+        console.log("JR current channel on switch");
+        var events = client.state_[hostId][server].state.channels[channels].events;
+        for (var i=0; i < events.length; ++i) {
+          console.log("JR insert this event");
+          this.parseEvent(events[i]);
+        }
+      }
+      
+    }
   }
 
-  insertChannel(channel_list, channel) {
+  insertChannel(server, channel_list, channel) {
     var channel_item = document.createElement('li');
     channel_item.appendChild(document.createTextNode(channel));
-    channel_item.addEventListener('click', this.switchChannel.bind(this, channel));
+    channel_item.addEventListener('click', this.switchChannel.bind(this, server, channel));
     channel_list.appendChild(channel_item);
   }
 
@@ -278,30 +303,20 @@ class RoomList {
       var channel_list = document.createElement('ul');
       channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
-        this.insertChannel(channel_list, channel);
+        this.insertChannel(server, channel_list, channel);
       }
       item.appendChild(channel_list);
       this.list.appendChild(item);
 
       // Listen for new channels
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
-        this.insertChannel(channel_list, channel_joined)
+        this.insertChannel(server, channel_list, channel_joined)
       }.bind(this, channel_list);
       
       client.state_[hostId][server].onevent = function(channel_target, event) {
-        console.log("JR EVENT!");
-        var main_panel = document.querySelector('.main_panel');
-/*        
-data : "llo"
-from : "jonross"
-time : 1468516760742
-type : "PRIVMSG"*/
-        var timestamp = new Date(event.time);
-        main_panel.textContent += timestamp.toLocaleDateString() + " "
-                                + timestamp.toLocaleTimeString() + " " 
-                                + event.from + ": " 
-                                + event.data + '\n';
-        main_panel.scrollTop = main_panel.scrollHeight;
+        if (channel_target === this.current_channel) {
+          this.parseEvent(event);
+        }
       }.bind(this);
       
     }
