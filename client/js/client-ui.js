@@ -226,14 +226,7 @@ class BaseUI {
   constructor(elem, client) {
     this.elem = elem;
     this.client = client;
-    this.client.addEventListener('message', this.onMessage.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
-  }
-  
-  onMessage(host, server, data) {
-    // |host| may not be user visible.
-    this.elem.querySelector('.main_panel').textContent += server + " " + data + '\n';
-    this.elem.querySelector('.main_panel').scrollTop = this.elem.querySelector('.main_panel').scrollHeight;
   }
   
   onKeyPress(evt) {
@@ -289,10 +282,8 @@ class RoomList {
     
     for (var channels in client.state_[hostId][server].state.channels) {
       if (channels === this.current_channel) {
-        console.log("JR current channel on switch");
         var events = client.state_[hostId][server].state.channels[channels].events;
         for (var i=0; i < events.length; ++i) {
-          console.log("JR insert this event");
           this.parseEvent(events[i]);
         }
       }
