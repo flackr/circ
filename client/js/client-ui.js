@@ -257,10 +257,22 @@ class RoomList {
   parseEvent(event) {
     var main_panel = document.querySelector('.main_panel');
     var timestamp = new Date(event.time);
-    main_panel.textContent += timestamp.toLocaleDateString() + " "
+    
+    var event_message = document.createElement('div');
+    event_message.classList.add('event_message');
+    var event_header = document.createElement('div');
+    event_header.textContent = timestamp.toLocaleDateString() + " "
                             + timestamp.toLocaleTimeString() + " " 
-                            + event.from + ": " 
-                            + event.data + '\n';
+                            + event.from + ": ";
+    event_header.classList.add('event_header');
+    var event_content = document.createElement('div');
+    event_content.textContent = event.data + '\n';
+    event_content.classList.add('event_content');
+    
+    event_message.appendChild(event_header);
+    event_message.appendChild(event_content);
+    main_panel.appendChild(event_message);
+    
     // TODO don't scroll if the user has manually scrolled
     main_panel.scrollTop = main_panel.scrollHeight;
   }
@@ -270,7 +282,10 @@ class RoomList {
     document.querySelector('.channel_name').textContent = channel;
     this.current_channel = channel;
     side_nav.hideSideNav();
-    document.querySelector('.main_panel').textContent='';
+    var main_panel = document.querySelector('.main_panel').textContent='';
+    while (main_panel.firstChild) {
+      main_panel.removeChild(main_panel.firstChild);
+    }
     
     for (var channels in client.state_[hostId][server].state.channels) {
       if (channels === this.current_channel) {

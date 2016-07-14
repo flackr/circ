@@ -5,6 +5,7 @@
   --accent-color-secondary: #FFFF8D;
   --main-bg-color: #FAFAFA;
   --text-color: rgba(0,0,0,.87);
+  --secondary-text-color: rgba(0,0,0,.7);
   --light-text-color: #FFFFFF;
   --light-text-color-disabled: rgba(1,1,1,.38);
 }
@@ -41,6 +42,8 @@ html, body {
   font-size: 1.0em;
 }
 
+
+
 /* Main Content */
 
 .main_container {
@@ -66,7 +69,30 @@ html, body {
   overflow-y: scroll;
   flex: 1;
   white-space: pre;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
+
+.event_message {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+}
+
+.event_header {
+  color: var(--secondary-text-color);
+  font-size: 1.0em;
+}
+
+.event_content {
+  color: var(--text-color);
+  font-size: 1.5em;
+}
+
 .input_region {
   margin-left: 10px;
   margin-right: 10px;
