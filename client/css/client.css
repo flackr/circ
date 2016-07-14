@@ -1,0 +1,262 @@
+:root {
+  --primary-color: #5E35B1;
+  --secondary-color: #311B92;
+  --accent-color: #FFFF00;
+  --accent-color-secondary: #FFFF8D;
+  --main-bg-color: #FAFAFA;
+  --text-color: rgba(0,0,0,.87);
+  --light-text-color: #FFFFFF;
+  --light-text-color-disabled: rgba(1,1,1,.38);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* General Styles */
+
+.horizontal_fields {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.label_text {
+  color: var(--text-color);
+  margin-bottom: 10px;
+  font-size: 1.5em;
+}
+
+.input_text {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.0em;
+}
+
+/* Main Content */
+
+.main_container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.header {
+  height: 64px;
+  background: var(--primary-color);
+  color: var(--light-text-color);
+  font-size: 2.0em;
+  padding-left: 10px;
+  padding-top: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+.main_panel {
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  overflow-y: scroll;
+  flex: 1;
+  white-space: pre;
+}
+.input_region {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.main_input_text {
+  width: 100%;
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  font-size: 1.0em;
+}
+
+.header__menu-toggle {
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  color: var(--light-text-color);
+}
+
+.channel_name {
+  position: absolute;
+  left: 48px;
+  top: 10px;
+  font-size: 1.0em;
+}
+
+/* Settings and related screens */
+
+.settings {
+  position: absolute;
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  height: 100%;
+  width: 100%;
+}
+
+.settings_hidden {
+  visibility: hidden;
+}
+
+.settings_content {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+.settings_button {
+  background: var(--accent-color);
+  color: var(--text-color);
+  border: 1px solid;
+  border-radius: 25px;
+  border-color: var(--secondary-color);
+  font-size: 0.75em;
+}
+
+.settings_button:disabled {
+  background: var(--accent-color-secondary);
+  color: var(--light-text-color-disabled);
+}
+
+.host_connection_hidden {
+  visibility: hidden;
+}
+
+.server_connection {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  visibility: hidden;
+}
+
+.server_connection_visible {
+  visibility: visible;
+}
+
+/* Right Side User List Panel */
+
+.nick_panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 90%;
+  background-color: #00F;
+  height: 100%;
+  transform: translateX(102%);
+  visibility: hidden;
+}
+
+/* Left Side Servers + Channels Panel */
+.side-nav {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.side-nav--visible {
+  pointer-events: auto;
+}
+
+.side-nav::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.7;
+  will-change: opacity;
+  transition: opacity 0.3s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav__container {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  background: #FFF;
+  height: 100%;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
+  transform: translateX(-102%);
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.side-nav--animatable .side-nav__container {
+  transition: transform 0.13s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav--visible.side-nav--animatable .side-nav__container {
+  transition: transform 0.33s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav--visible::before {
+  background: rgba(0,0,0,0.4);
+  opacity: 1;
+}
+
+.side-nav--visible .side-nav__container {
+  transform: none;
+}
+
+.side-nav__hide {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  background: none;
+  border: none;
+  color: var(--light-text-color);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+}
+
+.side-nav__header {
+  height: 200px;
+  background: var(--secondary-color);
+  color: var(--light-text-color);
+  display: flex;
+  padding: 16px;
+  align-items: flex-end;
+  font-size: 24px;
+}
+
+.side-nav__content {
+  padding-top: 32px;
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.side-nav__content li {
+  height: 48px;
+  line-height: 48px;
+  padding: 0 16px;
+}
+
+.side-nav__content li:hover {
+  background: #CCC;
+}

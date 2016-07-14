@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CIRC</title>
+  <script src="js/util.js"></script>
+  <script src="js/connection.js"></script>
+  <script src="js/circ-state.js"></script>
+  <script src="js/circ-client.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="./css/client.css" rel="stylesheet">
+</head>
+<body>
+  <div class="main_container">
+    <div class="header">
+      <button class="js-menu-show header__menu-toggle material-icons">menu</button>
+      <div class="channel_name"></div>
+      <div class="menu">
+      </div>
+    </div>
+    <div class="main_panel"></div>
+    <div class="input_region"><input class="main_input_text" type="text"></div>
+  </div>
+  <aside class="nick_panel">
+  </aside>
+  
+  <aside class="js-side-nav side-nav">
+    <nav class="js-side-nav-container side-nav__container">
+      <button class="js-menu-hide side-nav__hide material-icons">close</button>
+      <header class="side-nav__header">
+        Rooms
+      </header>
+      <div class="rooms"></div>
+    </nav>
+  </aside>
+
+  <div class="settings">
+    <div class="host_connection">
+      <div class="header">Host Connection:</div>
+      <div class="settings_content">
+        <label class="label_text">Username:</label>
+        <input class="input_text" type="text"><br>
+        <button class='connect settings_button'>Connect</button>
+      </div>
+    </div>
+    <div class="server_connection">
+      <div class="header">Server Connection:</div>
+      <div class="settings_content">
+        <label class="label_text">Address:</label>
+        <input type="text" class="input_text server_address"><br>
+        <label class="label_text">Port:</label>
+        <input type="text" class="input_text server_port"><br>
+        <label class="label_text">Nick:</label>
+        <input type="text" class="input_text server_nick"><br>
+        <button class="connect settings_button">Add server</button>
+      </div>
+    </div>
+    <div class="register">
+    </div>
+  </div>
+
+  <script src='js/detabinator.js'></script>
+  <script src="js/client-ui.js"></script>
+</body>
+</html>
