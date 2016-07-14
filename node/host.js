@@ -10,11 +10,12 @@ var RTCSessionDescription = webrtc.RTCSessionDescription;
 var RTCIceCandidate       = webrtc.RTCIceCandidate;
 
 exports.Host = function() {
-  function Host(server, user) {
-    this.user_ = user;
-    this.socket = new WebSocket(server + '/' + user + '/host');
+  function Host(server, clientIdToken) {
+    this.clientIdToken_ = clientIdToken;
+    this.socket = new WebSocket(server + '/host');
     this.socket.addEventListener('open', this.onServerConnected_.bind(this));
     this.socket.addEventListener('message', this.onServerMessage_.bind(this));
+    this.connected = false;
     this.connectingClientCount = 0;
     this.connectingClients = {};
     this.clients = [];
@@ -31,10 +32,15 @@ exports.Host = function() {
     onconnecting: function(clientCount) {},
     
     onServerConnected_: function(e) {
-      console.log('Connected to server as ' + this.user_);
-      this.onopen();
+      this.socket.send(this.clientIdToken_);
     },
     onServerMessage_: function(e) {
+      if (!this.connected) {
+        this.connected = true;
+        this.onopen();
+        console.log('Host connected');
+        return;
+      }
       var data = JSON.parse(e.data);
       if (data.type == "offer") {
         this.connectingClientCount++;

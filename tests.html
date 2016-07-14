@@ -27,6 +27,7 @@
   <script src="test/mocks/irc-server.js"></script>
 
   <!-- Circ NodeJS packages are defined after each one is loaded so they can include each other. -->
+  <script>window.process = {env:  {}};</script>
   <script src="server/server.js"></script>
   <script>packages['./server.js'] =  {'Server': exports.Server};</script>
   <script src="node/host.js"></script>

@@ -36,6 +36,8 @@ circ.util.EventSource.prototype = {
   addEventListener: function(type, callback) {
     if (!this.listeners_[type])
       throw new Error("cannot add event listener for unknown type " + type);
+    if (!callback)
+      throw new Error("cannot add undefined callback");
     this.listeners_[type].push(callback);
   },
 
