@@ -54,6 +54,11 @@ html, body {
   width: 100%;
 }
 
+.header_title {
+  margin-left: 20px;
+  font-size: 1.0em;
+}
+
 /* Main Content */
 
 .main_container {
@@ -115,13 +120,6 @@ html, body {
   padding: 0;
   margin: 0;
   color: var(--light-text-color);
-}
-
-.channel_name {
-  position: absolute;
-  left: 48px;
-  top: 10px;
-  font-size: 1.0em;
 }
 
 /* Settings and related screens */

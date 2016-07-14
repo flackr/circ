@@ -37,15 +37,15 @@ constructor () {
 
     this.supportsPassive = undefined;
     this.addEventListeners();
-    
+
     document.querySelector('.join_server').addEventListener('click', this.joinServer.bind(this));
   }
 
   joinServer() {
     this.hideSideNav();
-    document.querySelector('.settings').classList.remove('.settings_hidden'); 
+    document.querySelector('.settings').classList.remove('.settings_hidden');
     document.querySelector('.server_connection').classList.add('server_connection_visible');
-    new ServerConnection(document.querySelector('.server_connection')); 
+    new ServerConnection(document.querySelector('.server_connection'));
   }
 
   // apply passive event listening if it's supported
@@ -56,7 +56,7 @@ constructor () {
     // feature detect
     let isSupported = false;
     try {
-      document.addEventListener('test', null, {get passive () {c 
+      document.addEventListener('test', null, {get passive () {c
         isSupported = true;
       }});
     } catch (e) { }
@@ -158,13 +158,13 @@ class HostConnection {
     input_text.addEventListener('keypress', this.onKeyPress.bind(this));
     input_text.focus();
   }
-  
+
   onKeyPress(evt) {
     if (evt.keyCode == 13) {
       this.applyConnection();
     }
   }
-  
+
   applyConnection() {
     this.connect.disabled = true;
     client = new circ.CircClient(
@@ -173,7 +173,7 @@ class HostConnection {
     new BaseUI(document.querySelector('.main_container'), client);
     client.addEventListener('connection', this.onConnection.bind(this));
   }
-  
+
   onConnection(hostId) {
     this.elem.classList.add('host_connection_hidden');
     window.hostId = hostId;
@@ -197,24 +197,31 @@ class ServerConnection {
     this.elem = elem;
     this.connect = this.elem.querySelector('.connect');
     this.connect.addEventListener('click', this.applyConnection.bind(this));
-    
+
     this.server_address_el = this.elem.querySelector('.server_address');
     this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
     this.server_address_el.focus();
-  
+
     this.server_port_el = this.elem.querySelector('.server_port');
     this.server_port_el.addEventListener('keypress', this.onKeyPress.bind(this));
-    
+
     this.server_nick_el = this.elem.querySelector('.server_nick');
     this.server_nick_el.addEventListener('keypress', this.onKeyPress.bind(this));
+
+    this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
   }
-  
+
+  close() {
+    this.elem.classList.remove('server_connection_visible');
+    transitionToMainUI();
+  }
+
   onKeyPress(evt) {
     if (evt.keyCode == 13) {
-      this.applyConnection(); 
+      this.applyConnection();
     }
   }
-  
+
   applyConnection() {
     this.connect.disabled = true;
     var server_address = this.server_address_el.value;
@@ -224,9 +231,7 @@ class ServerConnection {
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
-          this.elem.classList.remove('server_connection_visible');
-          transitionToMainUI();
-          // TODO update side panel       
+          this.close();
         }.bind(this));
   }
 }
@@ -237,7 +242,7 @@ class BaseUI {
     this.client = client;
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
   }
-  
+
   onKeyPress(evt) {
     //TODO parse irc commands here
     if (evt.keyCode == 13) {
@@ -259,22 +264,22 @@ class RoomList {
   parseEvent(event) {
     var main_panel = document.querySelector('.main_panel');
     var timestamp = new Date(event.time);
-    
+
     var event_message = document.createElement('div');
     event_message.classList.add('horizontal_row');
     var event_header = document.createElement('div');
     event_header.textContent = timestamp.toLocaleDateString() + " "
-                            + timestamp.toLocaleTimeString() + " " 
+                            + timestamp.toLocaleTimeString() + " "
                             + event.from + ": ";
     event_header.classList.add('event_header');
     var event_content = document.createElement('div');
     event_content.textContent = event.data + '\n';
     event_content.classList.add('event_content');
-    
+
     event_message.appendChild(event_header);
     event_message.appendChild(event_content);
     main_panel.appendChild(event_message);
-    
+
     // TODO don't scroll if the user has manually scrolled
     main_panel.scrollTop = main_panel.scrollHeight;
   }
@@ -288,7 +293,7 @@ class RoomList {
     while (main_panel.firstChild) {
       main_panel.removeChild(main_panel.firstChild);
     }
-    
+
     for (var channels in client.state_[hostId][server].state.channels) {
       if (channels === this.current_channel) {
         var events = client.state_[hostId][server].state.channels[channels].events;
@@ -296,7 +301,7 @@ class RoomList {
           this.parseEvent(events[i]);
         }
       }
-      
+
     }
   }
 
@@ -315,7 +320,7 @@ class RoomList {
       server_node.classList.add('server_name');
       item.appendChild(server_node);
       item.classList.add('room_item');
-      
+
       var channel_list = document.createElement('ul');
       channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
@@ -336,7 +341,7 @@ class RoomList {
       join_button.appendChild(join_icon);
       join_button.appendChild(join_text);
       channel_list.appendChild(join_button);
-      
+
       item.appendChild(channel_list);
       this.list.appendChild(item);
 
@@ -344,13 +349,13 @@ class RoomList {
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
         this.insertChannel(server, channel_list, channel_joined)
       }.bind(this, channel_list);
-      
+
       client.state_[hostId][server].onevent = function(channel_target, event) {
         if (channel_target === this.current_channel) {
           this.parseEvent(event);
         }
       }.bind(this);
-      
+
     }
   }
 }
