@@ -96,35 +96,6 @@ html, body {
 
 /* SIDE PANELS */
 
-.nav_panel {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 90%;
-  background-color: #0F0;
-  height: 100%;
-  transform: translateX(-102%);
-}
-.nav_panel_first_pass {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 20%;
-  background-color: #0F0;
-  height: 100%;
-}
-.nav_panel_visible {
-  transform: translateX(0);
-}
-
-.room_item {
-  background-color: #F00;
-}
-
-.channel_list {
-  padding-left: 10px;
-}
-
 .nick_panel {
   position: absolute;
   right: 0;
@@ -141,4 +112,106 @@ html, body {
   width: 10%;
   background-color: #00F;
   height: 100%;
+}
+
+/* Trust Me */
+.side-nav {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.side-nav--visible {
+  pointer-events: auto;
+}
+
+.side-nav::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  opacity: 0.7;
+  will-change: opacity;
+  transition: opacity 0.3s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav__container {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  background: #FFF;
+  height: 100%;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.4);
+  transform: translateX(-102%);
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.side-nav--animatable .side-nav__container {
+  transition: transform 0.13s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav--visible.side-nav--animatable .side-nav__container {
+  transition: transform 0.33s cubic-bezier(0,0,0.3,1);
+}
+
+.side-nav--visible::before {
+  opacity: 1;
+}
+
+.side-nav--visible .side-nav__container {
+  transform: none;
+}
+
+.side-nav__hide {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  background: none;
+  border: none;
+  color: #FFF;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+}
+
+.side-nav__header {
+  height: 200px;
+  background: #EA2663;
+  color: #FFF;
+  display: flex;
+  padding: 16px;
+  align-items: flex-end;
+  font-size: 24px;
+}
+
+.side-nav__content {
+  padding-top: 32px;
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.side-nav__content li {
+  height: 48px;
+  line-height: 48px;
+  padding: 0 16px;
+}
+
+.side-nav__content li:hover {
+  background: #CCC;
 }

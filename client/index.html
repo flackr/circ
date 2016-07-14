@@ -11,24 +11,28 @@
 <body>
   <div class="main_container">
     <div class="header">
-      TEST
-      <!--
-      <button class="show_nav">Hey Listen!</button>
-        -->
+      <button class="show_nav">Nav Menu</button>
+      <div class="channel_name"></div>
+      <button class="js-menu-show header__menu-toggle material-icons">menu</button>
       <div class="menu">
       </div>
     </div>
     <div class="main_panel"></div>
     <div class="input_region"><input class="main_input_text" type="text"></div>
   </div>
-  <aside class="nav_panel_first_pass">
-    <div class="header">
-      Rooms
-    </div>
-    <div class="rooms"></div>
-  </aside>
   <aside class="nick_panel_first_pass">
   </aside>
+  
+  <aside class="js-side-nav side-nav">
+    <nav class="js-side-nav-container side-nav__container">
+      <button class="js-menu-hide side-nav__hide material-icons">close</button>
+      <header class="side-nav__header">
+        Rooms
+      </header>
+      <div class="rooms"></div>
+    </nav>
+  </aside>
+
   <div class="settings">
     <div class="host_connection">
       <div class="header">Host Connection:</div>
@@ -46,6 +50,7 @@
     </div>
   </div>
 
+  <script src='js/detabinator.js'></script>
   <script src="js/client-ui.js"></script>
 </body>
 </html>
