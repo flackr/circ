@@ -252,7 +252,7 @@ class RoomList {
     var timestamp = new Date(event.time);
     
     var event_message = document.createElement('div');
-    event_message.classList.add('event_message');
+    event_message.classList.add('horizontal_row');
     var event_header = document.createElement('div');
     event_header.textContent = timestamp.toLocaleDateString() + " "
                             + timestamp.toLocaleTimeString() + " " 
@@ -295,22 +295,39 @@ class RoomList {
     var channel_item = document.createElement('li');
     channel_item.appendChild(document.createTextNode(channel));
     channel_item.addEventListener('click', this.switchChannel.bind(this, server, channel));
-    channel_list.appendChild(channel_item);
+    channel_list.insertBefore(channel_item, channel_list.lastChild);
   }
 
-  // TODO call this on each update to server/channels  
-  // TODO add click handlers
   insertRooms() {
     for (var server in client.state_[hostId]) {
       var item = document.createElement('li');
-      item.appendChild(document.createTextNode(server));
+      var server_node = document.createElement('div');
+      server_node.textContent = server;
+      server_node.classList.add('server_name');
+      item.appendChild(server_node);
       item.classList.add('room_item');
       
       var channel_list = document.createElement('ul');
       channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
-        this.insertChannel(server, channel_list, channel);
+        var channel_item = document.createElement('li');
+        channel_item.appendChild(document.createTextNode(channel));
+        channel_item.addEventListener('click', this.switchChannel.bind(this, server, channel));
+        channel_list.appendChild(channel_item);
       }
+      var join_button = document.createElement('li');
+      join_button.classList.add('horizontal_row');
+      var join_icon = document.createElement('div');
+      join_icon.textContent = "add";
+      join_icon.classList.add('material-icons');
+      join_icon.classList.add('room-list-icons');
+      var join_text = document.createElement('div');
+      join_text.classList.add('side-nav-labels')
+      join_text.textContent = "Join Channel";
+      join_button.appendChild(join_icon);
+      join_button.appendChild(join_text);
+      channel_list.appendChild(join_button);
+      
       item.appendChild(channel_list);
       this.list.appendChild(item);
 
