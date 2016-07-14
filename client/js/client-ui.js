@@ -8,7 +8,6 @@ window.serverName = 'irc';
 function transitionToMainUI() {
   document.querySelector('.settings').classList.add('settings_hidden');
   document.querySelector('.main_container').querySelector('.main_input_text').focus();
-  new RoomList(document.querySelector('.rooms'));
 }
 
 class SideNav {
@@ -37,6 +36,15 @@ constructor () {
 
     this.supportsPassive = undefined;
     this.addEventListeners();
+
+    document.querySelector('.join_server').addEventListener('click', this.joinServer.bind(this));
+  }
+
+  joinServer() {
+    this.hideSideNav();
+    document.querySelector('.settings').classList.remove('.settings_hidden');
+    document.querySelector('.server_connection').classList.add('server_connection_visible');
+    new ServerConnection(document.querySelector('.server_connection'));
   }
 
   // apply passive event listening if it's supported
@@ -180,6 +188,7 @@ class HostConnection {
       this.server_dialog.classList.add('server_connection_visible');
       new ServerConnection(document.querySelector('.server_connection'));
     }
+    new RoomList(document.querySelector('.rooms'));
   }
 }
 
@@ -198,6 +207,13 @@ class ServerConnection {
 
     this.server_nick_el = this.elem.querySelector('.server_nick');
     this.server_nick_el.addEventListener('keypress', this.onKeyPress.bind(this));
+
+    this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
+  }
+
+  close() {
+    this.elem.classList.remove('server_connection_visible');
+    transitionToMainUI();
   }
 
   onKeyPress(evt) {
@@ -215,9 +231,7 @@ class ServerConnection {
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
-          this.elem.classList.remove('server_connection_visible');
-          transitionToMainUI();
-          // TODO update side panel
+          this.close();
         }.bind(this));
   }
 }
@@ -226,14 +240,7 @@ class BaseUI {
   constructor(elem, client) {
     this.elem = elem;
     this.client = client;
-    this.client.addEventListener('message', this.onMessage.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
-  }
-
-  onMessage(host, server, data) {
-    // |host| may not be user visible.
-    this.elem.querySelector('.main_panel').textContent += server + " " + data + '\n';
-    this.elem.querySelector('.main_panel').scrollTop = this.elem.querySelector('.main_panel').scrollHeight;
   }
 
   onKeyPress(evt) {
@@ -252,58 +259,102 @@ class RoomList {
     this.list = document.createElement('ul');
     this.insertRooms();
     this.room_el.appendChild(this.list);
+    this.current_channel = '';
+  }
+  parseEvent(event) {
+    var main_panel = document.querySelector('.main_panel');
+    var timestamp = new Date(event.time);
+
+    var event_message = document.createElement('div');
+    event_message.classList.add('horizontal_row');
+    var event_header = document.createElement('div');
+    event_header.textContent = timestamp.toLocaleDateString() + " "
+                            + timestamp.toLocaleTimeString() + " "
+                            + event.from + ": ";
+    event_header.classList.add('event_header');
+    var event_content = document.createElement('div');
+    event_content.textContent = event.data + '\n';
+    event_content.classList.add('event_content');
+
+    event_message.appendChild(event_header);
+    event_message.appendChild(event_content);
+    main_panel.appendChild(event_message);
+
+    // TODO don't scroll if the user has manually scrolled
+    main_panel.scrollTop = main_panel.scrollHeight;
   }
 
-  switchChannel(channel) {
+  switchChannel(server, channel) {
     //TODO update scroll region with history for channel
     document.querySelector('.channel_name').textContent = channel;
+    this.current_channel = channel;
     side_nav.hideSideNav();
+    var main_panel = document.querySelector('.main_panel').textContent='';
+    while (main_panel.firstChild) {
+      main_panel.removeChild(main_panel.firstChild);
+    }
+
+    for (var channels in client.state_[hostId][server].state.channels) {
+      if (channels === this.current_channel) {
+        var events = client.state_[hostId][server].state.channels[channels].events;
+        for (var i=0; i < events.length; ++i) {
+          this.parseEvent(events[i]);
+        }
+      }
+
+    }
   }
 
-  insertChannel(channel_list, channel) {
+  insertChannel(server, channel_list, channel) {
     var channel_item = document.createElement('li');
     channel_item.appendChild(document.createTextNode(channel));
-    channel_item.addEventListener('click', this.switchChannel.bind(this, channel));
-    channel_list.appendChild(channel_item);
+    channel_item.addEventListener('click', this.switchChannel.bind(this, server, channel));
+    channel_list.insertBefore(channel_item, channel_list.lastChild);
   }
 
-  // TODO call this on each update to server/channels
-  // TODO add click handlers
   insertRooms() {
     for (var server in client.state_[hostId]) {
       var item = document.createElement('li');
-      item.appendChild(document.createTextNode(server));
+      var server_node = document.createElement('div');
+      server_node.textContent = server;
+      server_node.classList.add('server_name');
+      item.appendChild(server_node);
       item.classList.add('room_item');
 
       var channel_list = document.createElement('ul');
       channel_list.classList.add('side-nav__content');
       for (var channel in client.state_[hostId][server].state.channels) {
-        this.insertChannel(channel_list, channel);
+        var channel_item = document.createElement('li');
+        channel_item.appendChild(document.createTextNode(channel));
+        channel_item.addEventListener('click', this.switchChannel.bind(this, server, channel));
+        channel_list.appendChild(channel_item);
       }
+      var join_button = document.createElement('li');
+      join_button.classList.add('horizontal_row');
+      var join_icon = document.createElement('div');
+      join_icon.textContent = "add";
+      join_icon.classList.add('material-icons');
+      join_icon.classList.add('room-list-icons');
+      var join_text = document.createElement('div');
+      join_text.classList.add('side-nav-labels')
+      join_text.textContent = "Join Channel";
+      join_button.appendChild(join_icon);
+      join_button.appendChild(join_text);
+      channel_list.appendChild(join_button);
+
       item.appendChild(channel_list);
       this.list.appendChild(item);
 
       // Listen for new channels
       client.state_[hostId][server].onjoin = function(channel_list, channel_joined) {
-        this.insertChannel(channel_list, channel_joined)
+        this.insertChannel(server, channel_list, channel_joined)
       }.bind(this, channel_list);
 
       client.state_[hostId][server].onevent = function(channel_target, event) {
-        console.log("JR EVENT!");
-        var main_panel = document.querySelector('.main_panel');
-/*
-data : "llo"
-from : "jonross"
-time : 1468516760742
-type : "PRIVMSG"*/
-        var timestamp = new Date(event.time);
-        main_panel.textContent += timestamp.toLocaleDateString() + " "
-                                + timestamp.toLocaleTimeString() + " "
-                                + event.from + ": "
-                                + event.data + '\n';
-        main_panel.scrollTop = main_panel.scrollHeight;
+        if (channel_target === this.current_channel) {
+          this.parseEvent(event);
+        }
       }.bind(this);
-
     }
   }
 }

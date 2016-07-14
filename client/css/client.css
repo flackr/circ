@@ -5,8 +5,10 @@
   --accent-color-secondary: #FFFF8D;
   --main-bg-color: #FAFAFA;
   --text-color: rgba(0,0,0,.87);
+  --secondary-text-color: rgba(0,0,0,.7);
   --light-text-color: #FFFFFF;
   --light-text-color-disabled: rgba(1,1,1,.38);
+  --hover-color: #EEEEEE;
 }
 
 * {
@@ -22,12 +24,6 @@ html, body {
 
 /* General Styles */
 
-.horizontal_fields {
-  padding: 0;
-  margin: 0;
-  width: 100%;
-}
-
 .label_text {
   color: var(--text-color);
   margin-bottom: 10px;
@@ -38,6 +34,28 @@ html, body {
   width: 100%;
   margin-top: 10px;
   margin-bottom: 10px;
+  font-size: 1.0em;
+}
+
+.horizontal_row{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+}
+
+.inverted_veritcal_flow {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.header_title {
+  margin-left: 20px;
   font-size: 1.0em;
 }
 
@@ -66,7 +84,22 @@ html, body {
   overflow-y: scroll;
   flex: 1;
   white-space: pre;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
+
+.event_header {
+  color: var(--secondary-text-color);
+  font-size: 1.0em;
+}
+
+.event_content {
+  color: var(--text-color);
+  font-size: 1.5em;
+}
+
 .input_region {
   margin-left: 10px;
   margin-right: 10px;
@@ -87,13 +120,6 @@ html, body {
   padding: 0;
   margin: 0;
   color: var(--light-text-color);
-}
-
-.channel_name {
-  position: absolute;
-  left: 48px;
-  top: 10px;
-  font-size: 1.0em;
 }
 
 /* Settings and related screens */
@@ -191,7 +217,7 @@ html, body {
   position: relative;
   width: 90%;
   max-width: 400px;
-  background: #FFF;
+  background: var(--main-bg-color);
   height: 100%;
   box-shadow: 2px 0 12px rgba(0,0,0,0.4);
   transform: translateX(-102%);
@@ -252,11 +278,57 @@ html, body {
 }
 
 .side-nav__content li {
+  color: var(--text-color);
+  font-size: 1.25em;
   height: 48px;
   line-height: 48px;
   padding: 0 16px;
 }
 
 .side-nav__content li:hover {
-  background: #CCC;
+  background: var(--hover-color);
+}
+
+.rooms {
+  width: 100%;
+  overflow-y: scroll;
+  flex: 1;
+}
+
+.rooms-list-icons {
+  margin-right: 10px;
+  color: var(--secondary-text-color);
+}
+
+.server_name {
+  color: var(--secondary-text-color);
+  font-size: 1.0em;
+}
+
+.side-nav-row {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.side-nav-row:hover {
+  background: var(--hover-color);
+}
+
+.side-nav-icons {
+  margin-left: 10px;
+  margin-right: 10px;
+  color: var(--secondary-text-color);
+}
+
+.side-nav-labels {
+  margin-left: 10px;
+  font-size: 1.5em;
+  color: var(--text-color);
+}
+
+.permanent_items {
+  background: var(--main-bg-color);
+  /*bottom: 0;
+  position: absolute;*/
+  width: 100%;
 }
