@@ -1,3 +1,12 @@
+:root {
+  --primary-color: #5E35B1;
+  --secondary-color: #311B92;
+  --accent-color: #FFFF00;
+  --main-bg-color: #FAFAFA;
+  --text-color: rgba(0,0,0,.87);
+  --light-text-color: #FFFFFF;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -18,23 +27,22 @@ html, body {
 }
 
 .label_text {
-  display: inline-block; 
-  *display: inline;
-  width: 20%;
-  background-color: #0F0;
+  color: var(--text-color);
+  margin-bottom: 10px;
+  font-size: 1.5em;
 }
 
 .input_text {
-  display: inline-block; 
-  *display: inline;
-  width: 80%;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.0em;
 }
 
 /* Main Content */
 
 .main_container {
   position: absolute;
-  background-color: #F00;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -43,10 +51,15 @@ html, body {
 
 .header {
   height: 64px;
-  background-color: #333;
+  background: var(--primary-color);
+  color: var(--light-text-color);
+  font-size: 2.0em;
+  padding-left: 10px;
+  padding-top: 10px;
 }
 .main_panel {
-  background-color: #FFF;
+  background: var(--main-bg-color);
+  color: var(--text-color);
   overflow-y: scroll;
   flex: 1;
   white-space: pre;
@@ -59,17 +72,44 @@ html, body {
   width: 100%;
 }
 
+.header__menu-toggle {
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  color: var(--light-text-color);
+}
+
 /* Settings and related screens */
 
 .settings {
   position: absolute;
-  background-color: #F00;
+  background: var(--main-bg-color);
+  color: var(--text-color);
   height: 100%;
   width: 100%;
 }
 
 .settings_hidden {
   visibility: hidden;
+}
+
+.settings_content {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+.settings_button {
+  background: var(--accent-color);
+  color: var(--text-color);
+  border: 1px solid;
+  border-radius: 25px;
+  border-color: var(--secondary-color);
+  font-size: 0.75em;
 }
 
 .host_connection_hidden {
@@ -97,6 +137,7 @@ html, body {
   background-color: #00F;
   height: 100%;
   transform: translateX(102%);
+  visibility: hidden;
 }
 
 /* Left Side Servers + Channels Panel */
@@ -122,7 +163,6 @@ html, body {
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.4);
   opacity: 0.7;
   will-change: opacity;
   transition: opacity 0.3s cubic-bezier(0,0,0.3,1);
@@ -150,6 +190,7 @@ html, body {
 }
 
 .side-nav--visible::before {
+  background: rgba(0,0,0,0.4);
   opacity: 1;
 }
 
@@ -163,7 +204,7 @@ html, body {
   top: 16px;
   background: none;
   border: none;
-  color: #FFF;
+  color: var(--light-text-color);
   width: 24px;
   height: 24px;
   padding: 0;
@@ -172,8 +213,8 @@ html, body {
 
 .side-nav__header {
   height: 200px;
-  background: #EA2663;
-  color: #FFF;
+  background: var(--secondary-color);
+  color: var(--light-text-color);
   display: flex;
   padding: 16px;
   align-items: flex-end;
