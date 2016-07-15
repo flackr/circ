@@ -101,6 +101,14 @@ circ.CircClient = function() {
         this.send_(hostId, {'type': 'connect', 'address': address, 'port': port, 'name': name, 'options': options});
       }.bind(this));
     },
+
+    /**
+     * Join a channel in an IRC server.
+     *
+     * @param {number} hostId The host to connect to the IRC server on.
+     * @param {string} server The name of the IRC server.
+     * @param {string} channel The name of the channel to join.
+     */
     join: function(hostId, server, channel) {
       return new Promise(function(resolve, reject) {
         this.pendingMessages_.push({'resolve': function() {
@@ -116,6 +124,14 @@ circ.CircClient = function() {
         this.send_(hostId, {'type': 'irc', 'server': server, 'command': 'JOIN ' + channel});
       }.bind(this));
     },
+
+    /**
+     * Send an arbitrary IRC command.
+     *
+     * @param {number} hostId The host to connect to the IRC server on.
+     * @param {string} server The name of the IRC server.
+     * @param {string} message The command to send to the IRC server.
+     */
     send: function(hostId, server, message) {
       return new Promise(function(resolve, reject) {
         this.pendingMessages_.push({'resolve': resolve, 'reject': reject});
