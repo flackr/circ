@@ -11,6 +11,9 @@
   --hover-color: #EEEEEE;
 }
 
+.material-icons.md-light { color: rgba(255, 255, 255, 1); }
+.material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
 * {
   box-sizing: border-box;
 }
@@ -121,7 +124,7 @@ html, body {
   height: 24px;
   padding: 0;
   margin: 0;
-  color: var(--light-text-color);
+  /*color: var(--light-text-color);*/
 }
 
 /* Settings and related screens */
@@ -161,6 +164,13 @@ html, body {
 
 .host_connection_hidden {
   visibility: hidden;
+}
+
+.settings_header_button {
+  position: absolute;
+  right: 0;
+  margin-right: 10px;
+  margin-top: 5px;
 }
 
 .server_connection {

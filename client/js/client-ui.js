@@ -42,8 +42,9 @@ constructor () {
 
   joinServer() {
     this.hideSideNav();
-    document.querySelector('.settings').classList.remove('.settings_hidden');
-    document.querySelector('.server_connection').classList.add('server_connection_visible');
+  //  document.querySelector('.settings').classList.remove('.settings_hidden');
+    server_connection_screen.show();
+    //document.querySelector('.server_connection').classList.add('server_connection_visible');
   }
 
   // apply passive event listening if it's supported
@@ -165,6 +166,7 @@ class HostConnection {
 
   applyConnection() {
     this.connect.disabled = true;
+    this.connect.classList.add('md-inactive');
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
         this.elem.querySelector('input').value);
@@ -184,8 +186,7 @@ class HostConnection {
       room_list.initUI();
       transitionToMainUI();
     } else {
-      this.server_dialog = document.querySelector('.server_connection');
-      this.server_dialog.classList.add('server_connection_visible');
+      server_connection_screen.show();
     }
   }
 }
@@ -209,6 +210,11 @@ class ServerConnection {
     this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
   }
 
+  show() {
+    this.elem.classList.add('server_connection_visible');
+    this.connect.classList.remove('md-inactive');
+  }
+
   close() {
     room_list.initUI();
     this.elem.classList.remove('server_connection_visible');
@@ -223,6 +229,7 @@ class ServerConnection {
 
   applyConnection() {
     this.connect.disabled = true;
+    this.connect.classList.add('md-inactive');
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
     var server_nick = this.server_nick_el.value;
