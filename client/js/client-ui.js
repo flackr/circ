@@ -240,14 +240,44 @@ class BaseUI {
   constructor(elem, client) {
     this.elem = elem;
     this.client = client;
+    this.elem.querySelector('.main_input_text').addEventListener('keydown', this.onKeyDown.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
+    this.input_history = new Array();
+    this.input_index = 0;
+  }
+
+  onKeyDown(evt) {
+    if (this.input_history.length == 0) {
+      return;
+    }
+    if (evt.keyCode == 38) {
+      // Up arrow
+      if (this.input_index > 0) {
+        this.input_index--;
+        this.elem.querySelector('.main_input_text').value = this.input_history[this.input_index];
+      }
+    } else if (evt.keyCode == 40) {
+      // Down arrow
+      this.input_index++;
+      if (this.input_index >= this.input_history.length) {
+        this.input_index = this.input_history.length;
+        this.elem.querySelector('.main_input_text').value = "";
+      } else {
+        this.elem.querySelector('.main_input_text').value = this.input_history[this.input_index];
+      }
+    }
   }
 
   onKeyPress(evt) {
-    //TODO parse irc commands here
     if (evt.keyCode == 13) {
       var elem = this.elem.querySelector('.main_input_text')
-      this.client.send(hostId, serverName, elem.value);
+      var text = elem.value;
+      if (this.input_index == this.input_history.length) {
+        this.input_history.push(text);
+        this.input_index++;
+      }
+      //TODO parse irc commands here
+      this.client.send(hostId, serverName, text);
       elem.value = '';
     }
   }
