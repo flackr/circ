@@ -16,6 +16,18 @@ circ.UserCommandHandler = function() {
         handler.client.join(handler.hostId_, handler.server_, channel);
       }
     },
+    'part': {
+      'args': ['...'],
+      'run': function(handler, message) {
+        handler.client.send(handler.hostId_, handler.server_, 'PART ' + handler.channel_ + ' ' + message);
+      }
+    },
+    'server': {
+      'args': ['address', 'port', 'password'],
+      'run': function(handler, address, port, password) {
+        handler.client.connect(handler.hostId_, address, port, {'password': password});
+      }
+    },
   };
 
   function UserCommandHandler(client) {

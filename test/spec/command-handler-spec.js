@@ -10,6 +10,7 @@ describe('circ.UserCommandHandler', function() {
     handler.setActiveChannel(hostId, server, channel);
     spyOn(handler.client, 'send');
     spyOn(handler.client, 'join');
+    spyOn(handler.client, 'connect');
   });
 
   it ('ignores empty messages', function() {
@@ -31,5 +32,15 @@ describe('circ.UserCommandHandler', function() {
   it('fails to /join with an incorrect argument count', function() {
     expect(function() { handler.runCommand('/join'); }).toThrow(new Error('Invalid command: Too few arguments'));
     expect(function() { handler.runCommand('/join #foo bar'); }).toThrow(new Error('Invalid command: Too many arguments'));
+  });
+
+  it('parses /part', function() {
+    handler.runCommand('/part Goodbye everyone!');
+    expect(handler.client.send).toHaveBeenCalledWith(hostId, server, 'PART #test Goodbye everyone!');
+  });
+
+  it('parses /server', function() {
+    handler.runCommand('/server address port password');
+    expect(handler.client.connect).toHaveBeenCalledWith(hostId, 'address', 'port', {'password': 'password'});
   });
 });
