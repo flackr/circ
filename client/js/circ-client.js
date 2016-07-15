@@ -9,6 +9,7 @@ circ.CircClient = function() {
     this.state_ = {};
     this.connections_ = {};
     this.hostId_ = 1;
+    this.pushNotificationEndpoint_ = '';
     this.pendingMessages_ = [];
   }
 
@@ -28,6 +29,8 @@ circ.CircClient = function() {
       this.connections_[hostId] = {'rtc': rtc, 'dataChannel': dataChannel};
       rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, hostId);
       dataChannel.addEventListener('message', this.onHostMessage_.bind(this, hostId));
+      if (this.pushNotificationEndpoint_)
+        dataChannel.send(JSON.stringify({'type': 'subscribe', 'endpoint': this.pushNotificationEndpoint_}));
     },
     onIceConnectionStateChange_: function(hostId) {
       // TODO(flackr): When a host goes away, we lose our connection to every
@@ -121,6 +124,12 @@ circ.CircClient = function() {
         this.pendingMessages_.push({'resolve': resolve, 'reject': reject});
         this.send_(hostId, {'type': 'irc', 'server': server, 'command': message, 'time': 0});
       }.bind(this));
+    },
+    subscribeForNotifications: function(pushNotificationEndpoint) {
+      this.pushNotificationEndpoint_ = pushNotificationEndpoint;
+      for (var hostId in this.connections_) {
+        this.connections_[hostId].dataChannel.send(JSON.stringify({'type': 'subscribe', 'endpoint': pushNotificationEndpoint}));
+      }
     },
     send_: function(hostId, data) {
       this.connections_[hostId].dataChannel.send(JSON.stringify(data));
