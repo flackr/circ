@@ -67,6 +67,7 @@ html, body {
   flex-direction: column;
   height: 100%;
   width: 100%;
+  background: var(--main-bg-color);
 }
 
 .header {
@@ -101,6 +102,7 @@ html, body {
 }
 
 .input_region {
+  margin-bottom: 5px;
   margin-left: 10px;
   margin-right: 10px;
 }

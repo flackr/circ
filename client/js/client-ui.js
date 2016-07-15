@@ -222,7 +222,6 @@ class ServerConnection {
   }
 
   applyConnection() {
-    console.log("HEY LISTEN");
     this.connect.disabled = true;
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
@@ -231,7 +230,6 @@ class ServerConnection {
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
-          console.log("JR server connect then");
           this.close();
         }.bind(this));
   }
