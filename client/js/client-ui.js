@@ -301,7 +301,6 @@ class RoomList {
     }
     this.list = document.createElement('ul');
     this.insertRooms();
-<<<<<<< HEAD
     if (this.servers_loaded) {
       this.room_el.appendChild(this.list);
     }
@@ -330,34 +329,6 @@ class RoomList {
     main_panel.scrollTop = main_panel.scrollHeight;
   }
 
-=======
-    this.room_el.appendChild(this.list);
-    this.current_channel = '';
-  }
-  parseEvent(event) {
-    var main_panel = document.querySelector('.main_panel');
-    var timestamp = new Date(event.time);
-
-    var event_message = document.createElement('div');
-    event_message.classList.add('horizontal_row');
-    var event_header = document.createElement('div');
-    event_header.textContent = timestamp.toLocaleDateString() + " "
-                            + timestamp.toLocaleTimeString() + " "
-                            + event.from + ": ";
-    event_header.classList.add('event_header');
-    var event_content = document.createElement('div');
-    event_content.textContent = event.data + '\n';
-    event_content.classList.add('event_content');
-
-    event_message.appendChild(event_header);
-    event_message.appendChild(event_content);
-    main_panel.appendChild(event_message);
-
-    // TODO don't scroll if the user has manually scrolled
-    main_panel.scrollTop = main_panel.scrollHeight;
-  }
-
->>>>>>> origin/server
   switchChannel(server, channel) {
     //TODO update scroll region with history for channel
     document.querySelector('.channel_name').textContent = channel;

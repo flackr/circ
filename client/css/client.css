@@ -150,10 +150,13 @@ html, body {
 }
 
 .settings_content {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  margin-right: 10px;
-  margin-left: 10px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+  padding-left: 10px;
+  height: 100%;
+  width: 100%;
+  background: var(--main-bg-color);
 }
 
 .host_connection_hidden {
