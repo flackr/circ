@@ -19,6 +19,11 @@ describe('circ.UserCommandHandler', function() {
     expect(handler.client.join).not.toHaveBeenCalled();
   });
 
+  it('parses /raw', function() {
+    handler.runCommand('/raw some raw IRC command');
+    expect(handler.client.send).toHaveBeenCalledWith(hostId, server, 'some raw IRC command');
+  });
+
   it('parses messages', function() {
     handler.runCommand('some user message');
     expect(handler.client.send).toHaveBeenCalledWith(hostId, server, 'PRIVMSG #test :some user message');

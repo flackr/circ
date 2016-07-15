@@ -2,6 +2,12 @@ window.circ = window.circ || {};
 
 circ.UserCommandHandler = function() {
   var commands = {
+    'raw': {
+      'args': ['...'],
+      'run': function(handler, message) {
+        handler.client.send(handler.hostId_, handler.server_, message);
+      }
+    },
     'msg': {
       'args': ['channel', '...'],
       'helptext': 'foo',
