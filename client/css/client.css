@@ -1,14 +1,16 @@
 :root {
   --primary-color: #5E35B1;
   --secondary-color: #311B92;
-  --accent-color: #FFFF00;
-  --accent-color-secondary: #FFFF8D;
+  --accent-color: #69F0AE;
+  --accent-color-secondary: #00C853;
   --main-bg-color: #FAFAFA;
   --text-color: rgba(0,0,0,.87);
   --secondary-text-color: rgba(0,0,0,.7);
   --light-text-color: #FFFFFF;
   --light-text-color-disabled: rgba(1,1,1,.38);
   --hover-color: #EEEEEE;
+  --toggle-deactive-primary: #BDBDBD;
+  --toggle-deactive-secondary: #E0E0E0;
 }
 
 .material-icons.md-light { color: rgba(255, 255, 255, 1); }
@@ -66,6 +68,63 @@ html, body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* Rounded sliders */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--toggle-deactive-secondary);
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background: var(--toggle-deactive-primary);
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--accent-color-secondary);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--secondary-color);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+  background-color: var(--accent-color);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
 
 /* Main Content */
@@ -169,6 +228,12 @@ html, body {
   height: 100%;
   width: 100%;
   display: none;
+}
+
+.settings_main {
+  display: none;
+  height: 100%;
+  width: 100%;
 }
 
 /* Right Side User List Panel */
@@ -327,7 +392,5 @@ html, body {
 
 .permanent_items {
   background: var(--main-bg-color);
-  /*bottom: 0;
-  position: absolute;*/
   width: 100%;
 }
