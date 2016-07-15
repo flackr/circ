@@ -265,6 +265,7 @@ class ServerConnection {
 
 class BaseUI {
   constructor(elem, client) {
+    this.commandHandler = new circ.UserCommandHandler(client);
     this.elem = elem;
     this.client = client;
     this.elem.querySelector('.main_input_text').addEventListener('keydown', this.onKeyDown.bind(this));
@@ -309,9 +310,10 @@ class BaseUI {
       } else {
         this.input_index = this.input_history.length;
       }
-      //TODO parse irc commands here
-      this.client.send(hostId, serverName, text);
       elem.value = '';
+      // TODO(flackr): Only call this when we switch channels.
+      this.commandHandler.setActiveChannel(hostId, serverName, room_list.current_channel);
+      this.commandHandler.runCommand(text);
     }
   }
 }
