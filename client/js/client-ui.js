@@ -44,7 +44,6 @@ constructor () {
     this.hideSideNav();
     document.querySelector('.settings').classList.remove('.settings_hidden');
     document.querySelector('.server_connection').classList.add('server_connection_visible');
-    new ServerConnection(document.querySelector('.server_connection'));
   }
 
   // apply passive event listening if it's supported
@@ -182,13 +181,12 @@ class HostConnection {
       break;
     }
     if (isConnectedToServer) {
+      room_list.initUI();
       transitionToMainUI();
     } else {
       this.server_dialog = document.querySelector('.server_connection');
       this.server_dialog.classList.add('server_connection_visible');
-      new ServerConnection(document.querySelector('.server_connection'));
     }
-    new RoomList(document.querySelector('.rooms'));
   }
 }
 
@@ -212,6 +210,7 @@ class ServerConnection {
   }
 
   close() {
+    room_list.initUI();
     this.elem.classList.remove('server_connection_visible');
     transitionToMainUI();
   }
@@ -223,6 +222,7 @@ class ServerConnection {
   }
 
   applyConnection() {
+    console.log("HEY LISTEN");
     this.connect.disabled = true;
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
@@ -231,6 +231,7 @@ class ServerConnection {
     client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
         .then(function() {
           // Show main UI.
+          console.log("JR server connect then");
           this.close();
         }.bind(this));
   }
@@ -286,11 +287,21 @@ class BaseUI {
 class RoomList {
   constructor(room_el) {
     this.room_el = room_el;
+    this.current_channel = '';
+    this.servers_loaded = false;
+  }
+
+  initUI() {
+    if (this.servers_loaded) {
+      return;
+    }
     this.list = document.createElement('ul');
     this.insertRooms();
-    this.room_el.appendChild(this.list);
-    this.current_channel = '';
+    if (this.servers_loaded) {
+      this.room_el.appendChild(this.list);
+    }
   }
+
   parseEvent(event) {
     var main_panel = document.querySelector('.main_panel');
     var timestamp = new Date(event.time);
@@ -344,6 +355,7 @@ class RoomList {
 
   insertRooms() {
     for (var server in client.state_[hostId]) {
+      this.servers_loaded = true;
       var item = document.createElement('li');
       var server_node = document.createElement('div');
       server_node.textContent = server;
@@ -388,6 +400,9 @@ class RoomList {
     }
   }
 }
+
+var server_connection_screen = new ServerConnection(document.querySelector('.server_connection'));
+var room_list = new RoomList(document.querySelector('.rooms'));
 
 new HostConnection(document.querySelector('.host_connection'));
 
