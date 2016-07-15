@@ -25,7 +25,7 @@ circ.UserCommandHandler = function() {
     'part': {
       'args': ['...'],
       'run': function(handler, message) {
-        handler.client.send(handler.hostId_, handler.server_, 'PART ' + handler.channel_ + ' ' + message);
+        handler.client.send(handler.hostId_, handler.server_, 'PART ' + handler.channel_ + ' :' + message);
       }
     },
     'server': {

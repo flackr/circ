@@ -41,7 +41,7 @@ describe('circ.UserCommandHandler', function() {
 
   it('parses /part', function() {
     handler.runCommand('/part Goodbye everyone!');
-    expect(handler.client.send).toHaveBeenCalledWith(hostId, server, 'PART #test Goodbye everyone!');
+    expect(handler.client.send).toHaveBeenCalledWith(hostId, server, 'PART #test :Goodbye everyone!');
   });
 
   it('parses /server', function() {
