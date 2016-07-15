@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CIRC</title>
+  <script src="js/util.js"></script>
+  <script src="js/connection.js"></script>
+  <script src="js/circ-state.js"></script>
+  <script src="js/circ-client.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <meta name="google-signin-client_id" content="143277396652-uibcos8vorqf1ouls7eom9po0cftjgl8.apps.googleusercontent.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link href="./css/client.css" rel="stylesheet">
+</head>
+<body>
+  <div class="main_container">
+    <div class="header horizontal_row">
+      <button class="js-menu-show header__menu-toggle material-icons md-light">menu</button>
+      <div class="channel_name header_title"></div>
+    </div>
+    <div class="main_panel"></div>
+    <div class="input_region"><input class="main_input_text" type="text"></div>
+  </div>
+  <aside class="nick_panel">
+  </aside>
+
+  <aside class="js-side-nav side-nav">
+    <nav class="js-side-nav-container side-nav__container">
+      <button class="js-menu-hide side-nav__hide material-icons md-light">close</button>
+      <header class="side-nav__header">
+        Rooms
+      </header>
+      <div class="inverted_veritcal_flow">
+        <div class="rooms"></div>
+        <div class="permanent_items">
+          <div class="join_server horizontal_row side-nav-row">
+            <div class="side-nav-icons material-icons">
+              add
+            </div>
+            <div class="side-nav-labels">
+              Join Server
+            </div>
+          </div>
+          <div class="horizontal_row side-nav-row settings_launcher">
+            <div class="side-nav-icons material-icons">
+              settings
+            </div>
+            <div class="side-nav-labels">
+              Settings
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="settings">
+    <div class="host_connection">
+      <div class="header">
+        <div class="vertical_center_text">Host Connection:</div>
+        <button class='connect material-icons md-light header__menu-toggle settings_header_button'>check</button>
+      </div>
+      <div class="settings_content">
+        <!-- TODO(flackr): Don't show the auth token unless needed for user to run host. -->
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <label class="label_text">Auth Token:</label>
+        <input class="input_text" type="text"><br>
+      </div>
+    </div>
+    <div class="server_connection">
+      <div class="header horizontal_row">
+        <button class="material-icons md-light header__menu-toggle">arrow_back</button>
+        <div class="header_title">Server Connection:</div>
+        <button class="connect material-icons md-light header__menu-toggle settings_header_button">check</button>
+      </div>
+      <div class="settings_content">
+        <label class="label_text">Address:</label>
+        <input type="text" class="input_text server_address"><br>
+        <label class="label_text">Port:</label>
+        <input type="text" class="input_text server_port"><br>
+        <label class="label_text">Nick:</label>
+        <input type="text" class="input_text server_nick"><br>
+      </div>
+    </div>
+    <div class="register">
+    </div>
+  </div>
+
+  <script src='js/detabinator.js'></script>
+  <script src="js/client-ui.js"></script>
+</body>
+</html>
