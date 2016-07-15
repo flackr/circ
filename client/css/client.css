@@ -234,6 +234,7 @@ input:checked + .slider:before {
   display: none;
   height: 100%;
   width: 100%;
+  background: var(--main-bg-color);
 }
 
 /* Right Side User List Panel */
