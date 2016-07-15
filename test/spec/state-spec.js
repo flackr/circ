@@ -32,7 +32,7 @@ describe('circ.CircState', function() {
   });
 
   it('processes sent private messages', function() {
-    state.processOutbound('PRIVMSG johndoe Hello John', 0);
+    state.processOutbound('PRIVMSG johndoe :Hello John', 0);
     expect(state.onevent).toHaveBeenCalledWith('johndoe', jasmine.any(Object));
     var lastEvent = state.onevent.calls.mostRecent().args[1];
     expect(lastEvent.data).toBe('Hello John');

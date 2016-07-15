@@ -9,6 +9,7 @@ circ.CircClient = function() {
     this.state_ = {};
     this.connections_ = {};
     this.hostId_ = 1;
+    this.pushNotificationEndpoint_ = '';
     this.pendingMessages_ = [];
   }
 
@@ -28,6 +29,8 @@ circ.CircClient = function() {
       this.connections_[hostId] = {'rtc': rtc, 'dataChannel': dataChannel};
       rtc.oniceconnectionstatechange = this.onIceConnectionStateChange_.bind(this, hostId);
       dataChannel.addEventListener('message', this.onHostMessage_.bind(this, hostId));
+      if (this.pushNotificationEndpoint_)
+        dataChannel.send(JSON.stringify({'type': 'subscribe', 'endpoint': this.pushNotificationEndpoint_}));
     },
     onIceConnectionStateChange_: function(hostId) {
       // TODO(flackr): When a host goes away, we lose our connection to every
@@ -101,6 +104,14 @@ circ.CircClient = function() {
         this.send_(hostId, {'type': 'connect', 'address': address, 'port': port, 'name': name, 'options': options});
       }.bind(this));
     },
+
+    /**
+     * Join a channel in an IRC server.
+     *
+     * @param {number} hostId The host to connect to the IRC server on.
+     * @param {string} server The name of the IRC server.
+     * @param {string} channel The name of the channel to join.
+     */
     join: function(hostId, server, channel) {
       return new Promise(function(resolve, reject) {
         this.pendingMessages_.push({'resolve': function() {
@@ -116,11 +127,25 @@ circ.CircClient = function() {
         this.send_(hostId, {'type': 'irc', 'server': server, 'command': 'JOIN ' + channel});
       }.bind(this));
     },
+
+    /**
+     * Send an arbitrary IRC command.
+     *
+     * @param {number} hostId The host to connect to the IRC server on.
+     * @param {string} server The name of the IRC server.
+     * @param {string} message The command to send to the IRC server.
+     */
     send: function(hostId, server, message) {
       return new Promise(function(resolve, reject) {
         this.pendingMessages_.push({'resolve': resolve, 'reject': reject});
         this.send_(hostId, {'type': 'irc', 'server': server, 'command': message, 'time': 0});
       }.bind(this));
+    },
+    subscribeForNotifications: function(pushNotificationEndpoint) {
+      this.pushNotificationEndpoint_ = pushNotificationEndpoint;
+      for (var hostId in this.connections_) {
+        this.connections_[hostId].dataChannel.send(JSON.stringify({'type': 'subscribe', 'endpoint': pushNotificationEndpoint}));
+      }
     },
     send_: function(hostId, data) {
       this.connections_[hostId].dataChannel.send(JSON.stringify(data));

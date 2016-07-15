@@ -82,7 +82,7 @@ exports.CircState = function() {
     processOutbound: function(message, timestamp) {
       var words = message.split(' ', 2);
       if (words[0] == 'PRIVMSG') {
-        var rest = message.substring(words[0].length + words[1].length + 2);
+        var rest = message.substring(words[0].length + words[1].length + 3);
         this.processEvent_(words[1], {
           'time': timestamp,
           'type': 'PRIVMSG',
@@ -91,7 +91,7 @@ exports.CircState = function() {
         });
       }
     },
-    
+
     processEvent_: function(channel, event) {
       if (channel) {
         if (!this.state.channels[channel])

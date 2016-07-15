@@ -6,6 +6,23 @@ window.client = null;
 // TODO(flackr): Support multiple connected hosts.
 window.hostId = 0;
 window.serverName = 'irc';
+window.pushNotificationEndpoint = '';
+
+if ('serviceWorker' in navigator) {
+ console.log('Service Worker is supported');
+ navigator.serviceWorker.register('sw.js').then(function(reg) {
+    console.log(':^)', reg);
+    reg.pushManager.subscribe({
+      userVisibleOnly: true
+    }).then(function(sub) {
+      // TODO(flackr): If already connected, notify the server.
+      window.pushNotificationEndpoint = sub.endpoint;
+      console.log('endpoint:', sub.endpoint);
+    });
+ }).catch(function(err) {
+   console.log(':^(', err);
+ });
+}
 
 function transitionToMainUI() {
   document.querySelector('.settings_container').style.display = "none";
@@ -177,6 +194,8 @@ class HostConnection {
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
         this.elem.querySelector('input').value);
+    if (window.pushNotificationEndpoint)
+      client.subscribeForNotifications(window.pushNotificationEndpoint);
     new BaseUI(document.querySelector('.main_container'), client);
     client.addEventListener('connection', this.onConnection.bind(this));
   }
@@ -253,6 +272,7 @@ class ServerConnection {
 
 class BaseUI {
   constructor(elem, client) {
+    this.commandHandler = new circ.UserCommandHandler(client);
     this.elem = elem;
     this.client = client;
     this.elem.querySelector('.main_input_text').addEventListener('keydown', this.onKeyDown.bind(this));
@@ -300,6 +320,9 @@ class BaseUI {
       //TODO parse irc commands here
       this.client.send(hostId, serverName, text);
       elem.value = '';
+      // TODO(flackr): Only call this when we switch channels.
+      this.commandHandler.setActiveChannel(hostId, serverName, room_list.current_channel);
+      this.commandHandler.runCommand(text);
     }
   }
 }

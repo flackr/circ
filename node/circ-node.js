@@ -2,10 +2,19 @@ exports.CircNode = function() {
   var Host = require('./host.js').Host;
   var IrcConnection = require('./irc-connection.js').IrcConnection;
   var CircState = require('../client/js/circ-state.js').CircState;
+  var webPush;
+  if (process.env.GCM_API_KEY) {
+    webPush = require('web-push');
+    webPush.setGCMAPIKey(process.env.GCM_API_KEY);
+  } else {
+    console.warn('Push notifications require the environment variable GCM_API_KEY');
+  }
+  var XMLHttpRequest = require('xmlhttprequest');
 
   function CircNode(server, name) {
     this.host = new Host(server, name);
     this.host.onconnection = this.onConnection_.bind(this);
+    this.pushEndpoints = {};
     this.connections_ = {};
     this.clientId_ = 1;
     this.servers_ = {};
@@ -46,6 +55,7 @@ exports.CircNode = function() {
         this.broadcast(message);
         server.onopen = function() {
           this.state_[name] = new CircState({'nick': message.options.nick});
+          this.state_[name].onevent = this.onIrcEvent.bind(this, name);
           this.broadcast({'type': 'connected', 'server': name});
         }.bind(this);
         // TODO(flackr): Confirm when the server is actually connected.
@@ -60,6 +70,9 @@ exports.CircNode = function() {
         server.send(message.command);
         this.broadcast(message);
         this.state_[message.server].processOutbound(message.command, message.time);
+      } else if (message.type == 'subscribe') {
+        this.pushEndpoints[message.endpoint] = true;
+        // TODO(flackr): Add a way to unsubscribe.
       } else {
         console.error('Unrecognized message type ' + message.type);
       }
@@ -68,6 +81,23 @@ exports.CircNode = function() {
       var timestamp = Date.now();
       this.state_[serverId].process(data, timestamp);
       this.broadcast({'type': 'server', 'server': serverId, 'data': data, 'time': timestamp});
+    },
+    onIrcEvent: function(server, channel, event) {
+      if (event.type != 'PRIVMSG')
+        return;
+      // We're only looking for events from other people with your nickname in them.
+      var nick = this.state_[server].state.nick;
+      if (event.from == nick || event.data.indexOf(nick) == -1)
+        return;
+      this.sendPush(server, channel, event);
+    },
+    sendPush: function(server, channel, event) {
+      if (!webPush)
+        return;
+      // TODO(flackr): Add tests for push notifications.
+      for (var endpoint in this.pushEndpoints) {
+        webPush.sendNotification(endpoint);
+      }
     },
     broadcast: function(data) {
       for (var clientId in this.connections_) {
