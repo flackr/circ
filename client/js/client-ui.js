@@ -1,12 +1,14 @@
 'use strict';
 
+var MAX_INPUT_HISTORY = 100;
+
 window.client = null;
 // TODO(flackr): Support multiple connected hosts.
 window.hostId = 0;
 window.serverName = 'irc';
 
 function transitionToMainUI() {
-  document.querySelector('.settings').classList.add('settings_hidden');
+  document.querySelector('.settings_container').style.display = "none";
   document.querySelector('.main_container').querySelector('.main_input_text').focus();
 }
 
@@ -173,7 +175,7 @@ class HostConnection {
   }
 
   onConnection(hostId) {
-    this.elem.classList.add('host_connection_hidden');
+    this.elem.style.display = "none";
     window.hostId = hostId;
     var isConnectedToServer = false;
     for (var server in client.state_[hostId]) {
@@ -198,7 +200,6 @@ class ServerConnection {
 
     this.server_address_el = this.elem.querySelector('.server_address');
     this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
-    this.server_address_el.focus();
 
     this.server_port_el = this.elem.querySelector('.server_port');
     this.server_port_el.addEventListener('keypress', this.onKeyPress.bind(this));
@@ -210,13 +211,15 @@ class ServerConnection {
   }
 
   show() {
-    this.elem.classList.add('server_connection_visible');
+    document.querySelector('.settings_container').style.display = "block";
+    this.elem.style.display = "block";
     this.connect.classList.remove('md-inactive');
+    this.server_address_el.focus();
   }
 
   close() {
     room_list.initUI();
-    this.elem.classList.remove('server_connection_visible');
+    this.elem.style.display = "none";
     transitionToMainUI();
   }
 
@@ -247,7 +250,7 @@ class BaseUI {
     this.client = client;
     this.elem.querySelector('.main_input_text').addEventListener('keydown', this.onKeyDown.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
-    this.input_history = new Array();
+    this.input_history = [];
     this.input_index = 0;
   }
 
@@ -280,6 +283,12 @@ class BaseUI {
       if (this.input_index == this.input_history.length) {
         this.input_history.push(text);
         this.input_index++;
+        if (this.input_history.length > MAX_INPUT_HISTORY) {
+           this.input_history.shift();
+           this.input_index = this.input_history.length;
+        }
+      } else {
+        this.input_index = this.input_history.length;
       }
       //TODO parse irc commands here
       this.client.send(hostId, serverName, text);

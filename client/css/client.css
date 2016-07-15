@@ -64,8 +64,8 @@ html, body {
 
 .vertical_center_text {
   position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* Main Content */
@@ -85,8 +85,6 @@ html, body {
   background: var(--primary-color);
   color: var(--light-text-color);
   font-size: 2.0em;
-/*  padding-left: 10px;
-  padding-top: 10px;*/
   padding-left: 10px;
   padding-right: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.4);
@@ -137,16 +135,10 @@ html, body {
 
 /* Settings and related screens */
 
-.settings {
+.settings_container {
   position: absolute;
-  background: var(--main-bg-color);
-  color: var(--text-color);
   height: 100%;
   width: 100%;
-}
-
-.settings_hidden {
-  visibility: hidden;
 }
 
 .settings_content {
@@ -159,8 +151,9 @@ html, body {
   background: var(--main-bg-color);
 }
 
-.host_connection_hidden {
-  visibility: hidden;
+.host_connection {
+  height: 100%;
+  width: 100%;
 }
 
 .settings_header_button {
@@ -168,19 +161,14 @@ html, body {
 	top: 50%;
 	transform: translateY(-50%);
   right: 10px;
-  /*margin-right: 10px;
-  margin-top: 5px;*/
 }
 
 .server_connection {
   position: absolute;
   top: 0;
+  height: 100%;
   width: 100%;
-  visibility: hidden;
-}
-
-.server_connection_visible {
-  visibility: visible;
+  display: none;
 }
 
 /* Right Side User List Panel */
