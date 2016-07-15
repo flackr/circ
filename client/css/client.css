@@ -158,8 +158,8 @@ html, body {
 
 .settings_header_button {
   position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+  top: 50%;
+  transform: translateY(-50%);
   right: 10px;
 }
 
