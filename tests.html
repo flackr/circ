@@ -15,6 +15,7 @@
   <script src="client/js/util.js"></script>
   <script src="client/js/connection.js"></script>
   <script src="client/js/circ-state.js"></script>
+  <script src="client/js/user-command-handler.js"></script>
   <script src="client/js/circ-client.js"></script>
 
   <!-- NodeJS mocks -->
@@ -25,6 +26,9 @@
   <script src="test/mocks/ws.js"></script>
   <script src="test/mocks/net.js"></script>
   <script src="test/mocks/irc-server.js"></script>
+
+  <!-- Client mocks -->
+  <script src="test/mocks/client.js"></script>
 
   <!-- Circ NodeJS packages are defined after each one is loaded so they can include each other. -->
   <script>window.process = {env:  {}};</script>
@@ -46,6 +50,7 @@
   <script src="test/spec/client-connection-spec.js"></script>
   <script src="test/spec/irc-spec.js"></script>
   <script src="test/spec/state-spec.js"></script>
+  <script src="test/spec/command-handler-spec.js"></script>
 
 </head>
 
