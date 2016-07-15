@@ -37,6 +37,7 @@ exports.CircNode = function() {
       var clientInfo = this.connections_[clientId];
       if (clientInfo.rtc.iceConnectionState == 'disconnected') {
         console.log('Client ' + clientId + ' disconnected');
+        clientInfo.rtc.oniceconnectionstatechange = null;
         delete this.connections_[clientId];
       }
     },
