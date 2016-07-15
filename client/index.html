@@ -15,11 +15,9 @@
 </head>
 <body>
   <div class="main_container">
-    <div class="header">
+    <div class="header horizontal_row">
       <button class="js-menu-show header__menu-toggle material-icons">menu</button>
-      <div class="channel_name"></div>
-      <div class="menu">
-      </div>
+      <div class="channel_name header_title"></div>
     </div>
     <div class="main_panel"></div>
     <div class="input_region"><input class="main_input_text" type="text"></div>
@@ -33,7 +31,27 @@
       <header class="side-nav__header">
         Rooms
       </header>
-      <div class="rooms"></div>
+      <div class="inverted_veritcal_flow">
+        <div class="rooms"></div>
+        <div class="permanent_items">
+          <div class="join_server horizontal_row side-nav-row">
+            <div class="side-nav-icons material-icons">
+              add
+            </div>
+            <div class="side-nav-labels">
+              Join Server
+            </div>
+          </div>
+          <div class="horizontal_row side-nav-row settings_launcher">
+            <div class="side-nav-icons material-icons">
+              settings
+            </div>
+            <div class="side-nav-labels">
+              Settings
+            </div>
+          </div>
+        </div>
+      </div>
     </nav>
   </aside>
 
@@ -49,7 +67,10 @@
       </div>
     </div>
     <div class="server_connection">
-      <div class="header">Server Connection:</div>
+      <div class="header horizontal_row">
+        <button class="material-icons header__menu-toggle">arrow_back</button>
+        <div class="header_title">Server Connection:</div>
+      </div>
       <div class="settings_content">
         <label class="label_text">Address:</label>
         <input type="text" class="input_text server_address"><br>
