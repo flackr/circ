@@ -23,16 +23,21 @@ exports.CircState = function() {
     onnick: function(oldNick, newNick) {},
     onownnick: function(nick) {},
     onevent: function(channel, event) {},
+    onnames: function(channel) {},
 
     process: function(message, timestamp) {
-      var words = message.split(' ', 3);
+      var words = message.split(' ', 5);
       var user = getUser(words[0]);
       // TODO(flackr): Check user who has joined.
       if (words[1] == "JOIN") {
+        var channel = words[2];
+        if (channel[0] == ':')
+          channel = channel.substring(1);
         if (user == this.state.nick) {
-          var channel = words[2].substring(1);
           this.state.channels[channel] = {'events': [], 'topic': '', 'users': []};
           this.onjoin(channel);
+        } else {
+          this.state.channels[channel].users.push(user);
         }
         this.processEvent_(channel, {
           'time': timestamp,
@@ -41,7 +46,9 @@ exports.CircState = function() {
           'data': message,
         });
       } else if (words[1] == "PART") {
-        var channel = words[2].substring(1);
+        var channel = words[2];
+        if (channel[0] == ':')
+          channel = channel.substring(1);
         if (user == this.state.nick) {
           delete this.state.channels[channel];
           this.onpart(channel);
@@ -52,12 +59,23 @@ exports.CircState = function() {
             'from': user,
             'data': message,
           });
+          var users = this.state.channels[channel].users;
+          var index = users.indexOf(user);
+          if (index != -1) users.splice(index, 1);
         }
       } else if (words[1] == "NICK") {
         var newNick = words[2].substring(1)
         if (user == this.state.nick) {
           this.state.nick = newNick;
           this.onownnick(newNick);
+        }
+        for (var channel in this.state.channels) {
+          var users = this.state.channels[channel].users;
+          var index = users.indexOf(user);
+          if (index != -1) {
+            // TODO(flackr): Generate a nick change event in these channels.
+            users[index] = newNick;
+          }
         }
         this.onnick(user, newNick);
         this.processEvent_('', {
@@ -76,6 +94,16 @@ exports.CircState = function() {
           'from': from,
           'data': message,
         });
+      } else if (!user && words[1] == '353') {
+        var channel = words[4];
+        if (this.state.channels[channel]) {
+          var users = this.state.channels[channel].users;
+          var usersList = message.split(' ').slice(5);
+          usersList[0] = usersList[0].substring(1);
+          users.splice(users.length, 0, ...usersList);
+        }
+      } else if (!user && words[1] == '366') {
+        this.onnames(words[3]);
       }
     },
 
@@ -89,6 +117,13 @@ exports.CircState = function() {
           'from': this.state.nick,
           'data': rest,
         });
+      } else if (words[0] == 'NAMES') {
+        var channel = words[1];
+        if (channel[0] == ':')
+          channel = channel.substring(1);
+        // Clear user list in anticipation of receiving a fresh list
+        if (this.state.channels[channel])
+          this.state.channels[channel].users = [];
       }
     },
 

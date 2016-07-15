@@ -14,7 +14,7 @@ IRCServer.prototype = {
     this.connections[id] = {'socket': connection, state: 'connecting'};
     connection.on('data', this.onData.bind(this, id));
   },
-  
+
   onData: function(id, data) {
     var cmds = data.split('\r\n');
     for (var i = 0; i < cmds.length; i++) {

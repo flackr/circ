@@ -9,6 +9,7 @@ describe('circ.CircState', function() {
     spyOn(state, 'onnick');
     spyOn(state, 'onownnick');
     spyOn(state, 'onevent');
+    spyOn(state, 'onnames');
   });
 
   it('has no channels by default', function() {
@@ -58,16 +59,47 @@ describe('circ.CircState', function() {
     });
 
     it('removes a channel when the current user parts', function() {
-      state.process(':janedoe!address PART :#test :janedoe', 0);
+      state.process(':janedoe!address PART #test :janedoe', 0);
       expect(state.onpart).toHaveBeenCalledWith('#test');
       expect(state.state.channels['#test']).toBeUndefined();
     });
 
     it('does not remove a channel when a different user parts', function() {
-      state.process(':notjanedoe!address PART :#test :notjanedoe', 0);
+      state.process(':notjanedoe!address PART #test :notjanedoe', 0);
       expect(state.onpart).not.toHaveBeenCalled();
       expect(state.state.channels['#test']).toBeDefined();
     });
-  });
 
+    it('adds a new user to the user list when they join', function() {
+      state.process(':johndoe!address JOIN :#test', 0);
+      expect(state.state.channels['#test'].users).toEqual(['johndoe']);
+    });
+
+    it('removes a new user from the user list when they part', function() {
+      state.process(':johndoe!address JOIN :#test', 0);
+      expect(state.state.channels['#test'].users).toEqual(['johndoe']);
+      state.process(':johndoe!address PART #test :johndoe', 0);
+      expect(state.state.channels['#test'].users).toEqual([]);
+    });
+
+    it('processes names lists', function() {
+      expect(state.state.channels['#test'].users).toEqual([]);
+      state.process(':irc-address 353 janedoe = #test :janedoe johndoe');
+      expect(state.state.channels['#test'].users).toEqual(['janedoe', 'johndoe']);
+      state.process(':irc-address 353 janedoe = #test :flackr');
+      expect(state.state.channels['#test'].users).toEqual(['janedoe', 'johndoe', 'flackr']);
+    });
+
+    it('processes end of names lists', function() {
+      state.process(':irc-address 366 janedoe #test :End of NAMES list');
+      expect(state.onnames).toHaveBeenCalledWith('#test');
+    });
+
+    it('clears the names list on NAMES command', function() {
+      state.process(':irc-address 353 janedoe = #test :janedoe johndoe');
+      expect(state.state.channels['#test'].users).toEqual(['janedoe', 'johndoe']);
+      state.processOutbound('NAMES #test');
+      expect(state.state.channels['#test'].users).toEqual([]);
+    });
+  });
 });
