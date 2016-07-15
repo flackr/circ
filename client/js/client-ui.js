@@ -1,5 +1,7 @@
 'use strict';
 
+var MAX_INPUT_HISTORY = 100;
+
 window.client = null;
 // TODO(flackr): Support multiple connected hosts.
 window.hostId = 0;
@@ -23,7 +25,7 @@ if ('serviceWorker' in navigator) {
 }
 
 function transitionToMainUI() {
-  document.querySelector('.settings').classList.add('settings_hidden');
+  document.querySelector('.settings_container').style.display = "none";
   document.querySelector('.main_container').querySelector('.main_input_text').focus();
 }
 
@@ -59,9 +61,7 @@ constructor () {
 
   joinServer() {
     this.hideSideNav();
-    document.querySelector('.settings').classList.remove('.settings_hidden');
-    document.querySelector('.server_connection').classList.add('server_connection_visible');
-    new ServerConnection(document.querySelector('.server_connection'));
+    server_connection_screen.show();
   }
 
   // apply passive event listening if it's supported
@@ -183,6 +183,7 @@ class HostConnection {
 
   applyConnection() {
     this.connect.disabled = true;
+    this.connect.classList.add('md-inactive');
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
         this.elem.querySelector('input').value);
@@ -193,7 +194,7 @@ class HostConnection {
   }
 
   onConnection(hostId) {
-    this.elem.classList.add('host_connection_hidden');
+    this.elem.style.display = "none";
     window.hostId = hostId;
     var isConnectedToServer = false;
     for (var server in client.state_[hostId]) {
@@ -201,11 +202,10 @@ class HostConnection {
       break;
     }
     if (isConnectedToServer) {
+      room_list.initUI();
       transitionToMainUI();
     } else {
-      this.server_dialog = document.querySelector('.server_connection');
-      this.server_dialog.classList.add('server_connection_visible');
-      new ServerConnection(document.querySelector('.server_connection'));
+      server_connection_screen.show();
     }
     new RoomList(document.querySelector('.rooms'));
   }
@@ -219,7 +219,6 @@ class ServerConnection {
 
     this.server_address_el = this.elem.querySelector('.server_address');
     this.server_address_el.addEventListener('keypress', this.onKeyPress.bind(this));
-    this.server_address_el.focus();
 
     this.server_port_el = this.elem.querySelector('.server_port');
     this.server_port_el.addEventListener('keypress', this.onKeyPress.bind(this));
@@ -230,8 +229,16 @@ class ServerConnection {
     this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
   }
 
+  show() {
+    document.querySelector('.settings_container').style.display = "block";
+    this.elem.style.display = "block";
+    this.connect.classList.remove('md-inactive');
+    this.server_address_el.focus();
+  }
+
   close() {
-    this.elem.classList.remove('server_connection_visible');
+    room_list.initUI();
+    this.elem.style.display = "none";
     transitionToMainUI();
   }
 
@@ -243,6 +250,7 @@ class ServerConnection {
 
   applyConnection() {
     this.connect.disabled = true;
+    this.connect.classList.add('md-inactive');
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
     var server_nick = this.server_nick_el.value;
@@ -259,14 +267,50 @@ class BaseUI {
   constructor(elem, client) {
     this.elem = elem;
     this.client = client;
+    this.elem.querySelector('.main_input_text').addEventListener('keydown', this.onKeyDown.bind(this));
     this.elem.querySelector('.main_input_text').addEventListener('keypress', this.onKeyPress.bind(this));
+    this.input_history = [];
+    this.input_index = 0;
+  }
+
+  onKeyDown(evt) {
+    if (this.input_history.length == 0) {
+      return;
+    }
+    if (evt.keyCode == 38) {
+      // Up arrow
+      if (this.input_index > 0) {
+        this.input_index--;
+        this.elem.querySelector('.main_input_text').value = this.input_history[this.input_index];
+      }
+    } else if (evt.keyCode == 40) {
+      // Down arrow
+      this.input_index++;
+      if (this.input_index >= this.input_history.length) {
+        this.input_index = this.input_history.length;
+        this.elem.querySelector('.main_input_text').value = "";
+      } else {
+        this.elem.querySelector('.main_input_text').value = this.input_history[this.input_index];
+      }
+    }
   }
 
   onKeyPress(evt) {
-    //TODO parse irc commands here
     if (evt.keyCode == 13) {
       var elem = this.elem.querySelector('.main_input_text')
-      this.client.send(hostId, serverName, elem.value);
+      var text = elem.value;
+      if (this.input_index == this.input_history.length) {
+        this.input_history.push(text);
+        this.input_index++;
+        if (this.input_history.length > MAX_INPUT_HISTORY) {
+           this.input_history.shift();
+           this.input_index = this.input_history.length;
+        }
+      } else {
+        this.input_index = this.input_history.length;
+      }
+      //TODO parse irc commands here
+      this.client.send(hostId, serverName, text);
       elem.value = '';
     }
   }
@@ -275,11 +319,21 @@ class BaseUI {
 class RoomList {
   constructor(room_el) {
     this.room_el = room_el;
+    this.current_channel = '';
+    this.servers_loaded = false;
+  }
+
+  initUI() {
+    if (this.servers_loaded) {
+      return;
+    }
     this.list = document.createElement('ul');
     this.insertRooms();
-    this.room_el.appendChild(this.list);
-    this.current_channel = '';
+    if (this.servers_loaded) {
+      this.room_el.appendChild(this.list);
+    }
   }
+
   parseEvent(event) {
     var main_panel = document.querySelector('.main_panel');
     var timestamp = new Date(event.time);
@@ -333,6 +387,7 @@ class RoomList {
 
   insertRooms() {
     for (var server in client.state_[hostId]) {
+      this.servers_loaded = true;
       var item = document.createElement('li');
       var server_node = document.createElement('div');
       server_node.textContent = server;
@@ -377,6 +432,9 @@ class RoomList {
     }
   }
 }
+
+var server_connection_screen = new ServerConnection(document.querySelector('.server_connection'));
+var room_list = new RoomList(document.querySelector('.rooms'));
 
 new HostConnection(document.querySelector('.host_connection'));
 

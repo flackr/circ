@@ -16,7 +16,7 @@
 <body>
   <div class="main_container">
     <div class="header horizontal_row">
-      <button class="js-menu-show header__menu-toggle material-icons">menu</button>
+      <button class="js-menu-show header__menu-toggle material-icons md-light">menu</button>
       <div class="channel_name header_title"></div>
     </div>
     <div class="main_panel"></div>
@@ -27,7 +27,7 @@
 
   <aside class="js-side-nav side-nav">
     <nav class="js-side-nav-container side-nav__container">
-      <button class="js-menu-hide side-nav__hide material-icons">close</button>
+      <button class="js-menu-hide side-nav__hide material-icons md-light">close</button>
       <header class="side-nav__header">
         Rooms
       </header>
@@ -55,21 +55,24 @@
     </nav>
   </aside>
 
-  <div class="settings">
+  <div class="settings_container">
     <div class="host_connection">
-      <div class="header">Host Connection:</div>
+      <div class="header">
+        <div class="vertical_center_text">Host Connection:</div>
+        <button class='connect material-icons md-light header__menu-toggle settings_header_button'>check</button>
+      </div>
       <div class="settings_content">
         <!-- TODO(flackr): Don't show the auth token unless needed for user to run host. -->
         <div class="g-signin2" data-onsuccess="onSignIn"></div>
         <label class="label_text">Auth Token:</label>
         <input class="input_text" type="text"><br>
-        <button class='connect settings_button'>Connect</button>
       </div>
     </div>
     <div class="server_connection">
       <div class="header horizontal_row">
-        <button class="material-icons header__menu-toggle">arrow_back</button>
+        <button class="material-icons md-light header__menu-toggle">arrow_back</button>
         <div class="header_title">Server Connection:</div>
+        <button class="connect material-icons md-light header__menu-toggle settings_header_button">check</button>
       </div>
       <div class="settings_content">
         <label class="label_text">Address:</label>
@@ -78,7 +81,6 @@
         <input type="text" class="input_text server_port"><br>
         <label class="label_text">Nick:</label>
         <input type="text" class="input_text server_nick"><br>
-        <button class="connect settings_button">Add server</button>
       </div>
     </div>
     <div class="register">

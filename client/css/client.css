@@ -11,6 +11,9 @@
   --hover-color: #EEEEEE;
 }
 
+.material-icons.md-light { color: rgba(255, 255, 255, 1); }
+.material-icons.md-light.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
 * {
   box-sizing: border-box;
 }
@@ -59,6 +62,12 @@ html, body {
   font-size: 1.0em;
 }
 
+.vertical_center_text {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 /* Main Content */
 
 .main_container {
@@ -67,15 +76,17 @@ html, body {
   flex-direction: column;
   height: 100%;
   width: 100%;
+  background: var(--main-bg-color);
 }
 
 .header {
+  position: relative;
   height: 64px;
   background: var(--primary-color);
   color: var(--light-text-color);
   font-size: 2.0em;
   padding-left: 10px;
-  padding-top: 10px;
+  padding-right: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 .main_panel {
@@ -101,6 +112,7 @@ html, body {
 }
 
 .input_region {
+  margin-bottom: 5px;
   margin-left: 10px;
   margin-right: 10px;
 }
@@ -119,57 +131,44 @@ html, body {
   height: 24px;
   padding: 0;
   margin: 0;
-  color: var(--light-text-color);
 }
 
 /* Settings and related screens */
 
-.settings {
+.settings_container {
   position: absolute;
-  background: var(--main-bg-color);
-  color: var(--text-color);
   height: 100%;
   width: 100%;
 }
 
-.settings_hidden {
-  visibility: hidden;
-}
-
 .settings_content {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  margin-right: 10px;
-  margin-left: 10px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+  padding-left: 10px;
+  height: 100%;
+  width: 100%;
+  background: var(--main-bg-color);
 }
 
-.settings_button {
-  background: var(--accent-color);
-  color: var(--text-color);
-  border: 1px solid;
-  border-radius: 25px;
-  border-color: var(--secondary-color);
-  font-size: 0.75em;
+.host_connection {
+  height: 100%;
+  width: 100%;
 }
 
-.settings_button:disabled {
-  background: var(--accent-color-secondary);
-  color: var(--light-text-color-disabled);
-}
-
-.host_connection_hidden {
-  visibility: hidden;
+.settings_header_button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
 }
 
 .server_connection {
   position: absolute;
   top: 0;
+  height: 100%;
   width: 100%;
-  visibility: hidden;
-}
-
-.server_connection_visible {
-  visibility: visible;
+  display: none;
 }
 
 /* Right Side User List Panel */
