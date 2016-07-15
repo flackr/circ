@@ -7,14 +7,14 @@ circ.UserCommandHandler = function() {
       'helptext': 'foo',
       'run': function(handler, channel, message) {
         handler.client.send(handler.hostId_, handler.server_, 'PRIVMSG ' + channel + ' :' + message);
-      }.bind()
+      }
     },
     'join': {
       'args': ['channel'],
       'helptext': 'foo',
       'run': function(handler, channel) {
         handler.client.join(handler.hostId_, handler.server_, channel);
-      }.bind()
+      }
     },
   };
 
@@ -46,23 +46,19 @@ circ.UserCommandHandler = function() {
       var argList = cmd.args;
       if (argList[argList.length - 1] != '...') {
         var inputArgs = input.split(' ', argList.length + 2);
-        if (inputArgs.length > argList.length + 1 || inputArgs.length <= argList.length)
-          throw new Error('invalid command');
+        if (inputArgs.length > argList.length + 1)
+          throw new Error('Invalid command: Too many arguments');
+        else if (inputArgs.length <= argList.length)
+          throw new Error('Invalid command: Too few arguments');
         return inputArgs.slice(1);
       } else {
         var inputArgs = input.split(' ', argList.length);
         if (inputArgs.length < argList.length)
-          throw new Error('invalid command');
+          throw new Error('Invalid command: Too few arguments');
         inputArgs.push(input.substring(inputArgs.reduce(function(a, b) { return a + b.length + 1; }, 0)));
         return inputArgs.slice(1);
       }
     },
-
-    // Override these functions to be notified about various events.
-    onjoin: function(channel) {},
-
-    process: function(message, timestamp) {
-    }
   }
 
   return UserCommandHandler;

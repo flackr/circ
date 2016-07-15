@@ -29,7 +29,7 @@ describe('circ.UserCommandHandler', function() {
   });
 
   it('fails to /join with an incorrect argument count', function() {
-    expect(function() { handler.runCommand('/join'); }).toThrow(new Error('invalid command'));
-    expect(function() { handler.runCommand('/join #foo bar'); }).toThrow(new Error('invalid command'));
+    expect(function() { handler.runCommand('/join'); }).toThrow(new Error('Invalid command: Too few arguments'));
+    expect(function() { handler.runCommand('/join #foo bar'); }).toThrow(new Error('Invalid command: Too many arguments'));
   });
 });
