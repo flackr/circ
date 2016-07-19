@@ -9,7 +9,6 @@ exports.CircNode = function() {
   } else {
     console.warn('Push notifications require the environment variable GCM_API_KEY');
   }
-  var XMLHttpRequest = require('xmlhttprequest');
 
   function CircNode(server, name) {
     this.host = new Host(server, name);

@@ -184,8 +184,9 @@ class HostConnection {
   applyConnection() {
     this.connect.disabled = true;
     this.connect.classList.add('md-inactive');
+    // TODO(flackr): Add ability to select a custom lobby server.
     client = new circ.CircClient(
-        window.location.origin.replace(/^http/, 'ws'),
+        'wss://www.lobbyjs.com/circ',
         this.elem.querySelector('input').value);
     if (window.pushNotificationEndpoint)
       client.subscribeForNotifications(window.pushNotificationEndpoint);
