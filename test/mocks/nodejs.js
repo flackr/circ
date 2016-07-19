@@ -8,6 +8,8 @@ var packages = {
 var exports = {
 };
 
+window.__dirname = 'server/';
+
 window.require = function(package) {
   return packages[package];
 };

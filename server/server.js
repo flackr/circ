@@ -2,6 +2,7 @@
  * CIRC server helps connect clients to hosts.
  */
 exports.Server = function() {
+
   var http = require('http');
   var https = require('https');
   var WebSocketServer = require('ws').Server;
@@ -9,7 +10,7 @@ exports.Server = function() {
   var serveStatic = require('serve-static');
   var OAuth2 = require('google-auth-library').prototype.OAuth2;
 
-  var Server = function(options) {
+  var Server = function() {
     // TODO(flackr): Load users from disk / database.
     this.users = {};
     this.sessions = {};
@@ -19,23 +20,28 @@ exports.Server = function() {
       this.authenticator = new OAuth2('143277396652-uibcos8vorqf1ouls7eom9po0cftjgl8.apps.googleusercontent.com',
                                       process.env.AUTH_CLIENT_SECRET, '' /* redirect_uri */);
     }
+    this.webServer_ = null;
+    this.webSocketServer_ = null;
     if (!this.authenticator)
       console.warn('Warning: Running without authentication support');
-    options.port = options.port || (options.key ? 443 : 80);
-    if (options.key)
-      this.webServer_ = https.createServer(options, this.onRequest_.bind(this));
-    else
-      this.webServer_ = http.createServer(this.onRequest_.bind(this));
-    this.webSocketServer_ = new WebSocketServer({'server': this.webServer_});
-    this.webSocketServer_.on('connection', this.onConnection_.bind(this));
-    this.webServer_.listen(options.port);
-    this.serve = serveStatic('../');
-    console.log('Listening on ' + options.port);
+    this.serve = serveStatic(((__dirname + '/') || '') + '../');
   };
 
   Server.prototype = {
 
-    onRequest_: function(req, res) {
+    listen: function(options) {
+      options.port = options.port || (options.key ? 443 : 80);
+      if (options.key)
+        this.webServer_ = https.createServer(options, this.onRequest.bind(this));
+      else
+        this.webServer_ = http.createServer(this.onRequest.bind(this));
+      this.webSocketServer_ = new WebSocketServer({'server': this.webServer_});
+      this.webSocketServer_.on('connection', this.onConnection.bind(this));
+      this.webServer_.listen(options.port);
+      console.log('Listening on ' + options.port);
+    },
+
+    onRequest: function(req, res) {
       console.log('Request for ' + req.url);
       if (req.url.substring(0, 10) == '/register/') {
         this.registerUser(req, res);
@@ -69,7 +75,7 @@ exports.Server = function() {
      *
      * @param {WebSocket} websocket A connected websocket client connection.
      */
-    onConnection_: function(websocket) {
+    onConnection: function(websocket) {
       // Origin is of the form 'https://www.lobbyjs.com'
       var origin = websocket.upgradeReq.headers.origin || 'unknown';
       var parts = websocket.upgradeReq.url.split('/', 2);

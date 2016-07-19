@@ -17,7 +17,8 @@ describe('circ.Server', function() {
     installXMLHttpRequestMock();
     installWebSocketMock();
     installWebRTCMock();
-    server = new Server({'port': testPort});
+    server = new Server();
+    server.listen({'port': testPort});
   });
 
   afterEach(function() {

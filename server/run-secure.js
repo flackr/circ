@@ -12,4 +12,5 @@ var options = {port: 443,
             secureProtocol: 'SSLv23_method',
             secureOptions: constants.SSL_OP_NO_SSLv3 | constants.SSL_OP_NO_SSLv2,};
 
-new lobby.Server(options);
+var server = new lobby.Server();
+server.listen(options);

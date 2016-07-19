@@ -10,7 +10,8 @@ describe('circ.CircClient', function() {
     installXMLHttpRequestMock();
     installWebSocketMock();
     installWebRTCMock();
-    server = new Server({'port': testPort});
+    server = new Server();
+    server.listen({'port': testPort});
     var request = new XMLHttpRequest();
     request.open('GET', serverAddress + '/register/' + user, true);
     request.addEventListener('loadend', function() {
