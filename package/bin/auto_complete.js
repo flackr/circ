@@ -109,7 +109,6 @@
 
 
     AutoComplete.prototype.getTextWithCompletion = function(text, cursor) {
-      var completion, textWithCompletion;
       this._text = text;
       this._cursor = cursor;
       if (this._previousText !== this._text) {
@@ -119,9 +118,14 @@
       if (!this._completionFinder.hasStarted) {
         this._extractStub();
       }
-      completion = this._getCompletion();
-      textWithCompletion = this._preCompletion + completion + this._postCompletion;
-      this._updatedCursorPosition = this._preCompletion.length + completion.length;
+      var completion = this._getCompletion();
+      var textWithCompletion = this._preCompletion + completion + this._postCompletion;
+      var newCursor = this._preCompletion.length + completion.length;
+      while (newCursor < textWithCompletion.length &&
+             textWithCompletion.charAt(newCursor) == ' ') {
+        newCursor++;
+      }
+      this._updatedCursorPosition = newCursor;
       this._previousText = textWithCompletion;
       return textWithCompletion;
     };
