@@ -729,11 +729,11 @@
         run: function() {
           var _this = this;
           return loadFromFileSystem(function(content) {
-		  window.webkitStorageInfo.requestQuota(PERSISTENT, 50*1024, function(grantedBytes) {
-		    window.requestFileSystem(PERSISTENT, grantedBytes, onInitFs, errorHandler);
-		    }, function(e) {
-		      console.log('Error', e);
-			 });
+            navigator.webkitPersistentStorage.requestQuota(50*1024, function(grantedBytes) {
+                window.requestFileSystem(PERSISTENT, grantedBytes, onInitFs, errorHandler);
+              }, function(e) {
+                console.log('Error', e);
+            });
             return webkitRequestFileSystem(PERSISTENT, 50 * 1024, function(fileSystem) {
               return fileSystem.root.getFile('custom_style.css', {
                 create: true
@@ -760,14 +760,14 @@
           var _this = this;
           return webkitRequestFileSystem(PERSISTENT, 50 * 1024, function(fileSystem) {
             fileSystem.root.getFile('custom_style.css', { create: false },
-		    function(fileEntry) {
-		      fileEntry.remove(function() {
-			   console.log('custom_style.css removed');
+        function(fileEntry) {
+          fileEntry.remove(function() {
+         console.log('custom_style.css removed');
                   return $('#main-style').attr('href', 'style.css');
-			 });
+       });
               });
             });
-		}
+    }
         });
       /*
            * Hidden commands.
