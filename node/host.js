@@ -10,8 +10,8 @@ var RTCSessionDescription = webrtc.RTCSessionDescription;
 var RTCIceCandidate       = webrtc.RTCIceCandidate;
 
 exports.Host = function() {
-  function Host(server, clientIdToken) {
-    this.clientIdToken_ = clientIdToken;
+  function Host(server, options) {
+    this.options = options || {};
     this.socket = new WebSocket(server + '/host');
     this.socket.addEventListener('open', this.onServerConnected_.bind(this));
     this.socket.addEventListener('message', this.onServerMessage_.bind(this));
@@ -30,19 +30,19 @@ exports.Host = function() {
     onopen: function() {},
     onconnection: function(rtc, dataChannel) {},
     onconnecting: function(clientCount) {},
-    
+
     onServerConnected_: function(e) {
-      this.socket.send(this.clientIdToken_);
+      if (this.options.testUser)
+        this.socket.send(this.options.testUser)
     },
     onServerMessage_: function(e) {
-      if (!this.connected) {
-        this.connected = true;
+      var data = JSON.parse(e.data);
+      if (data.type == "authenticate") {
+        console.log('Authenticate at ' + data.url);
+      } else if (data.type == "authenticated") {
         this.onopen();
         console.log('Host connected');
-        return;
-      }
-      var data = JSON.parse(e.data);
-      if (data.type == "offer") {
+      } else if (data.type == "offer") {
         this.connectingClientCount++;
         this.onconnecting(this.connectingClientCount);
         // TODO(flackr): Verify that there is no data here currently.

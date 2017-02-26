@@ -186,7 +186,7 @@ class HostConnection {
     this.connect.classList.add('md-inactive');
     client = new circ.CircClient(
         window.location.origin.replace(/^http/, 'ws'),
-        this.elem.querySelector('input').value);
+        {'clientIdToken': this.elem.querySelector('input').value});
     if (window.pushNotificationEndpoint)
       client.subscribeForNotifications(window.pushNotificationEndpoint);
     new BaseUI(document.querySelector('.main_container'), client);

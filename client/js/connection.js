@@ -1,8 +1,8 @@
 window.circ = window.circ || {};
 
-circ.ClientSession = function(server, clientIdToken) {
+circ.ClientSession = function(server, options) {
   this.connectingHosts = 0;
-  this.clientIdToken_ = clientIdToken;
+  this.options = options;
   this.socket = new WebSocket(server + '/connect')
   this.hosts = {};
   this.configuration = {
@@ -11,17 +11,21 @@ circ.ClientSession = function(server, clientIdToken) {
     ],
   };
   this.addEventTypes(['connection', 'hosts']);
-  this.socket.addEventListener('open', this.sendAuthToken_.bind(this));
+  this.socket.addEventListener('open', this.onServerConnected_.bind(this));
   this.socket.addEventListener('message', this.onServerMessage_.bind(this));
 }
 
 circ.ClientSession.prototype = circ.util.extend(circ.util.EventSource.prototype, {
-  sendAuthToken_: function() {
-    this.socket.send(this.clientIdToken_);
+  onServerConnected_: function() {
+    // Test user authentication.
+    if (this.options.testUser)
+      this.socket.send(this.options.testUser);
   },
   onServerMessage_: function(e) {
     var data = JSON.parse(e.data);
-    if (data.type == 'hosts') {
+    if (data.type == 'authenticate') {
+      this.socket.send(this.options.clientIdToken);
+    } else if (data.type == 'hosts') {
       this.dispatchEvent('hosts', data.hosts);
       this.connectingHosts = data.hosts.length;
       for (var i = 0; i < data.hosts.length; i++) {

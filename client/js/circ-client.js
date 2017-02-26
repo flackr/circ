@@ -2,9 +2,9 @@ circ.CircClient = function() {
 
   var CircState = exports.CircState;
 
-  function CircClient(server, name) {
+  function CircClient(server, options) {
     this.addEventTypes(['connection', 'message', 'server']);
-    this.session = new circ.ClientSession(server, name);
+    this.session = new circ.ClientSession(server, options);
     this.session.onconnection = this.onConnection_.bind(this);
     this.state_ = {};
     this.connections_ = {};

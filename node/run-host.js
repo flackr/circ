@@ -2,9 +2,8 @@
 
 // TODO(flackr): Accept custom parameters rather than hard-coding. Perhaps
 // we should read them from a config file.
-var server = 'ws://localhost:' + process.env.PORT;
-var user = process.argv[2];
-
+var server = 'ws://' + process.env.IP + ':' + process.env.PORT;
+console.log('Using server ' + server);
 var CircNode = require('./circ-node.js').CircNode;
 
-new CircNode(server, user);
+new CircNode(server);

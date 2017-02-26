@@ -8,17 +8,38 @@ exports.Server = function() {
   var WebSocketServer = require('ws').Server;
   var finalhandler = require('finalhandler');
   var serveStatic = require('serve-static');
-  var OAuth2 = require('google-auth-library').prototype.OAuth2;
+
+  var parseArgs = function(str) {
+    var args = {};
+    var argstart = str.indexOf('?');
+    if (argstart == -1)
+      return args;
+    var argpairs = str.substring(argstart + 1).split('&');
+    for (var i = 0; i < argpairs.length; i++) {
+      var equals = argpairs[i].indexOf('=');
+      if (equals != -1)
+        args[argpairs[i].substring(0, equals)] = argpairs[i].substring(equals + 1);
+      else
+        args[argpairs[i]] = true;
+    }
+    return args;
+  };
 
   var Server = function() {
     // TODO(flackr): Load users from disk / database.
     this.users = {};
     this.sessions = {};
+    // Connections that have not yet been authenticated.
+    this.authenticating = [];
     this.nextId_ = 1;
     this.authenticator = null;
     if (process.env.AUTH_CLIENT_SECRET) {
-      this.authenticator = new OAuth2('143277396652-uibcos8vorqf1ouls7eom9po0cftjgl8.apps.googleusercontent.com',
-                                      process.env.AUTH_CLIENT_SECRET, '' /* redirect_uri */);
+      var OAuth2 = require('google-auth-library').prototype.OAuth2;
+      var serverUrl = process.env.C9_HOSTNAME ?
+          ('https://' + process.env.C9_HOSTNAME) :
+          'https://www.lobbyjs.com/circ';
+      this.authenticator = new OAuth2(process.env.AUTH_CLIENT_ID,
+                                      process.env.AUTH_CLIENT_SECRET, serverUrl + '/authenticate');
     }
     this.webServer_ = null;
     this.webSocketServer_ = null;
@@ -43,7 +64,24 @@ exports.Server = function() {
 
     onRequest: function(req, res) {
       console.log('Request for ' + req.url);
-      if (req.url.substring(0, 10) == '/register/') {
+      if (req.url.substring(0, 14) == '/authenticate?') {
+        var args = parseArgs(req.url);
+        if (args.state && args.code && this.authenticator) {
+          this.authenticator.getToken(args.code, function (err, tokens) {
+            if (err) {
+              res.writeHead(404);
+              res.end('Unable to get auth token: ' + err.message);
+            } else {
+              this.authenticating[parseInt(args.state)](tokens['id_token']);
+              res.writeHead(200);
+              res.end('Successfully authenticated user');
+            }
+          }.bind(this));
+        } else {
+          res.writeHead(404);
+          res.end('Incorrect request');
+        }
+      } else if (req.url.substring(0, 10) == '/register/') {
         this.registerUser(req, res);
       } else {
         // Default handler.
@@ -86,23 +124,35 @@ exports.Server = function() {
         websocket.close();
         return;
       }
-      this.authenticate_(websocket, action);
+      // TODO(flackr): Maybe hash this id to protect against authenticating a
+      // different host.
+      var startAuth = function(authTokenId) {
+        if (socketId === undefined)
+          return;
+        delete this.authenticating[socketId];
+        socketId = undefined;
+        this.authenticate_(websocket, action, authTokenId);
+      }.bind(this);
+      var socketId = this.authenticating.length;
+      this.authenticating.push(startAuth);
+      if (this.authenticator) {
+        var url = this.authenticator.generateAuthUrl({'access_type': 'online', 'scope': 'email', 'state': socketId});
+        websocket.send(JSON.stringify({'type': 'authenticate', 'url': url}));
+      }
+      websocket.once('message', startAuth);
+      websocket.on('close', function() {
+        if (socketId === undefined)
+          return;
+        console.log('Host disconnected before authenticating');
+        delete this.authenticating[socketId];
+        socketId = undefined;
+      });
     },
 
-    authenticate_: function(websocket, action) {
+    authenticate_: function(websocket, action, authTokenId) {
       // TODO(flackr): Time out the connection if the credentials aren't sent.
       // The first message should contain the authentication details.
-      var authenticated, continueWithUser;
-      websocket.once('message', function(authTokenId) {
-        if (this.authenticator) {
-          this.authenticator.verifyIdToken(authTokenId, process.env.AUTH_CLIENT_ID, authenticated);
-        } else {
-          // In tests, we let the user be specified directly.
-          continueWithUser(authTokenId);
-        }
-      }.bind(this));
-
-      authenticated = function(err, login) {
+      var authenticated = function(err, login) {
         if (err) {
           // TODO(flackr): Send an error message.
           websocket.close();
@@ -111,7 +161,7 @@ exports.Server = function() {
         continueWithUser(login.getUserId());
       }.bind(this);
 
-      continueWithUser = function(user) {
+      var continueWithUser = function(user) {
         this.users[user] = this.users[user] || {
           // TODO(flackr): Insert name here?
           'name': user,
@@ -127,6 +177,13 @@ exports.Server = function() {
           websocket.close();
         }
       }.bind(this);
+
+      if (this.authenticator) {
+        this.authenticator.verifyIdToken(authTokenId, process.env.AUTH_CLIENT_ID, authenticated);
+      } else {
+        // In tests, we let the user be specified directly.
+        continueWithUser(authTokenId);
+      }
     },
 
     /**
@@ -270,7 +327,7 @@ exports.Server = function() {
         }
       });
       console.log('Created session ' + hostId);
-      websocket.send(hostId);
+      websocket.send(JSON.stringify({'type': 'authenticated'}));
     },
 
     /**

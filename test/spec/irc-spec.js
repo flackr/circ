@@ -29,9 +29,9 @@ describe('circ.CircClient', function() {
 
     beforeEach(function(done) {
       ircServer = new IRCServer('irc.server', 6667);
-      host = new CircNode(serverAddress, user);
+      host = new CircNode(serverAddress, {'testUser': user});
       host.host.onopen = function() {
-        client = new circ.CircClient(serverAddress, user);
+        client = new circ.CircClient(serverAddress, {'testUser': user});
         client.addEventListener('connection', function(actualHostId) {
           hostId = actualHostId;
           done();
@@ -89,7 +89,7 @@ describe('circ.CircClient', function() {
         var hostId2;
 
         beforeEach(function(done) {
-          client2 = new circ.CircClient(serverAddress, user);
+          client2 = new circ.CircClient(serverAddress, {'testUser': user});
           client2.addEventListener('connection', function(actualHostId) {
             hostId2 = actualHostId;
             done();

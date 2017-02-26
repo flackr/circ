@@ -20,15 +20,15 @@ describe('circ.ClientSession', function() {
     });
     request.send();
   });
-  
+
   describe('connected hosts', function(done) {
     var hosts;
 
     beforeEach(function(done) {
       hosts = [];
       // Connect two hosts.
-      hosts.push(new Host(serverAddress, user));
-      hosts.push(new Host(serverAddress, user));
+      hosts.push(new Host(serverAddress, {'testUser': user}));
+      hosts.push(new Host(serverAddress, {'testUser': user}));
       var connectedHosts = 0;
       hosts[0].onopen = hosts[1].onopen = function() {
         connectedHosts++;
@@ -36,7 +36,7 @@ describe('circ.ClientSession', function() {
           done();
       }
     });
-    
+
     it('can connect a client to both hosts', function(done) {
       var hostConnections = [];
       for (var i = 0; i < hosts.length; i++) {
@@ -49,7 +49,7 @@ describe('circ.ClientSession', function() {
           })
         }.bind(null, i);
       }
-      var client = new circ.ClientSession(serverAddress, user);
+      var client = new circ.ClientSession(serverAddress, {'testUser': user});
       var connections = [];
       var pongs = 0;
       var noclients = 0;

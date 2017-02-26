@@ -11,8 +11,8 @@ exports.CircNode = function() {
   }
   var XMLHttpRequest = require('xmlhttprequest');
 
-  function CircNode(server, name) {
-    this.host = new Host(server, name);
+  function CircNode(server, options) {
+    this.host = new Host(server, options);
     this.host.onconnection = this.onConnection_.bind(this);
     this.pushEndpoints = {};
     this.connections_ = {};

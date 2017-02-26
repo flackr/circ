@@ -100,7 +100,9 @@ exports.CircState = function() {
           var users = this.state.channels[channel].users;
           var usersList = message.split(' ').slice(5);
           usersList[0] = usersList[0].substring(1);
-          users.splice(users.length, 0, ...usersList);
+          for (var i = 0; i < usersList.length; i++) {
+            users.push(usersList[i]);
+          }
         }
       } else if (!user && words[1] == '366') {
         this.onnames(words[3]);
