@@ -226,6 +226,8 @@ class ServerConnection {
     this.server_nick_el = this.elem.querySelector('.server_nick');
     this.server_nick_el.addEventListener('keypress', this.onKeyPress.bind(this));
 
+    this.server_tls = this.elem.querySelector('.server_tls');
+
     this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
   }
 
@@ -254,8 +256,9 @@ class ServerConnection {
     var server_address = this.server_address_el.value;
     var server_port = this.server_port_el.value;
     var server_nick = this.server_nick_el.value;
+    var tls = this.server_tls.checked ? true : false;
     var server_name = 'irc';
-    client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick})
+    client.connect(hostId, server_address, server_port, {'name': server_name, 'nick': server_nick, 'tls': tls})
         .then(function() {
           // Show main UI.
           this.close();

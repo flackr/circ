@@ -6,4 +6,4 @@ var server = 'ws://' + process.env.IP + ':' + process.env.PORT;
 console.log('Using server ' + server);
 var CircNode = require('./circ-node.js').CircNode;
 
-new CircNode(server);
+var node = new CircNode(server);

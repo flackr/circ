@@ -1,33 +1,36 @@
-var Socket = require('net').Socket;
+var net = require('net');
+var tls = require('tls');
 
 exports.IrcConnection = function() {
-  
+
   var EOL = '\r\n';
 
   function IrcConnection(address, port, nick, options) {
-    // TODO(flackr): Support SSL connections
     this.nick = nick;
+    this.authorized = false;
     this.options = options;
     // Use the nickname as the user if not specified.
     this.user = this.options.user || this.nick;
-    this.realName = this.options.realName || 'A CIRC user'; 
-    this.socket = new Socket();
-    this.socket.connect(port, address, this.onConnected_.bind(this));
+    this.realName = this.options.realName || 'A CIRC user';
+    this.socket = options.tls ?
+        tls.connect(port, address, this.onConnected_.bind(this)) :
+        net.connect(port, address, this.onConnected_.bind(this));
     this.socket.on('data', this.onData_.bind(this));
     this.socket.on('close', this.onClose_.bind(this));
     // TODO(flackr): It's probably not efficient to do string concatenation
     // and splitting to accumulate the messages - we should do something better.
     this.receiveBuffer_ = '';
   }
-  
+
   IrcConnection.prototype = {
     onopen: function() {},
     onmessage: function(message) {},
-    
+
     send: function(message) {
       this.socket.write(message + EOL);
     },
     onConnected_: function() {
+      this.authorized = this.socket.authorized;
       this.socket.write('NICK ' + this.nick + EOL);
       this.socket.write('USER ' + this.user + ' 0 * :' + this.realName + EOL);
       this.onopen();

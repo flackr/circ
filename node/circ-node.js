@@ -55,9 +55,9 @@ exports.CircNode = function() {
         server.onmessage = this.onServerMessage.bind(this, name);
         this.broadcast(message);
         server.onopen = function() {
-          this.state_[name] = new CircState({'nick': message.options.nick});
+          this.state_[name] = new CircState({'nick': message.options.nick, 'authorized': server.authorized});
           this.state_[name].onevent = this.onIrcEvent.bind(this, name);
-          this.broadcast({'type': 'connected', 'server': name});
+          this.broadcast({'type': 'connected', 'server': name, 'authorized': server.authorized});
         }.bind(this);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {

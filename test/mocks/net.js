@@ -21,11 +21,11 @@ MockSocket.prototype = circ.util.extend(NodeJSEventSource.prototype, {
 function MockSocketServer(port, address) {
   mockListeningSockets[address] = mockListeningSockets[address] || {};
   mockListeningSockets[address][port] = this;
-  
+
 }
 
 MockSocketServer.prototype = circ.util.extend(NodeJSEventSource.prototype, {
-  
+
 });
 
 function MockSocketConnection(clientSocket, server) {
@@ -41,5 +41,10 @@ MockSocketConnection.prototype = circ.util.extend(NodeJSEventSource.prototype, {
 });
 
 packages['net'] = {
+  'connect': function() {
+    var socket = new MockSocket();
+    socket.connect.apply(socket, arguments);
+    return socket;
+  },
   'Socket': MockSocket,
 };

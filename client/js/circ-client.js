@@ -57,6 +57,7 @@ circ.CircClient = function() {
         var server = message.name;
         this.state_[hostId][server] = new CircState({'nick': message.options.nick});
       } else if (message.type == 'connected') {
+        this.state_[hostId][message.server].state.authorized = message.authorized;
         this.dispatchEvent('server', hostId, message.server);
         // TODO(flackr): Confirm when the server is actually connected.
       } else if (message.type == 'irc') {
