@@ -333,6 +333,7 @@ ul {
   -webkit-overflow-scrolling: touch;
   -webkit-box-flex: 1;
   border-bottom: 1px solid #CCC;
+  user-select: text;
 }
 
 .messages {
