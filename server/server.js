@@ -113,10 +113,11 @@ exports.Server = function() {
      *
      * @param {WebSocket} websocket A connected websocket client connection.
      */
-    onConnection: function(websocket) {
+    onConnection: function(websocket, req) {
       // Origin is of the form 'https://www.lobbyjs.com'
-      var origin = websocket.upgradeReq.headers.origin || 'unknown';
-      var parts = websocket.upgradeReq.url.split('/', 2);
+      req = req || websocket.upgradeReq;
+      var origin = req.origin || 'unknown';
+      var parts = req.url.split('/', 2);
       console.log('connection for ' + origin);
       var action = parts[1];
       if (!action) {
