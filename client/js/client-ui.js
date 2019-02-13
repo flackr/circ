@@ -56,7 +56,14 @@ constructor () {
     this.supportsPassive = undefined;
     this.addEventListeners();
 
+    document.querySelector('.settings_launcher').addEventListener('click', this.launchSettings.bind(this));
     document.querySelector('.join_server').addEventListener('click', this.joinServer.bind(this));
+  }
+
+  launchSettings() {
+    this.hideSideNav();
+    document.querySelector('.settings_container').style.display = "block";
+    document.querySelector('.settings_main').style.display = "block";
   }
 
   joinServer() {
@@ -313,6 +320,8 @@ class BaseUI {
       } else {
         this.input_index = this.input_history.length;
       }
+      //TODO parse irc commands here
+      this.client.send(hostId, serverName, text);
       elem.value = '';
       // TODO(flackr): Only call this when we switch channels.
       this.commandHandler.setActiveChannel(hostId, serverName, room_list.current_channel);
@@ -437,6 +446,20 @@ class RoomList {
     }
   }
 }
+
+class SettingsScreen {
+  constructor() {
+    this.elem = document.querySelector('.settings_main');
+    this.elem.querySelector('.header__menu-toggle').addEventListener('click',this.close.bind(this));
+  }
+
+  close() {
+    this.elem.display = "none";
+    transitionToMainUI();
+  }
+}
+
+new SettingsScreen();
 
 var server_connection_screen = new ServerConnection(document.querySelector('.server_connection'));
 var room_list = new RoomList(document.querySelector('.rooms'));
