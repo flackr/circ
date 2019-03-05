@@ -11,7 +11,7 @@
     ISSUES_URL: 'https://github.com/flackr/circ/issues',
 
     // Should match the version in the manifest.
-    VERSION: '0.6.8'
+    VERSION: '0.6.9'
   };
 
   /*
