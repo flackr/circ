@@ -1,3 +1,273 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports) {
+
+/**
+ * Node.js module for Forge.
+ *
+ * @author Dave Longley
+ *
+ * Copyright 2011-2016 Digital Bazaar, Inc.
+ */
+module.exports = {
+  // default options
+  options: {
+    usePureJavaScript: false
+  }
+};
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(2);
+module.exports = __webpack_require__(0);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * RSA Key Generation Worker.
+ *
+ * @author Dave Longley
+ *
+ * Copyright (c) 2013 Digital Bazaar, Inc.
+ */
+// worker is built using CommonJS syntax to include all code in one worker file
+//importScripts('jsbn.js');
+var forge = __webpack_require__(0);
+__webpack_require__(3);
+
+// prime constants
+var LOW_PRIMES = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997];
+var LP_LIMIT = (1 << 26) / LOW_PRIMES[LOW_PRIMES.length - 1];
+
+var BigInteger = forge.jsbn.BigInteger;
+var BIG_TWO = new BigInteger(null);
+BIG_TWO.fromInt(2);
+
+self.addEventListener('message', function(e) {
+  var result = findPrime(e.data);
+  self.postMessage(result);
+});
+
+// start receiving ranges to check
+self.postMessage({found: false});
+
+// primes are 30k+i for i = 1, 7, 11, 13, 17, 19, 23, 29
+var GCD_30_DELTA = [6, 4, 2, 4, 2, 4, 6, 2];
+
+function findPrime(data) {
+  // TODO: abstract based on data.algorithm (PRIMEINC vs. others)
+
+  // create BigInteger from given random bytes
+  var num = new BigInteger(data.hex, 16);
+
+  /* Note: All primes are of the form 30k+i for i < 30 and gcd(30, i)=1. The
+    number we are given is always aligned at 30k + 1. Each time the number is
+    determined not to be prime we add to get to the next 'i', eg: if the number
+    was at 30k + 1 we add 6. */
+  var deltaIdx = 0;
+
+  // find nearest prime
+  var workLoad = data.workLoad;
+  for(var i = 0; i < workLoad; ++i) {
+    // do primality test
+    if(isProbablePrime(num)) {
+      return {found: true, prime: num.toString(16)};
+    }
+    // get next potential prime
+    num.dAddOffset(GCD_30_DELTA[deltaIdx++ % 8], 0);
+  }
+
+  return {found: false};
+}
+
+function isProbablePrime(n) {
+  // divide by low primes, ignore even checks, etc (n alread aligned properly)
+  var i = 1;
+  while(i < LOW_PRIMES.length) {
+    var m = LOW_PRIMES[i];
+    var j = i + 1;
+    while(j < LOW_PRIMES.length && m < LP_LIMIT) {
+      m *= LOW_PRIMES[j++];
+    }
+    m = n.modInt(m);
+    while(i < j) {
+      if(m % LOW_PRIMES[i++] === 0) {
+        return false;
+      }
+    }
+  }
+  return runMillerRabin(n);
+}
+
+// HAC 4.24, Miller-Rabin
+function runMillerRabin(n) {
+  // n1 = n - 1
+  var n1 = n.subtract(BigInteger.ONE);
+
+  // get s and d such that n1 = 2^s * d
+  var s = n1.getLowestSetBit();
+  if(s <= 0) {
+    return false;
+  }
+  var d = n1.shiftRight(s);
+
+  var k = _getMillerRabinTests(n.bitLength());
+  var prng = getPrng();
+  var a;
+  for(var i = 0; i < k; ++i) {
+    // select witness 'a' at random from between 1 and n - 1
+    do {
+      a = new BigInteger(n.bitLength(), prng);
+    } while(a.compareTo(BigInteger.ONE) <= 0 || a.compareTo(n1) >= 0);
+
+    /* See if 'a' is a composite witness. */
+
+    // x = a^d mod n
+    var x = a.modPow(d, n);
+
+    // probably prime
+    if(x.compareTo(BigInteger.ONE) === 0 || x.compareTo(n1) === 0) {
+      continue;
+    }
+
+    var j = s;
+    while(--j) {
+      // x = x^2 mod a
+      x = x.modPowInt(2, n);
+
+      // 'n' is composite because no previous x == -1 mod n
+      if(x.compareTo(BigInteger.ONE) === 0) {
+        return false;
+      }
+      // x == -1 mod n, so probably prime
+      if(x.compareTo(n1) === 0) {
+        break;
+      }
+    }
+
+    // 'x' is first_x^(n1/2) and is not +/- 1, so 'n' is not prime
+    if(j === 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// get pseudo random number generator
+function getPrng() {
+  // create prng with api that matches BigInteger secure random
+  return {
+    // x is an array to fill with bytes
+    nextBytes: function(x) {
+      for(var i = 0; i < x.length; ++i) {
+        x[i] = Math.floor(Math.random() * 0xFF);
+      }
+    }
+  };
+}
+
+/**
+ * Returns the required number of Miller-Rabin tests to generate a
+ * prime with an error probability of (1/2)^80.
+ *
+ * See Handbook of Applied Cryptography Chapter 4, Table 4.4.
+ *
+ * @param bits the bit size.
+ *
+ * @return the required number of iterations.
+ */
+function _getMillerRabinTests(bits) {
+  if(bits <= 100) return 27;
+  if(bits <= 150) return 18;
+  if(bits <= 200) return 15;
+  if(bits <= 250) return 12;
+  if(bits <= 300) return 9;
+  if(bits <= 350) return 8;
+  if(bits <= 400) return 7;
+  if(bits <= 500) return 6;
+  if(bits <= 600) return 5;
+  if(bits <= 800) return 4;
+  if(bits <= 1250) return 3;
+  return 2;
+}
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.
 // See "LICENSE" for details.
@@ -46,10 +316,9 @@ Address all questions regarding this license to:
   Tom Wu
   tjw@cs.Stanford.EDU
 */
+var forge = __webpack_require__(0);
 
-(function() {
-/* ########## Begin module implementation ########## */
-function initModule(forge) {
+module.exports = forge.jsbn = forge.jsbn || {};
 
 // Bits per digit
 var dbits;
@@ -66,6 +335,7 @@ function BigInteger(a,b,c) {
     else if(b == null && "string" != typeof a) this.fromString(a,256);
     else this.fromString(a,b);
 }
+forge.jsbn.BigInteger = BigInteger;
 
 // return new, unset BigInteger
 function nbi() { return new BigInteger(null); }
@@ -121,16 +391,13 @@ if(typeof(navigator) === 'undefined')
 {
    BigInteger.prototype.am = am3;
    dbits = 28;
-}
-else if(j_lm && (navigator.appName == "Microsoft Internet Explorer")) {
+} else if(j_lm && (navigator.appName == "Microsoft Internet Explorer")) {
   BigInteger.prototype.am = am2;
   dbits = 30;
-}
-else if(j_lm && (navigator.appName != "Netscape")) {
+} else if(j_lm && (navigator.appName != "Netscape")) {
   BigInteger.prototype.am = am1;
   dbits = 26;
-}
-else { // Mozilla/Netscape seems to prefer am3
+} else { // Mozilla/Netscape seems to prefer am3
   BigInteger.prototype.am = am3;
   dbits = 28;
 }
@@ -205,8 +472,7 @@ function bnpFromString(s,b) {
     else if(sh+k > this.DB) {
       this.data[this.t-1] |= (x&((1<<(this.DB-sh))-1))<<sh;
       this.data[this.t++] = (x>>(this.DB-sh));
-    }
-    else
+    } else
       this.data[this.t-1] |= x<<sh;
     sh += k;
     if(sh >= this.DB) sh -= this.DB;
@@ -243,8 +509,7 @@ function bnToString(b) {
       if(p < k) {
         d = (this.data[i]&((1<<p)-1))<<(k-p);
         d |= this.data[--i]>>(p+=this.DB-k);
-      }
-      else {
+      } else {
         d = (this.data[i]>>(p-=k))&km;
         if(p <= 0) { p += this.DB; --i; }
       }
@@ -356,8 +621,7 @@ function bnpSubTo(a,r) {
       c >>= this.DB;
     }
     c += this.s;
-  }
-  else {
+  } else {
     c += this.s;
     while(i < a.t) {
       c -= a.data[i];
@@ -417,8 +681,7 @@ function bnpDivRemTo(m,q,r) {
   if(r == null) r = nbi();
   var y = nbi(), ts = this.s, ms = m.s;
   var nsh = this.DB-nbits(pm.data[pm.t-1]);	// normalize modulus
-  if(nsh > 0) { pm.lShiftTo(nsh,y); pt.lShiftTo(nsh,r); }
-  else { pm.copyTo(y); pt.copyTo(r); }
+  if(nsh > 0) { pm.lShiftTo(nsh,y); pt.lShiftTo(nsh,r); } else { pm.copyTo(y); pt.copyTo(r); }
   var ys = y.t;
   var y0 = y.data[ys-1];
   if(y0 == 0) return;
@@ -631,8 +894,7 @@ function bnIntValue() {
 if(this.s < 0) {
  if(this.t == 1) return this.data[0]-this.DV;
  else if(this.t == 0) return -1;
-}
-else if(this.t == 1) return this.data[0];
+} else if(this.t == 1) return this.data[0];
 else if(this.t == 0) return 0;
 // assumes 16 < DB < 32
 return ((this.data[1]&((1<<(32-this.DB))-1))<<this.DB)|this.data[0];
@@ -711,8 +973,7 @@ if("number" == typeof b) {
      if(this.bitLength() > a) this.subTo(BigInteger.ONE.shiftLeft(a-1),this);
    }
  }
-}
-else {
+} else {
  // new BigInteger(int,RNG)
  var x = new Array(), t = a&7;
  x.length = (a>>3)+1;
@@ -734,8 +995,7 @@ if(i-- > 0) {
    if(p < 8) {
      d = (this.data[i]&((1<<p)-1))<<(8-p);
      d |= this.data[--i]>>(p+=this.DB-8);
-   }
-   else {
+   } else {
      d = (this.data[i]>>(p-=8))&0xff;
      if(p <= 0) { p += this.DB; --i; }
    }
@@ -759,8 +1019,7 @@ if(a.t < this.t) {
  f = a.s&this.DM;
  for(i = m; i < this.t; ++i) r.data[i] = op(this.data[i],f);
  r.t = this.t;
-}
-else {
+} else {
  f = this.s&this.DM;
  for(i = m; i < a.t; ++i) r.data[i] = op(f,a.data[i]);
  r.t = a.t;
@@ -881,8 +1140,7 @@ if(a.t < this.t) {
    c >>= this.DB;
  }
  c += this.s;
-}
-else {
+} else {
  c += this.s;
  while(i < a.t) {
    c += a.data[i];
@@ -1064,8 +1322,7 @@ while(j >= 0) {
  if(is1) {  // ret == 1, don't bother squaring or multiplying it
    g[w].copyTo(r);
    is1 = false;
- }
- else {
+ } else {
    while(n > 1) { z.sqrTo(r,r2); z.sqrTo(r2,r); n -= 2; }
    if(n > 0) z.sqrTo(r,r2); else { t = r; r = r2; r2 = t; }
    z.mulTo(r2,g[w],r);
@@ -1097,8 +1354,7 @@ while(x.signum() > 0) {
  if(x.compareTo(y) >= 0) {
    x.subTo(y,x);
    x.rShiftTo(1,x);
- }
- else {
+ } else {
    y.subTo(x,y);
    y.rShiftTo(1,y);
  }
@@ -1129,8 +1385,7 @@ while(u.signum() != 0) {
    if(ac) {
      if(!a.isEven() || !b.isEven()) { a.addTo(this,a); b.subTo(m,b); }
      a.rShiftTo(1,a);
-   }
-   else if(!b.isEven()) b.subTo(m,b);
+   } else if(!b.isEven()) b.subTo(m,b);
    b.rShiftTo(1,b);
  }
  while(v.isEven()) {
@@ -1138,16 +1393,14 @@ while(u.signum() != 0) {
    if(ac) {
      if(!c.isEven() || !d.isEven()) { c.addTo(this,c); d.subTo(m,d); }
      c.rShiftTo(1,c);
-   }
-   else if(!d.isEven()) d.subTo(m,d);
+   } else if(!d.isEven()) d.subTo(m,d);
    d.rShiftTo(1,d);
  }
  if(u.compareTo(v) >= 0) {
    u.subTo(v,u);
    if(ac) a.subTo(c,a);
    b.subTo(d,b);
- }
- else {
+ } else {
    v.subTo(u,v);
    if(ac) c.subTo(a,c);
    d.subTo(b,d);
@@ -1215,7 +1468,7 @@ function bnGetPrng() {
     // x is an array to fill with bytes
     nextBytes: function(x) {
       for(var i = 0; i < x.length; ++i) {
-        x[i] = Math.floor(Math.random() * 0xFF);
+        x[i] = Math.floor(Math.random() * 0x0100);
       }
     }
   };
@@ -1280,60 +1533,6 @@ BigInteger.prototype.isProbablePrime = bnIsProbablePrime;
 //long longValue()
 //static BigInteger valueOf(long val)
 
-forge.jsbn = forge.jsbn || {};
-forge.jsbn.BigInteger = BigInteger;
 
-} // end module implementation
-
-/* ########## Begin module wrapper ########## */
-var name = 'jsbn';
-if(typeof define !== 'function') {
-  // NodeJS -> AMD
-  if(typeof module === 'object' && module.exports) {
-    var nodeJS = true;
-    define = function(ids, factory) {
-      factory(require, module);
-    };
-  }
-  // <script>
-  else {
-    if(typeof forge === 'undefined') {
-      forge = {};
-    }
-    return initModule(forge);
-  }
-}
-// AMD
-var deps;
-var defineFunc = function(require, module) {
-  module.exports = function(forge) {
-    var mods = deps.map(function(dep) {
-      return require(dep);
-    }).concat(initModule);
-    // handle circular dependencies
-    forge = forge || {};
-    forge.defined = forge.defined || {};
-    if(forge.defined[name]) {
-      return forge[name];
-    }
-    forge.defined[name] = true;
-    for(var i = 0; i < mods.length; ++i) {
-      mods[i](forge);
-    }
-    return forge[name];
-  };
-};
-var tmpDefine = define;
-define = function(ids, factory) {
-  deps = (typeof ids === 'string') ? factory.slice(2) : ids.slice(2);
-  if(nodeJS) {
-    delete define;
-    return tmpDefine.apply(null, Array.prototype.slice.call(arguments, 0));
-  }
-  define = tmpDefine;
-  return define.apply(null, Array.prototype.slice.call(arguments, 0));
-};
-define(['require', 'module'], function() {
-  defineFunc.apply(null, Array.prototype.slice.call(arguments, 0));
-});
-})();
+/***/ })
+/******/ ]);
