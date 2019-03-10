@@ -96,7 +96,7 @@ module.exports = {
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {/**
+/**
  * Utility functions for web applications.
  *
  * @author Dave Longley
@@ -104,17 +104,15 @@ module.exports = {
  * Copyright (c) 2010-2018 Digital Bazaar, Inc.
  */
 var forge = __webpack_require__(0);
-var baseN = __webpack_require__(37);
+var baseN = __webpack_require__(36);
 
 /* Utilities API */
 var util = module.exports = forge.util = forge.util || {};
 
 // define setImmediate and nextTick
 (function() {
-  // use native nextTick (unless we're in webpack)
-  // webpack (or better node-libs-browser polyfill) sets process.browser.
-  // this way we can detect webpack properly
-  if(typeof process !== 'undefined' && process.nextTick && !process.browser) {
+  // use native nextTick
+  if(typeof process !== 'undefined' && process.nextTick) {
     util.nextTick = process.nextTick;
     if(typeof setImmediate === 'function') {
       util.setImmediate = setImmediate;
@@ -207,19 +205,6 @@ var util = module.exports = forge.util = forge.util || {};
 // check if running under Node.js
 util.isNodejs =
   typeof process !== 'undefined' && process.versions && process.versions.node;
-
-
-// 'self' will also work in Web Workers (instance of WorkerGlobalScope) while
-// it will point to `window` in the main thread.
-// To remain compatible with older browsers, we fall back to 'window' if 'self'
-// is not available.
-util.globalScope = (function() {
-  if(util.isNodejs) {
-    return global;
-  }
-
-  return typeof self === 'undefined' ? window : self;
-})();
 
 // define isArray
 util.isArray = Array.isArray || function(x) {
@@ -3090,7 +3075,6 @@ util.estimateCores = function(options, callback) {
   }
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(36)))
 
 /***/ }),
 /* 2 */
@@ -3113,7 +3097,7 @@ util.estimateCores = function(options, callback) {
  */
 var forge = __webpack_require__(0);
 __webpack_require__(5);
-__webpack_require__(23);
+__webpack_require__(16);
 __webpack_require__(24);
 __webpack_require__(1);
 
@@ -3213,14 +3197,14 @@ var _ctx = spawnPrng();
 // add other sources of entropy only if window.crypto.getRandomValues is not
 // available -- otherwise this source will be automatically used by the prng
 var getRandomValues = null;
-var globalScope = forge.util.globalScope;
-var _crypto = globalScope.crypto || globalScope.msCrypto;
-if(_crypto && _crypto.getRandomValues) {
-  getRandomValues = function(arr) {
-    return _crypto.getRandomValues(arr);
-  };
+if(typeof window !== 'undefined') {
+  var _crypto = window.crypto || window.msCrypto;
+  if(_crypto && _crypto.getRandomValues) {
+    getRandomValues = function(arr) {
+      return _crypto.getRandomValues(arr);
+    };
+  }
 }
-
 if(forge.options.usePureJavaScript ||
   (!forge.util.isNodejs && !getRandomValues)) {
   // if this is a web worker, do not use weak entropy, instead register to
@@ -5931,11 +5915,9 @@ _IN('2.5.4.7', 'localityName');
 _IN('2.5.4.8', 'stateOrProvinceName');
 _IN('2.5.4.10', 'organizationName');
 _IN('2.5.4.11', 'organizationalUnitName');
-_IN('2.5.4.13', 'description');
 
 // X.509 extension OIDs
 _IN('2.16.840.1.113730.1.1', 'nsCertType');
-_IN('2.16.840.1.113730.1.13', 'nsComment'); // deprecated in theory; still widely used
 _I_('2.5.29.1', 'authorityKeyIdentifier'); // deprecated, use .35
 _I_('2.5.29.2', 'keyAttributes'); // obsolete use .37 or .15
 _I_('2.5.29.3', 'certificatePolicies'); // deprecated, use .32
@@ -6493,12 +6475,12 @@ sha1.create = function() {
     return md;
   };
 
-  /**
-   * Produces the digest.
-   *
-   * @return a byte buffer containing the digest value.
-   */
-  md.digest = function() {
+   /**
+    * Produces the digest.
+    *
+    * @return a byte buffer containing the digest value.
+    */
+   md.digest = function() {
     /* Note: Here we copy the remaining bytes in the input buffer and
     add the appropriate SHA-1 padding. Then we do the final update
     on a copy of the state so that if the user wants to get
@@ -6712,8 +6694,7 @@ function _update(s, w, bytes) {
  * Paul Tero, July 2001
  * http://www.tero.co.uk/des/
  *
- * Optimised for performance with large blocks by
- * Michael Hayworth, November 2001
+ * Optimised for performance with large blocks by Michael Hayworth, November 2001
  * http://www.netdealing.com
  *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND
@@ -7281,13 +7262,8 @@ if(typeof BigInteger === 'undefined') {
   var BigInteger = forge.jsbn.BigInteger;
 }
 
-var _crypto = forge.util.isNodejs ? __webpack_require__(16) : null;
-
 // shortcut for asn.1 API
 var asn1 = forge.asn1;
-
-// shortcut for util API
-var util = forge.util;
 
 /*
  * RSA encryption and decryption, see RFC 2313.
@@ -7894,7 +7870,7 @@ pki.rsa.stepKeyPairGenerationState = function(state, n) {
   var THIRTY = new BigInteger(null);
   THIRTY.fromInt(30);
   var deltaIdx = 0;
-  var op_or = function(x, y) {return x | y;};
+  var op_or = function(x, y) { return x|y; };
 
   // keep stepping until time limit is reached or done
   var t1 = +new Date();
@@ -7943,7 +7919,7 @@ pki.rsa.stepKeyPairGenerationState = function(state, n) {
         // ensure number is coprime with e
         state.pqState =
           (state.num.subtract(BigInteger.ONE).gcd(state.e)
-            .compareTo(BigInteger.ONE) === 0) ? 3 : 0;
+          .compareTo(BigInteger.ONE) === 0) ? 3 : 0;
       } else if(state.pqState === 3) {
         // store p or q
         state.pqState = 0;
@@ -8032,7 +8008,7 @@ pki.rsa.stepKeyPairGenerationState = function(state, n) {
  * @param [bits] the size for the private key in bits, defaults to 2048.
  * @param [e] the public exponent to use, defaults to 65537.
  * @param [options] options for key-pair generation, if given then 'bits'
- *            and 'e' must *not* be given:
+ *          and 'e' must *not* be given:
  *          bits the size for the private key in bits, (default: 2048).
  *          e the public exponent to use, (default: 65537 (0x10001)).
  *          workerScript the worker script URL.
@@ -8042,7 +8018,7 @@ pki.rsa.stepKeyPairGenerationState = function(state, n) {
  *            numbers for each web worker to check per work assignment,
  *            (default: 100).
  *          prng a custom crypto-secure pseudo-random number generator to use,
- *            that must define "getBytesSync". Disables use of native APIs.
+ *            that must define "getBytesSync".
  *          algorithm the algorithm to use (default: 'PRIMEINC').
  * @param [callback(err, keypair)] called once the operation completes.
  *
@@ -8095,109 +8071,63 @@ pki.rsa.generateKeyPair = function(bits, e, options, callback) {
     e = options.e || 0x10001;
   }
 
-  // use native code if permitted, available, and parameters are acceptable
-  if(!forge.options.usePureJavaScript && !options.prng &&
+  // if native code is permitted and a callback is given, use native
+  // key generation code if available and if parameters are acceptable
+  if(!forge.options.usePureJavaScript && callback &&
     bits >= 256 && bits <= 16384 && (e === 0x10001 || e === 3)) {
-    if(callback) {
-      // try native async
-      if(_detectNodeCrypto('generateKeyPair')) {
-        return _crypto.generateKeyPair('rsa', {
-          modulusLength: bits,
-          publicExponent: e,
-          publicKeyEncoding: {
-            type: 'spki',
-            format: 'pem'
-          },
-          privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem'
-          }
-        }, function(err, pub, priv) {
-          if(err) {
-            return callback(err);
-          }
+    if(_detectSubtleCrypto('generateKey') && _detectSubtleCrypto('exportKey')) {
+      // use standard native generateKey
+      return window.crypto.subtle.generateKey({
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: bits,
+        publicExponent: _intToUint8Array(e),
+        hash: {name: 'SHA-256'}
+      }, true /* key can be exported*/, ['sign', 'verify'])
+      .then(function(pair) {
+        return window.crypto.subtle.exportKey('pkcs8', pair.privateKey);
+      // avoiding catch(function(err) {...}) to support IE <= 8
+      }).then(undefined, function(err) {
+        callback(err);
+      }).then(function(pkcs8) {
+        if(pkcs8) {
+          var privateKey = pki.privateKeyFromAsn1(
+            asn1.fromDer(forge.util.createBuffer(pkcs8)));
           callback(null, {
-            privateKey: pki.privateKeyFromPem(priv),
-            publicKey: pki.publicKeyFromPem(pub)
+            privateKey: privateKey,
+            publicKey: pki.setRsaPublicKey(privateKey.n, privateKey.e)
           });
-        });
-      }
-      if(_detectSubtleCrypto('generateKey') &&
-        _detectSubtleCrypto('exportKey')) {
-        // use standard native generateKey
-        return util.globalScope.crypto.subtle.generateKey({
-          name: 'RSASSA-PKCS1-v1_5',
-          modulusLength: bits,
-          publicExponent: _intToUint8Array(e),
-          hash: {name: 'SHA-256'}
-        }, true /* key can be exported*/, ['sign', 'verify'])
-        .then(function(pair) {
-          return util.globalScope.crypto.subtle.exportKey(
-            'pkcs8', pair.privateKey);
-        // avoiding catch(function(err) {...}) to support IE <= 8
-        }).then(undefined, function(err) {
-          callback(err);
-        }).then(function(pkcs8) {
-          if(pkcs8) {
-            var privateKey = pki.privateKeyFromAsn1(
-              asn1.fromDer(forge.util.createBuffer(pkcs8)));
-            callback(null, {
-              privateKey: privateKey,
-              publicKey: pki.setRsaPublicKey(privateKey.n, privateKey.e)
-            });
-          }
-        });
-      }
-      if(_detectSubtleMsCrypto('generateKey') &&
-        _detectSubtleMsCrypto('exportKey')) {
-        var genOp = util.globalScope.msCrypto.subtle.generateKey({
-          name: 'RSASSA-PKCS1-v1_5',
-          modulusLength: bits,
-          publicExponent: _intToUint8Array(e),
-          hash: {name: 'SHA-256'}
-        }, true /* key can be exported*/, ['sign', 'verify']);
-        genOp.oncomplete = function(e) {
-          var pair = e.target.result;
-          var exportOp = util.globalScope.msCrypto.subtle.exportKey(
-            'pkcs8', pair.privateKey);
-          exportOp.oncomplete = function(e) {
-            var pkcs8 = e.target.result;
-            var privateKey = pki.privateKeyFromAsn1(
-              asn1.fromDer(forge.util.createBuffer(pkcs8)));
-            callback(null, {
-              privateKey: privateKey,
-              publicKey: pki.setRsaPublicKey(privateKey.n, privateKey.e)
-            });
-          };
-          exportOp.onerror = function(err) {
-            callback(err);
-          };
+        }
+      });
+    }
+    if(_detectSubtleMsCrypto('generateKey') &&
+      _detectSubtleMsCrypto('exportKey')) {
+      var genOp = window.msCrypto.subtle.generateKey({
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: bits,
+        publicExponent: _intToUint8Array(e),
+        hash: {name: 'SHA-256'}
+      }, true /* key can be exported*/, ['sign', 'verify']);
+      genOp.oncomplete = function(e) {
+        var pair = e.target.result;
+        var exportOp = window.msCrypto.subtle.exportKey(
+          'pkcs8', pair.privateKey);
+        exportOp.oncomplete = function(e) {
+          var pkcs8 = e.target.result;
+          var privateKey = pki.privateKeyFromAsn1(
+            asn1.fromDer(forge.util.createBuffer(pkcs8)));
+          callback(null, {
+            privateKey: privateKey,
+            publicKey: pki.setRsaPublicKey(privateKey.n, privateKey.e)
+          });
         };
-        genOp.onerror = function(err) {
+        exportOp.onerror = function(err) {
           callback(err);
         };
-        return;
-      }
-    } else {
-      // try native sync
-      if(_detectNodeCrypto('generateKeyPairSync')) {
-        var keypair = _crypto.generateKeyPairSync('rsa', {
-          modulusLength: bits,
-          publicExponent: e,
-          publicKeyEncoding: {
-            type: 'spki',
-            format: 'pem'
-          },
-          privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem'
-          }
-        });
-        return {
-          privateKey: pki.privateKeyFromPem(keypair.privateKey),
-          publicKey: pki.publicKeyFromPem(keypair.publicKey)
-        };
-      }
+      };
+      genOp.onerror = function(err) {
+        callback(err);
+      };
+      return;
     }
   }
 
@@ -8261,7 +8191,7 @@ pki.setRsaPublicKey = pki.rsa.setPublicKey = function(n, e) {
         }
       };
     } else if(['RAW', 'NONE', 'NULL', null].indexOf(scheme) !== -1) {
-      scheme = {encode: function(e) {return e;}};
+      scheme = { encode: function(e) { return e; } };
     } else if(typeof scheme === 'string') {
       throw new Error('Unsupported encryption scheme: "' + scheme + '".');
     }
@@ -8302,37 +8232,37 @@ pki.setRsaPublicKey = pki.rsa.setPublicKey = function(n, e) {
    *
    * @return true if the signature was verified, false if not.
    */
-  key.verify = function(digest, signature, scheme) {
-    if(typeof scheme === 'string') {
-      scheme = scheme.toUpperCase();
-    } else if(scheme === undefined) {
-      scheme = 'RSASSA-PKCS1-V1_5';
-    }
+   key.verify = function(digest, signature, scheme) {
+     if(typeof scheme === 'string') {
+       scheme = scheme.toUpperCase();
+     } else if(scheme === undefined) {
+       scheme = 'RSASSA-PKCS1-V1_5';
+     }
 
-    if(scheme === 'RSASSA-PKCS1-V1_5') {
-      scheme = {
-        verify: function(digest, d) {
-          // remove padding
-          d = _decodePkcs1_v1_5(d, key, true);
-          // d is ASN.1 BER-encoded DigestInfo
-          var obj = asn1.fromDer(d);
-          // compare the given digest to the decrypted one
-          return digest === obj.value[1].value;
-        }
-      };
-    } else if(scheme === 'NONE' || scheme === 'NULL' || scheme === null) {
-      scheme = {
-        verify: function(digest, d) {
-          // remove padding
-          d = _decodePkcs1_v1_5(d, key, true);
-          return digest === d;
-        }
-      };
-    }
+     if(scheme === 'RSASSA-PKCS1-V1_5') {
+       scheme = {
+         verify: function(digest, d) {
+           // remove padding
+           d = _decodePkcs1_v1_5(d, key, true);
+           // d is ASN.1 BER-encoded DigestInfo
+           var obj = asn1.fromDer(d);
+           // compare the given digest to the decrypted one
+           return digest === obj.value[1].value;
+         }
+       };
+     } else if(scheme === 'NONE' || scheme === 'NULL' || scheme === null) {
+       scheme = {
+         verify: function(digest, d) {
+           // remove padding
+           d = _decodePkcs1_v1_5(d, key, true);
+           return digest === d;
+         }
+       };
+     }
 
-    // do rsa decryption w/o any decoding, then verify -- which does decoding
-    var d = pki.rsa.decrypt(signature, key, true, false);
-    return scheme.verify(digest, d, key.n.bitLength());
+     // do rsa decryption w/o any decoding, then verify -- which does decoding
+     var d = pki.rsa.decrypt(signature, key, true, false);
+     return scheme.verify(digest, d, key.n.bitLength());
   };
 
   return key;
@@ -8390,7 +8320,7 @@ pki.setRsaPrivateKey = pki.rsa.setPrivateKey = function(
     var d = pki.rsa.decrypt(data, key, false, false);
 
     if(scheme === 'RSAES-PKCS1-V1_5') {
-      scheme = {decode: _decodePkcs1_v1_5};
+      scheme = { decode: _decodePkcs1_v1_5 };
     } else if(scheme === 'RSA-OAEP' || scheme === 'RSAES-OAEP') {
       scheme = {
         decode: function(d, key) {
@@ -8398,7 +8328,7 @@ pki.setRsaPrivateKey = pki.rsa.setPrivateKey = function(
         }
       };
     } else if(['RAW', 'NONE', 'NULL', null].indexOf(scheme) !== -1) {
-      scheme = {decode: function(d) {return d;}};
+      scheme = { decode: function(d) { return d; } };
     } else {
       throw new Error('Unsupported encryption scheme: "' + scheme + '".');
     }
@@ -8440,10 +8370,10 @@ pki.setRsaPrivateKey = pki.rsa.setPrivateKey = function(
     }
 
     if(scheme === undefined || scheme === 'RSASSA-PKCS1-V1_5') {
-      scheme = {encode: emsaPkcs1v15encode};
+      scheme = { encode: emsaPkcs1v15encode };
       bt = 0x01;
     } else if(scheme === 'NONE' || scheme === 'NULL' || scheme === null) {
-      scheme = {encode: function() {return md;}};
+      scheme = { encode: function() { return md; } };
       bt = 0x01;
     }
 
@@ -8478,7 +8408,7 @@ pki.wrapRsaPrivateKey = function(rsaKey) {
     // PrivateKey
     asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
       asn1.toDer(rsaKey).getBytes())
-  ]);
+    ]);
 };
 
 /**
@@ -8986,17 +8916,6 @@ function _getMillerRabinTests(bits) {
 }
 
 /**
- * Performs feature detection on the Node crypto interface.
- *
- * @param fn the feature (function) to detect.
- *
- * @return true if detected, false if not.
- */
-function _detectNodeCrypto(fn) {
-  return forge.util.isNodejs && typeof _crypto[fn] === 'function';
-}
-
-/**
  * Performs feature detection on the SubtleCrypto interface.
  *
  * @param fn the feature (function) to detect.
@@ -9004,10 +8923,10 @@ function _detectNodeCrypto(fn) {
  * @return true if detected, false if not.
  */
 function _detectSubtleCrypto(fn) {
-  return (typeof util.globalScope !== 'undefined' &&
-    typeof util.globalScope.crypto === 'object' &&
-    typeof util.globalScope.crypto.subtle === 'object' &&
-    typeof util.globalScope.crypto.subtle[fn] === 'function');
+  return (typeof window !== 'undefined' &&
+    typeof window.crypto === 'object' &&
+    typeof window.crypto.subtle === 'object' &&
+    typeof window.crypto.subtle[fn] === 'function');
 }
 
 /**
@@ -9020,10 +8939,10 @@ function _detectSubtleCrypto(fn) {
  * @return true if detected, false if not.
  */
 function _detectSubtleMsCrypto(fn) {
-  return (typeof util.globalScope !== 'undefined' &&
-    typeof util.globalScope.msCrypto === 'object' &&
-    typeof util.globalScope.msCrypto.subtle === 'object' &&
-    typeof util.globalScope.msCrypto.subtle[fn] === 'function');
+  return (typeof window !== 'undefined' &&
+    typeof window.msCrypto === 'object' &&
+    typeof window.msCrypto.subtle === 'object' &&
+    typeof window.msCrypto.subtle[fn] === 'function');
 }
 
 function _intToUint8Array(x) {
@@ -10888,7 +10807,7 @@ var pkcs5 = forge.pkcs5 = forge.pkcs5 || {};
 
 var crypto;
 if(forge.util.isNodejs && !forge.options.usePureJavaScript) {
-  crypto = __webpack_require__(16);
+  crypto = __webpack_require__(23);
 }
 
 /**
@@ -11085,9 +11004,336 @@ module.exports = forge.pbkdf2 = pkcs5.pbkdf2 = function(
 
 /***/ }),
 /* 16 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-/* (ignored) */
+/**
+ * Secure Hash Algorithm with 256-bit digest (SHA-256) implementation.
+ *
+ * See FIPS 180-2 for details.
+ *
+ * @author Dave Longley
+ *
+ * Copyright (c) 2010-2015 Digital Bazaar, Inc.
+ */
+var forge = __webpack_require__(0);
+__webpack_require__(4);
+__webpack_require__(1);
+
+var sha256 = module.exports = forge.sha256 = forge.sha256 || {};
+forge.md.sha256 = forge.md.algorithms.sha256 = sha256;
+
+/**
+ * Creates a SHA-256 message digest object.
+ *
+ * @return a message digest object.
+ */
+sha256.create = function() {
+  // do initialization as necessary
+  if(!_initialized) {
+    _init();
+  }
+
+  // SHA-256 state contains eight 32-bit integers
+  var _state = null;
+
+  // input buffer
+  var _input = forge.util.createBuffer();
+
+  // used for word storage
+  var _w = new Array(64);
+
+  // message digest object
+  var md = {
+    algorithm: 'sha256',
+    blockLength: 64,
+    digestLength: 32,
+    // 56-bit length of message so far (does not including padding)
+    messageLength: 0,
+    // true message length
+    fullMessageLength: null,
+    // size of message length in bytes
+    messageLengthSize: 8
+  };
+
+  /**
+   * Starts the digest.
+   *
+   * @return this digest object.
+   */
+  md.start = function() {
+    // up to 56-bit message length for convenience
+    md.messageLength = 0;
+
+    // full message length (set md.messageLength64 for backwards-compatibility)
+    md.fullMessageLength = md.messageLength64 = [];
+    var int32s = md.messageLengthSize / 4;
+    for(var i = 0; i < int32s; ++i) {
+      md.fullMessageLength.push(0);
+    }
+    _input = forge.util.createBuffer();
+    _state = {
+      h0: 0x6A09E667,
+      h1: 0xBB67AE85,
+      h2: 0x3C6EF372,
+      h3: 0xA54FF53A,
+      h4: 0x510E527F,
+      h5: 0x9B05688C,
+      h6: 0x1F83D9AB,
+      h7: 0x5BE0CD19
+    };
+    return md;
+  };
+  // start digest automatically for first time
+  md.start();
+
+  /**
+   * Updates the digest with the given message input. The given input can
+   * treated as raw input (no encoding will be applied) or an encoding of
+   * 'utf8' maybe given to encode the input using UTF-8.
+   *
+   * @param msg the message input to update with.
+   * @param encoding the encoding to use (default: 'raw', other: 'utf8').
+   *
+   * @return this digest object.
+   */
+  md.update = function(msg, encoding) {
+    if(encoding === 'utf8') {
+      msg = forge.util.encodeUtf8(msg);
+    }
+
+    // update message length
+    var len = msg.length;
+    md.messageLength += len;
+    len = [(len / 0x100000000) >>> 0, len >>> 0];
+    for(var i = md.fullMessageLength.length - 1; i >= 0; --i) {
+      md.fullMessageLength[i] += len[1];
+      len[1] = len[0] + ((md.fullMessageLength[i] / 0x100000000) >>> 0);
+      md.fullMessageLength[i] = md.fullMessageLength[i] >>> 0;
+      len[0] = ((len[1] / 0x100000000) >>> 0);
+    }
+
+    // add bytes to input buffer
+    _input.putBytes(msg);
+
+    // process bytes
+    _update(_state, _w, _input);
+
+    // compact input buffer every 2K or if empty
+    if(_input.read > 2048 || _input.length() === 0) {
+      _input.compact();
+    }
+
+    return md;
+  };
+
+  /**
+   * Produces the digest.
+   *
+   * @return a byte buffer containing the digest value.
+   */
+  md.digest = function() {
+    /* Note: Here we copy the remaining bytes in the input buffer and
+    add the appropriate SHA-256 padding. Then we do the final update
+    on a copy of the state so that if the user wants to get
+    intermediate digests they can do so. */
+
+    /* Determine the number of bytes that must be added to the message
+    to ensure its length is congruent to 448 mod 512. In other words,
+    the data to be digested must be a multiple of 512 bits (or 128 bytes).
+    This data includes the message, some padding, and the length of the
+    message. Since the length of the message will be encoded as 8 bytes (64
+    bits), that means that the last segment of the data must have 56 bytes
+    (448 bits) of message and padding. Therefore, the length of the message
+    plus the padding must be congruent to 448 mod 512 because
+    512 - 128 = 448.
+
+    In order to fill up the message length it must be filled with
+    padding that begins with 1 bit followed by all 0 bits. Padding
+    must *always* be present, so if the message length is already
+    congruent to 448 mod 512, then 512 padding bits must be added. */
+
+    var finalBlock = forge.util.createBuffer();
+    finalBlock.putBytes(_input.bytes());
+
+    // compute remaining size to be digested (include message length size)
+    var remaining = (
+      md.fullMessageLength[md.fullMessageLength.length - 1] +
+      md.messageLengthSize);
+
+    // add padding for overflow blockSize - overflow
+    // _padding starts with 1 byte with first bit is set (byte value 128), then
+    // there may be up to (blockSize - 1) other pad bytes
+    var overflow = remaining & (md.blockLength - 1);
+    finalBlock.putBytes(_padding.substr(0, md.blockLength - overflow));
+
+    // serialize message length in bits in big-endian order; since length
+    // is stored in bytes we multiply by 8 and add carry from next int
+    var next, carry;
+    var bits = md.fullMessageLength[0] * 8;
+    for(var i = 0; i < md.fullMessageLength.length - 1; ++i) {
+      next = md.fullMessageLength[i + 1] * 8;
+      carry = (next / 0x100000000) >>> 0;
+      bits += carry;
+      finalBlock.putInt32(bits >>> 0);
+      bits = next >>> 0;
+    }
+    finalBlock.putInt32(bits);
+
+    var s2 = {
+      h0: _state.h0,
+      h1: _state.h1,
+      h2: _state.h2,
+      h3: _state.h3,
+      h4: _state.h4,
+      h5: _state.h5,
+      h6: _state.h6,
+      h7: _state.h7
+    };
+    _update(s2, _w, finalBlock);
+    var rval = forge.util.createBuffer();
+    rval.putInt32(s2.h0);
+    rval.putInt32(s2.h1);
+    rval.putInt32(s2.h2);
+    rval.putInt32(s2.h3);
+    rval.putInt32(s2.h4);
+    rval.putInt32(s2.h5);
+    rval.putInt32(s2.h6);
+    rval.putInt32(s2.h7);
+    return rval;
+  };
+
+  return md;
+};
+
+// sha-256 padding bytes not initialized yet
+var _padding = null;
+var _initialized = false;
+
+// table of constants
+var _k = null;
+
+/**
+ * Initializes the constant tables.
+ */
+function _init() {
+  // create padding
+  _padding = String.fromCharCode(128);
+  _padding += forge.util.fillString(String.fromCharCode(0x00), 64);
+
+  // create K table for SHA-256
+  _k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+    0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+    0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+    0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+    0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+    0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+
+  // now initialized
+  _initialized = true;
+}
+
+/**
+ * Updates a SHA-256 state with the given byte buffer.
+ *
+ * @param s the SHA-256 state to update.
+ * @param w the array to use to store words.
+ * @param bytes the byte buffer to update with.
+ */
+function _update(s, w, bytes) {
+  // consume 512 bit (64 byte) chunks
+  var t1, t2, s0, s1, ch, maj, i, a, b, c, d, e, f, g, h;
+  var len = bytes.length();
+  while(len >= 64) {
+    // the w array will be populated with sixteen 32-bit big-endian words
+    // and then extended into 64 32-bit words according to SHA-256
+    for(i = 0; i < 16; ++i) {
+      w[i] = bytes.getInt32();
+    }
+    for(; i < 64; ++i) {
+      // XOR word 2 words ago rot right 17, rot right 19, shft right 10
+      t1 = w[i - 2];
+      t1 =
+        ((t1 >>> 17) | (t1 << 15)) ^
+        ((t1 >>> 19) | (t1 << 13)) ^
+        (t1 >>> 10);
+      // XOR word 15 words ago rot right 7, rot right 18, shft right 3
+      t2 = w[i - 15];
+      t2 =
+        ((t2 >>> 7) | (t2 << 25)) ^
+        ((t2 >>> 18) | (t2 << 14)) ^
+        (t2 >>> 3);
+      // sum(t1, word 7 ago, t2, word 16 ago) modulo 2^32
+      w[i] = (t1 + w[i - 7] + t2 + w[i - 16]) | 0;
+    }
+
+    // initialize hash value for this chunk
+    a = s.h0;
+    b = s.h1;
+    c = s.h2;
+    d = s.h3;
+    e = s.h4;
+    f = s.h5;
+    g = s.h6;
+    h = s.h7;
+
+    // round function
+    for(i = 0; i < 64; ++i) {
+      // Sum1(e)
+      s1 =
+        ((e >>> 6) | (e << 26)) ^
+        ((e >>> 11) | (e << 21)) ^
+        ((e >>> 25) | (e << 7));
+      // Ch(e, f, g) (optimized the same way as SHA-1)
+      ch = g ^ (e & (f ^ g));
+      // Sum0(a)
+      s0 =
+        ((a >>> 2) | (a << 30)) ^
+        ((a >>> 13) | (a << 19)) ^
+        ((a >>> 22) | (a << 10));
+      // Maj(a, b, c) (optimized the same way as SHA-1)
+      maj = (a & b) | (c & (a ^ b));
+
+      // main algorithm
+      t1 = h + s1 + ch + _k[i] + w[i];
+      t2 = s0 + maj;
+      h = g;
+      g = f;
+      f = e;
+      // `>>> 0` necessary to avoid iOS/Safari 10 optimization bug
+      // can't truncate with `| 0`
+      e = (d + t1) >>> 0;
+      d = c;
+      c = b;
+      b = a;
+      // `>>> 0` necessary to avoid iOS/Safari 10 optimization bug
+      // can't truncate with `| 0`
+      a = (t1 + t2) >>> 0;
+    }
+
+    // update hash state
+    s.h0 = (s.h0 + a) | 0;
+    s.h1 = (s.h1 + b) | 0;
+    s.h2 = (s.h2 + c) | 0;
+    s.h3 = (s.h3 + d) | 0;
+    s.h4 = (s.h4 + e) | 0;
+    s.h5 = (s.h5 + f) | 0;
+    s.h6 = (s.h6 + g) | 0;
+    s.h7 = (s.h7 + h) | 0;
+    len -= 64;
+  }
+}
+
 
 /***/ }),
 /* 17 */
@@ -11207,7 +11453,7 @@ __webpack_require__(5);
 __webpack_require__(3);
 __webpack_require__(10);
 __webpack_require__(4);
-__webpack_require__(39);
+__webpack_require__(38);
 __webpack_require__(6);
 __webpack_require__(7);
 __webpack_require__(18);
@@ -11346,8 +11592,8 @@ var x509CertificateValidator = {
       constructed: true,
       captureAsn1: 'certSubject'
     },
-    // SubjectPublicKeyInfo
-    publicKeyValidator,
+      // SubjectPublicKeyInfo
+      publicKeyValidator,
     {
       // issuerUniqueID (optional)
       name: 'Certificate.TBSCertificate.issuerUniqueID',
@@ -11559,33 +11805,32 @@ var certificationRequestValidator = {
   captureAsn1: 'csr',
   value: [
     certificationRequestInfoValidator, {
-      // AlgorithmIdentifier (signature algorithm)
-      name: 'CertificationRequest.signatureAlgorithm',
+    // AlgorithmIdentifier (signature algorithm)
+    name: 'CertificationRequest.signatureAlgorithm',
+    tagClass: asn1.Class.UNIVERSAL,
+    type: asn1.Type.SEQUENCE,
+    constructed: true,
+    value: [{
+      // algorithm
+      name: 'CertificationRequest.signatureAlgorithm.algorithm',
       tagClass: asn1.Class.UNIVERSAL,
-      type: asn1.Type.SEQUENCE,
-      constructed: true,
-      value: [{
-        // algorithm
-        name: 'CertificationRequest.signatureAlgorithm.algorithm',
-        tagClass: asn1.Class.UNIVERSAL,
-        type: asn1.Type.OID,
-        constructed: false,
-        capture: 'csrSignatureOid'
-      }, {
-        name: 'CertificationRequest.signatureAlgorithm.parameters',
-        tagClass: asn1.Class.UNIVERSAL,
-        optional: true,
-        captureAsn1: 'csrSignatureParams'
-      }]
-    }, {
-      // signature
-      name: 'CertificationRequest.signature',
-      tagClass: asn1.Class.UNIVERSAL,
-      type: asn1.Type.BITSTRING,
+      type: asn1.Type.OID,
       constructed: false,
-      captureBitStringValue: 'csrSignature'
-    }
-  ]
+      capture: 'csrSignatureOid'
+    }, {
+      name: 'CertificationRequest.signatureAlgorithm.parameters',
+      tagClass: asn1.Class.UNIVERSAL,
+      optional: true,
+      captureAsn1: 'csrSignatureParams'
+    }]
+  }, {
+    // signature
+    name: 'CertificationRequest.signature',
+    tagClass: asn1.Class.UNIVERSAL,
+    type: asn1.Type.BITSTRING,
+    constructed: false,
+    captureBitStringValue: 'csrSignature'
+  }]
 };
 
 /**
@@ -11805,15 +12050,13 @@ pki.certificateFromPem = function(pem, computeHash, strict) {
   if(msg.type !== 'CERTIFICATE' &&
     msg.type !== 'X509 CERTIFICATE' &&
     msg.type !== 'TRUSTED CERTIFICATE') {
-    var error = new Error(
-      'Could not convert certificate from PEM; PEM header type ' +
+    var error = new Error('Could not convert certificate from PEM; PEM header type ' +
       'is not "CERTIFICATE", "X509 CERTIFICATE", or "TRUSTED CERTIFICATE".');
     error.headerType = msg.type;
     throw error;
   }
   if(msg.procType && msg.procType.type === 'ENCRYPTED') {
-    throw new Error(
-      'Could not convert certificate from PEM; PEM is encrypted.');
+    throw new Error('Could not convert certificate from PEM; PEM is encrypted.');
   }
 
   // convert DER to ASN.1 object
@@ -11920,14 +12163,14 @@ pki.getPublicKeyFingerprint = function(key, options) {
 
   var bytes;
   switch(type) {
-    case 'RSAPublicKey':
-      bytes = asn1.toDer(pki.publicKeyToRSAPublicKey(key)).getBytes();
-      break;
-    case 'SubjectPublicKeyInfo':
-      bytes = asn1.toDer(pki.publicKeyToAsn1(key)).getBytes();
-      break;
-    default:
-      throw new Error('Unknown fingerprint type "' + options.type + '".');
+  case 'RSAPublicKey':
+    bytes = asn1.toDer(pki.publicKeyToRSAPublicKey(key)).getBytes();
+    break;
+  case 'SubjectPublicKeyInfo':
+    bytes = asn1.toDer(pki.publicKeyToAsn1(key)).getBytes();
+    break;
+  default:
+    throw new Error('Unknown fingerprint type "' + options.type + '".');
   }
 
   // hash public key bytes
@@ -12160,8 +12403,7 @@ pki.createCertificate = function() {
     if(!cert.issued(child)) {
       var issuer = child.issuer;
       var subject = cert.subject;
-      var error = new Error(
-        'The parent certificate did not issue the given child ' +
+      var error = new Error('The parent certificate did not issue the given child ' +
         'certificate; the child certificate\'s issuer does not match the ' +
         'parent\'s subject.');
       error.expectedIssuer = issuer.attributes;
@@ -12175,24 +12417,24 @@ pki.createCertificate = function() {
       if(child.signatureOid in oids) {
         var oid = oids[child.signatureOid];
         switch(oid) {
-          case 'sha1WithRSAEncryption':
-            md = forge.md.sha1.create();
-            break;
-          case 'md5WithRSAEncryption':
-            md = forge.md.md5.create();
-            break;
-          case 'sha256WithRSAEncryption':
-            md = forge.md.sha256.create();
-            break;
-          case 'sha384WithRSAEncryption':
-            md = forge.md.sha384.create();
-            break;
-          case 'sha512WithRSAEncryption':
-            md = forge.md.sha512.create();
-            break;
-          case 'RSASSA-PSS':
-            md = forge.md.sha256.create();
-            break;
+        case 'sha1WithRSAEncryption':
+          md = forge.md.sha1.create();
+          break;
+        case 'md5WithRSAEncryption':
+          md = forge.md.md5.create();
+          break;
+        case 'sha256WithRSAEncryption':
+          md = forge.md.sha256.create();
+          break;
+        case 'sha384WithRSAEncryption':
+          md = forge.md.sha384.create();
+          break;
+        case 'sha512WithRSAEncryption':
+          md = forge.md.sha512.create();
+          break;
+        case 'RSASSA-PSS':
+          md = forge.md.sha256.create();
+          break;
         }
       }
       if(md === null) {
@@ -12212,44 +12454,44 @@ pki.createCertificate = function() {
       var scheme;
 
       switch(child.signatureOid) {
-        case oids.sha1WithRSAEncryption:
-          scheme = undefined; /* use PKCS#1 v1.5 padding scheme */
-          break;
-        case oids['RSASSA-PSS']:
-          var hash, mgf;
+      case oids.sha1WithRSAEncryption:
+        scheme = undefined;  /* use PKCS#1 v1.5 padding scheme */
+        break;
+      case oids['RSASSA-PSS']:
+        var hash, mgf;
 
-          /* initialize mgf */
-          hash = oids[child.signatureParameters.mgf.hash.algorithmOid];
-          if(hash === undefined || forge.md[hash] === undefined) {
-            var error = new Error('Unsupported MGF hash function.');
-            error.oid = child.signatureParameters.mgf.hash.algorithmOid;
-            error.name = hash;
-            throw error;
-          }
+        /* initialize mgf */
+        hash = oids[child.signatureParameters.mgf.hash.algorithmOid];
+        if(hash === undefined || forge.md[hash] === undefined) {
+          var error = new Error('Unsupported MGF hash function.');
+          error.oid = child.signatureParameters.mgf.hash.algorithmOid;
+          error.name = hash;
+          throw error;
+        }
 
-          mgf = oids[child.signatureParameters.mgf.algorithmOid];
-          if(mgf === undefined || forge.mgf[mgf] === undefined) {
-            var error = new Error('Unsupported MGF function.');
-            error.oid = child.signatureParameters.mgf.algorithmOid;
-            error.name = mgf;
-            throw error;
-          }
+        mgf = oids[child.signatureParameters.mgf.algorithmOid];
+        if(mgf === undefined || forge.mgf[mgf] === undefined) {
+          var error = new Error('Unsupported MGF function.');
+          error.oid = child.signatureParameters.mgf.algorithmOid;
+          error.name = mgf;
+          throw error;
+        }
 
-          mgf = forge.mgf[mgf].create(forge.md[hash].create());
+        mgf = forge.mgf[mgf].create(forge.md[hash].create());
 
-          /* initialize hash function */
-          hash = oids[child.signatureParameters.hash.algorithmOid];
-          if(hash === undefined || forge.md[hash] === undefined) {
-            throw {
-              message: 'Unsupported RSASSA-PSS hash function.',
-              oid: child.signatureParameters.hash.algorithmOid,
-              name: hash
-            };
-          }
+        /* initialize hash function */
+        hash = oids[child.signatureParameters.hash.algorithmOid];
+        if(hash === undefined || forge.md[hash] === undefined) {
+          throw {
+            message: 'Unsupported RSASSA-PSS hash function.',
+            oid: child.signatureParameters.hash.algorithmOid,
+            name: hash
+          };
+        }
 
-          scheme = forge.pss.create(forge.md[hash].create(), mgf,
-            child.signatureParameters.saltLength);
-          break;
+        scheme = forge.pss.create(forge.md[hash].create(), mgf,
+          child.signatureParameters.saltLength);
+        break;
       }
 
       // verify signature on cert using public key
@@ -12433,24 +12675,24 @@ pki.certificateFromAsn1 = function(obj, computeHash) {
     if(cert.signatureOid in oids) {
       var oid = oids[cert.signatureOid];
       switch(oid) {
-        case 'sha1WithRSAEncryption':
-          cert.md = forge.md.sha1.create();
-          break;
-        case 'md5WithRSAEncryption':
-          cert.md = forge.md.md5.create();
-          break;
-        case 'sha256WithRSAEncryption':
-          cert.md = forge.md.sha256.create();
-          break;
-        case 'sha384WithRSAEncryption':
-          cert.md = forge.md.sha384.create();
-          break;
-        case 'sha512WithRSAEncryption':
-          cert.md = forge.md.sha512.create();
-          break;
-        case 'RSASSA-PSS':
-          cert.md = forge.md.sha256.create();
-          break;
+      case 'sha1WithRSAEncryption':
+        cert.md = forge.md.sha1.create();
+        break;
+      case 'md5WithRSAEncryption':
+        cert.md = forge.md.md5.create();
+        break;
+      case 'sha256WithRSAEncryption':
+        cert.md = forge.md.sha256.create();
+        break;
+      case 'sha384WithRSAEncryption':
+        cert.md = forge.md.sha384.create();
+        break;
+      case 'sha512WithRSAEncryption':
+        cert.md = forge.md.sha512.create();
+        break;
+      case 'RSASSA-PSS':
+        cert.md = forge.md.sha256.create();
+        break;
       }
     }
     if(cert.md === null) {
@@ -12697,24 +12939,24 @@ pki.certificateExtensionFromAsn1 = function(ext) {
 
         // Note: Support for types 1,2,6,7,8
         switch(gn.type) {
-          // rfc822Name
-          case 1:
-          // dNSName
-          case 2:
-          // uniformResourceIdentifier (URI)
-          case 6:
-            break;
-          // IPAddress
-          case 7:
-            // convert to IPv4/IPv6 string representation
-            altName.ip = forge.util.bytesToIP(gn.value);
-            break;
-          // registeredID
-          case 8:
-            altName.oid = asn1.derToOid(gn.value);
-            break;
-          default:
-            // unsupported
+        // rfc822Name
+        case 1:
+        // dNSName
+        case 2:
+        // uniformResourceIdentifier (URI)
+        case 6:
+          break;
+        // IPAddress
+        case 7:
+          // convert to IPv4/IPv6 string representation
+          altName.ip = forge.util.bytesToIP(gn.value);
+          break;
+        // registeredID
+        case 8:
+          altName.oid = asn1.derToOid(gn.value);
+          break;
+        default:
+          // unsupported
         }
       }
     } else if(e.name === 'subjectKeyIdentifier') {
@@ -12777,24 +13019,24 @@ pki.certificationRequestFromAsn1 = function(obj, computeHash) {
     if(csr.signatureOid in oids) {
       var oid = oids[csr.signatureOid];
       switch(oid) {
-        case 'sha1WithRSAEncryption':
-          csr.md = forge.md.sha1.create();
-          break;
-        case 'md5WithRSAEncryption':
-          csr.md = forge.md.md5.create();
-          break;
-        case 'sha256WithRSAEncryption':
-          csr.md = forge.md.sha256.create();
-          break;
-        case 'sha384WithRSAEncryption':
-          csr.md = forge.md.sha384.create();
-          break;
-        case 'sha512WithRSAEncryption':
-          csr.md = forge.md.sha512.create();
-          break;
-        case 'RSASSA-PSS':
-          csr.md = forge.md.sha256.create();
-          break;
+      case 'sha1WithRSAEncryption':
+        csr.md = forge.md.sha1.create();
+        break;
+      case 'md5WithRSAEncryption':
+        csr.md = forge.md.md5.create();
+        break;
+      case 'sha256WithRSAEncryption':
+        csr.md = forge.md.sha256.create();
+        break;
+      case 'sha384WithRSAEncryption':
+        csr.md = forge.md.sha384.create();
+        break;
+      case 'sha512WithRSAEncryption':
+        csr.md = forge.md.sha512.create();
+        break;
+      case 'RSASSA-PSS':
+        csr.md = forge.md.sha256.create();
+        break;
       }
     }
     if(csr.md === null) {
@@ -12947,29 +13189,28 @@ pki.createCertificationRequest = function() {
         // TODO: create DRY `OID to md` function
         var oid = oids[csr.signatureOid];
         switch(oid) {
-          case 'sha1WithRSAEncryption':
-            md = forge.md.sha1.create();
-            break;
-          case 'md5WithRSAEncryption':
-            md = forge.md.md5.create();
-            break;
-          case 'sha256WithRSAEncryption':
-            md = forge.md.sha256.create();
-            break;
-          case 'sha384WithRSAEncryption':
-            md = forge.md.sha384.create();
-            break;
-          case 'sha512WithRSAEncryption':
-            md = forge.md.sha512.create();
-            break;
-          case 'RSASSA-PSS':
-            md = forge.md.sha256.create();
-            break;
+        case 'sha1WithRSAEncryption':
+          md = forge.md.sha1.create();
+          break;
+        case 'md5WithRSAEncryption':
+          md = forge.md.md5.create();
+          break;
+        case 'sha256WithRSAEncryption':
+          md = forge.md.sha256.create();
+          break;
+        case 'sha384WithRSAEncryption':
+          md = forge.md.sha384.create();
+          break;
+        case 'sha512WithRSAEncryption':
+          md = forge.md.sha512.create();
+          break;
+        case 'RSASSA-PSS':
+          md = forge.md.sha256.create();
+          break;
         }
       }
       if(md === null) {
-        var error = new Error(
-          'Could not compute certification request digest. ' +
+        var error = new Error('Could not compute certification request digest. ' +
           'Unknown signature OID.');
         error.signatureOid = csr.signatureOid;
         throw error;
@@ -12986,43 +13227,43 @@ pki.createCertificationRequest = function() {
       var scheme;
 
       switch(csr.signatureOid) {
-        case oids.sha1WithRSAEncryption:
-          /* use PKCS#1 v1.5 padding scheme */
-          break;
-        case oids['RSASSA-PSS']:
-          var hash, mgf;
+      case oids.sha1WithRSAEncryption:
+        /* use PKCS#1 v1.5 padding scheme */
+        break;
+      case oids['RSASSA-PSS']:
+        var hash, mgf;
 
-          /* initialize mgf */
-          hash = oids[csr.signatureParameters.mgf.hash.algorithmOid];
-          if(hash === undefined || forge.md[hash] === undefined) {
-            var error = new Error('Unsupported MGF hash function.');
-            error.oid = csr.signatureParameters.mgf.hash.algorithmOid;
-            error.name = hash;
-            throw error;
-          }
+        /* initialize mgf */
+        hash = oids[csr.signatureParameters.mgf.hash.algorithmOid];
+        if(hash === undefined || forge.md[hash] === undefined) {
+          var error = new Error('Unsupported MGF hash function.');
+          error.oid = csr.signatureParameters.mgf.hash.algorithmOid;
+          error.name = hash;
+          throw error;
+        }
 
-          mgf = oids[csr.signatureParameters.mgf.algorithmOid];
-          if(mgf === undefined || forge.mgf[mgf] === undefined) {
-            var error = new Error('Unsupported MGF function.');
-            error.oid = csr.signatureParameters.mgf.algorithmOid;
-            error.name = mgf;
-            throw error;
-          }
+        mgf = oids[csr.signatureParameters.mgf.algorithmOid];
+        if(mgf === undefined || forge.mgf[mgf] === undefined) {
+          var error = new Error('Unsupported MGF function.');
+          error.oid = csr.signatureParameters.mgf.algorithmOid;
+          error.name = mgf;
+          throw error;
+        }
 
-          mgf = forge.mgf[mgf].create(forge.md[hash].create());
+        mgf = forge.mgf[mgf].create(forge.md[hash].create());
 
-          /* initialize hash function */
-          hash = oids[csr.signatureParameters.hash.algorithmOid];
-          if(hash === undefined || forge.md[hash] === undefined) {
-            var error = new Error('Unsupported RSASSA-PSS hash function.');
-            error.oid = csr.signatureParameters.hash.algorithmOid;
-            error.name = hash;
-            throw error;
-          }
+        /* initialize hash function */
+        hash = oids[csr.signatureParameters.hash.algorithmOid];
+        if(hash === undefined || forge.md[hash] === undefined) {
+          var error = new Error('Unsupported RSASSA-PSS hash function.');
+          error.oid = csr.signatureParameters.hash.algorithmOid;
+          error.name = hash;
+          throw error;
+        }
 
-          scheme = forge.pss.create(forge.md[hash].create(), mgf,
-            csr.signatureParameters.saltLength);
-          break;
+        scheme = forge.pss.create(forge.md[hash].create(), mgf,
+          csr.signatureParameters.saltLength);
+        break;
       }
 
       // verify signature on csr using its public key
@@ -13372,15 +13613,6 @@ function _fillMissingExtensionFields(e, options) {
         asn1.Class.CONTEXT_SPECIFIC, altName.type, false,
         value));
     }
-  } else if(e.name === 'nsComment' && options.cert) {
-    // sanity check value is ASCII (req'd) and not too big
-    if(!(/^[\x00-\x7F]*$/.test(e.comment)) ||
-      (e.comment.length < 1) || (e.comment.length > 128)) {
-      throw new Error('Invalid "nsComment" content.');
-    }
-    // IA5STRING opaque comment
-    e.value = asn1.create(
-      asn1.Class.UNIVERSAL, asn1.Type.IA5STRING, false, e.comment);
   } else if(e.name === 'subjectKeyIdentifier' && options.cert) {
     var ski = options.cert.generateSubjectKeyIdentifier();
     e.subjectKeyIdentifier = ski.toHex();
@@ -13417,17 +13649,15 @@ function _fillMissingExtensionFields(e, options) {
       seq.push(
         asn1.create(asn1.Class.CONTEXT_SPECIFIC, 2, false, serialNumber));
     }
-  } else if(e.name === 'cRLDistributionPoints') {
+  } else if (e.name === 'cRLDistributionPoints') {
     e.value = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, []);
     var seq = e.value.value;
 
     // Create sub SEQUENCE of DistributionPointName
-    var subSeq = asn1.create(
-      asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, []);
+    var subSeq = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, []);
 
     // Create fullName CHOICE
-    var fullNameGeneralNames = asn1.create(
-      asn1.Class.CONTEXT_SPECIFIC, 0, true, []);
+    var fullNameGeneralNames = asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, []);
     var altName;
     for(var n = 0; n < e.altNames.length; ++n) {
       altName = e.altNames[n];
@@ -13456,8 +13686,7 @@ function _fillMissingExtensionFields(e, options) {
     }
 
     // Add to the parent SEQUENCE
-    subSeq.value.push(asn1.create(
-      asn1.Class.CONTEXT_SPECIFIC, 0, true, [fullNameGeneralNames]));
+    subSeq.value.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [fullNameGeneralNames]));
     seq.push(subSeq);
   }
 
@@ -13480,44 +13709,44 @@ function _fillMissingExtensionFields(e, options) {
  */
 function _signatureParametersToAsn1(oid, params) {
   switch(oid) {
-    case oids['RSASSA-PSS']:
-      var parts = [];
+  case oids['RSASSA-PSS']:
+    var parts = [];
 
-      if(params.hash.algorithmOid !== undefined) {
-        parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+    if(params.hash.algorithmOid !== undefined) {
+      parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+          asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+            asn1.oidToDer(params.hash.algorithmOid).getBytes()),
+          asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '')
+        ])
+      ]));
+    }
+
+    if(params.mgf.algorithmOid !== undefined) {
+      parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 1, true, [
+        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+          asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+            asn1.oidToDer(params.mgf.algorithmOid).getBytes()),
           asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
             asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
-              asn1.oidToDer(params.hash.algorithmOid).getBytes()),
+              asn1.oidToDer(params.mgf.hash.algorithmOid).getBytes()),
             asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '')
           ])
-        ]));
-      }
+        ])
+      ]));
+    }
 
-      if(params.mgf.algorithmOid !== undefined) {
-        parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 1, true, [
-          asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
-            asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
-              asn1.oidToDer(params.mgf.algorithmOid).getBytes()),
-            asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
-              asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
-                asn1.oidToDer(params.mgf.hash.algorithmOid).getBytes()),
-              asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '')
-            ])
-          ])
-        ]));
-      }
+    if(params.saltLength !== undefined) {
+      parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 2, true, [
+        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.INTEGER, false,
+          asn1.integerToDer(params.saltLength).getBytes())
+      ]));
+    }
 
-      if(params.saltLength !== undefined) {
-        parts.push(asn1.create(asn1.Class.CONTEXT_SPECIFIC, 2, true, [
-          asn1.create(asn1.Class.UNIVERSAL, asn1.Type.INTEGER, false,
-            asn1.integerToDer(params.saltLength).getBytes())
-        ]));
-      }
+    return asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, parts);
 
-      return asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, parts);
-
-    default:
-      return asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '');
+  default:
+    return asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '');
   }
 }
 
@@ -13577,29 +13806,6 @@ function _CRIAttributesToAsn1(csr) {
   return rval;
 }
 
-const jan_1_1950 = new Date('1950-01-01T00:00:00Z');
-const jan_1_2050 = new Date('2050-01-01T00:00:00Z');
-
-/**
- * Converts a Date object to ASN.1
- * Handles the different format before and after 1st January 2050
- *
- * @param date date object.
- *
- * @return the ASN.1 object representing the date.
- */
-function _dateToAsn1(date) {
-  if(date >= jan_1_1950 && date < jan_1_2050) {
-    return asn1.create(
-      asn1.Class.UNIVERSAL, asn1.Type.UTCTIME, false,
-      asn1.dateToUtcTime(date));
-  } else {
-    return asn1.create(
-      asn1.Class.UNIVERSAL, asn1.Type.GENERALIZEDTIME, false,
-      asn1.dateToGeneralizedTime(date));
-  }
-}
-
 /**
  * Gets the ASN.1 TBSCertificate part of an X.509v3 certificate.
  *
@@ -13609,8 +13815,6 @@ function _dateToAsn1(date) {
  */
 pki.getTBSCertificate = function(cert) {
   // TBSCertificate
-  var notBefore = _dateToAsn1(cert.validity.notBefore);
-  var notAfter = _dateToAsn1(cert.validity.notAfter);
   var tbs = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
     // version
     asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
@@ -13634,8 +13838,12 @@ pki.getTBSCertificate = function(cert) {
     _dnToAsn1(cert.issuer),
     // validity
     asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
-      notBefore,
-      notAfter
+      // notBefore
+      asn1.create(asn1.Class.UNIVERSAL, asn1.Type.UTCTIME, false,
+        asn1.dateToUtcTime(cert.validity.notBefore)),
+      // notAfter
+      asn1.create(asn1.Class.UNIVERSAL, asn1.Type.UTCTIME, false,
+        asn1.dateToUtcTime(cert.validity.notAfter))
     ]),
     // subject
     _dnToAsn1(cert.subject),
@@ -13882,7 +14090,7 @@ pki.createCaStore = function(certs) {
 
     ensureSubjectHasHash(cert.subject);
 
-    if(!caStore.hasCertificate(cert)) { // avoid duplicate certificates in store
+    if(!caStore.hasCertificate(cert)) {  // avoid duplicate certificates in store
       if(cert.subject.hash in caStore.certs) {
         // subject hash already exists, append to array
         var tmp = caStore.certs[cert.subject.hash];
@@ -14007,7 +14215,7 @@ pki.createCaStore = function(certs) {
     // produce subject hash if it doesn't exist
     if(!subject.hash) {
       var md = forge.md.sha1.create();
-      subject.attributes = pki.RDNAttributesAsArray(_dnToAsn1(subject), md);
+      subject.attributes =  pki.RDNAttributesAsArray(_dnToAsn1(subject), md);
       subject.hash = md.digest().toHex();
     }
   }
@@ -14043,13 +14251,7 @@ pki.certificateError = {
  * @param caStore a certificate store to verify against.
  * @param chain the certificate chain to verify, with the root or highest
  *          authority at the end (an array of certificates).
- * @param options a callback to be called for every certificate in the chain or
- *                  an object with:
- *                  verify a callback to be called for every certificate in the
- *                    chain
- *                  validityCheckDate the date against which the certificate
- *                    validity period should be checked. Pass null to not check
- *                    the validity period. By default, the current date is used.
+ * @param verify called for every certificate in the chain.
  *
  * The verify callback has the following signature:
  *
@@ -14065,7 +14267,7 @@ pki.certificateError = {
  *
  * @return true if successful, error thrown if not.
  */
-pki.verifyCertificateChain = function(caStore, chain, options) {
+pki.verifyCertificateChain = function(caStore, chain, verify) {
   /* From: RFC3280 - Internet X.509 Public Key Infrastructure Certificate
     Section 6: Certification Path Validation
     See inline parentheticals related to this particular implementation.
@@ -14195,26 +14397,13 @@ pki.verifyCertificateChain = function(caStore, chain, options) {
        CAs that may appear below a CA before only end-entity certificates
        may be issued. */
 
-  // if a verify callback is passed as the third parameter, package it within
-  // the options object. This is to support a legacy function signature that
-  // expected the verify callback as the third parameter.
-  if(typeof options === 'function') {
-    options = {verify: options};
-  }
-  options = options || {};
-
   // copy cert chain references to another array to protect against changes
   // in verify callback
   chain = chain.slice(0);
   var certs = chain.slice(0);
 
-  var validityCheckDate = options.validityCheckDate;
-  // if no validityCheckDate is specified, default to the current date. Make
-  // sure to maintain the value null because it indicates that the validity
-  // period should not be checked.
-  if(typeof validityCheckDate === 'undefined') {
-    validityCheckDate = new Date();
-  }
+  // get current date
+  var now = new Date();
 
   // verify each cert in the chain using its parent, where the parent
   // is either the next in the chain or from the CA store
@@ -14226,20 +14415,15 @@ pki.verifyCertificateChain = function(caStore, chain, options) {
     var parent = null;
     var selfSigned = false;
 
-    if(validityCheckDate) {
-      // 1. check valid time
-      if(validityCheckDate < cert.validity.notBefore ||
-         validityCheckDate > cert.validity.notAfter) {
-        error = {
-          message: 'Certificate is not valid yet or has expired.',
-          error: pki.certificateError.certificate_expired,
-          notBefore: cert.validity.notBefore,
-          notAfter: cert.validity.notAfter,
-          // TODO: we might want to reconsider renaming 'now' to
-          // 'validityCheckDate' should this API be changed in the future.
-          now: validityCheckDate
-        };
-      }
+    // 1. check valid time
+    if(now < cert.validity.notBefore || now > cert.validity.notAfter) {
+      error = {
+        message: 'Certificate is not valid yet or has expired.',
+        error: pki.certificateError.certificate_expired,
+        notBefore: cert.validity.notBefore,
+        notAfter: cert.validity.notAfter,
+        now: now
+      };
     }
 
     // 2. verify with parent from chain or CA store
@@ -14386,7 +14570,7 @@ pki.verifyCertificateChain = function(caStore, chain, options) {
 
     // call application callback
     var vfd = (error === null) ? true : error.error;
-    var ret = options.verify ? options.verify(vfd, depth, certs) : vfd;
+    var ret = verify ? verify(vfd, depth, certs) : vfd;
     if(ret === true) {
       // clear any set error
       error = null;
@@ -14404,7 +14588,7 @@ pki.verifyCertificateChain = function(caStore, chain, options) {
         // set custom message and error
         if(typeof ret === 'object' && !forge.util.isArray(ret)) {
           if(ret.message) {
-            error.message = ret.message;
+             error.message = ret.message;
           }
           if(ret.error) {
             error.error = ret.error;
@@ -15912,6 +16096,7 @@ __webpack_require__(7);
 __webpack_require__(21);
 __webpack_require__(2);
 __webpack_require__(9);
+__webpack_require__(16);
 __webpack_require__(1);
 
 /**
@@ -16031,8 +16216,37 @@ var prf_TLS1 = function(secret, label, seed, length) {
  *
  * @return the pseudo random bytes in a byte buffer.
  */
-var prf_sha256 = function(secret, label, seed, length) {
-   // FIXME: implement me for TLS 1.2
+var prf_TLS12 = function(secret, label, seed, length, hashType) {
+   var rval = forge.util.createBuffer();
+
+   var ai = forge.util.createBuffer();
+   var shaBytes = forge.util.createBuffer();
+   var hmac = forge.hmac.create();
+   seed = label + seed;
+
+   var shaItr = Math.ceil(length / 32);
+
+   hmac.start(hashType, secret);
+   ai.clear();
+   ai.putBytes(seed);
+   for(var i = 0; i < shaItr; ++i) {
+     // HMAC_hash(secret, A(i-1))
+     hmac.start(null, null);
+     hmac.update(ai.getBytes());
+     ai.putBuffer(hmac.digest());
+
+     // HMAC_hash(secret, A(i) + seed)
+     hmac.start(null, null);
+     hmac.update(ai.bytes() + seed);
+     shaBytes.putBuffer(hmac.digest());
+   }
+   rval.putBytes(shaBytes.getBytes(length));
+
+   return rval;
+};
+
+var prf_TLS12_sha256 = function(secret, label, seed, length) {
+    return prf_TLS12(secret, label, seed, length, "SHA256");
 };
 
 /**
@@ -16065,6 +16279,21 @@ var hmac_sha1 = function(key, seqNum, record) {
   b.putBytes(record.fragment.bytes());
   hmac.update(b.getBytes());
   return hmac.digest().getBytes();
+};
+
+var hmac_sha256 = function(key, seqNum, record) {
+    var hmac = forge.hmac.create();
+    hmac.start('SHA256', key);
+    var b = forge.util.createBuffer();
+    b.putInt32(seqNum[0]);
+    b.putInt32(seqNum[1]);
+    b.putByte(record.type);
+    b.putByte(record.version.major);
+    b.putByte(record.version.minor);
+    b.putInt16(record.length);
+    b.putBytes(record.fragment.bytes());
+    hmac.update(b.getBytes());
+    return hmac.digest().getBytes();
 };
 
 /**
@@ -16185,6 +16414,7 @@ tls.Versions = {
   TLS_1_2: {major: 3, minor: 3}
 };
 tls.SupportedVersions = [
+  tls.Versions.TLS_1_2,
   tls.Versions.TLS_1_1,
   tls.Versions.TLS_1_0
 ];
@@ -16382,6 +16612,10 @@ tls.HeartbeatMessageType = {
  */
 tls.CipherSuites = {};
 
+tls.usingTLS12 = function (c) {
+    return (c.session.version.major === tls.Versions.TLS_1_2.major &&
+            c.session.version.minor === tls.Versions.TLS_1_2.minor);
+};
 /**
  * Gets a supported cipher suite from its 2 byte ID.
  *
@@ -16600,6 +16834,7 @@ tls.createSecurityParameters = function(c, msg) {
   /* Note: security params are from TLS 1.2, some values like prf_algorithm
   are ignored for TLS 1.0/1.1 and the builtin as specified in the spec is
   used. */
+  var tls12 = tls.usingTLS12(c);
 
   // TODO: handle other options from server when more supported
 
@@ -16679,7 +16914,6 @@ tls.handleServerHello = function(c, record, length) {
 
   // indicate session version has been set
   c.session.version = c.version;
-
   // get the session ID from the message
   var sessionId = msg.session_id.bytes();
 
@@ -17151,6 +17385,8 @@ tls.handleClientKeyExchange = function(c, record, length) {
  * @param length the length of the handshake message.
  */
 tls.handleCertificateRequest = function(c, record, length) {
+  var tls12 = tls.usingTLS12(c);
+
   // minimum of 3 bytes in message
   if(length < 3) {
     return c.error(c, {
@@ -17163,13 +17399,23 @@ tls.handleCertificateRequest = function(c, record, length) {
     });
   }
 
-  // TODO: TLS 1.2+ has different format including
+  // TLS 1.2+ has different format including
   // SignatureAndHashAlgorithm after cert types
   var b = record.fragment;
-  var msg = {
-    certificate_types: readVector(b, 1),
-    certificate_authorities: readVector(b, 2)
-  };
+  var msg
+  if (tls12) {
+    msg = {
+      certificate_types: readVector(b, 1),
+      supported_signature_algorithms: readVector(b, 2),
+      certificate_authorities: readVector(b, 2)
+    };
+  } else {
+    msg = {
+      certificate_types: readVector(b, 1),
+      certificate_authorities: readVector(b, 2)
+    };
+  }
+  
 
   // save certificate request in session
   c.session.certificateRequest = msg;
@@ -17474,6 +17720,7 @@ tls.handleChangeCipherSpec = function(c, record) {
  * @param length the length of the handshake message.
  */
 tls.handleFinished = function(c, record, length) {
+  var tls12 = tls.usingTLS12(c);
   // rewind to get full bytes for message so it can be manually
   // digested below (special case for Finished messages because they
   // must be digested *after* handling as opposed to all others)
@@ -17484,20 +17731,32 @@ tls.handleFinished = function(c, record, length) {
 
   // message contains only verify_data
   var vd = record.fragment.getBytes();
+  var prf = prf_TLS1;
 
   // ensure verify data is correct
   b = forge.util.createBuffer();
-  b.putBuffer(c.session.md5.digest());
-  b.putBuffer(c.session.sha1.digest());
+  if(tls12) {
+    // TODO: Add support for SHA224 and SHA512.
+    prf = prf_TLS12_sha256;
+    switch(c.session.sp.mac_algorithm) {
+      case tls.MACAlgorithm.hmac_sha256:
+      case tls.MACAlgorithm.hmac_sha1:
+        b.putBuffer(c.session.sha256.digest());
+        break;
+      default:
+        throw new Error('Bad MACAlgorithm');
+    }
+  } else {
+    b.putBuffer(c.session.md5.digest());
+    b.putBuffer(c.session.sha1.digest());
+  }
 
   // set label based on entity type
   var client = (c.entity === tls.ConnectionEnd.client);
   var label = client ? 'server finished' : 'client finished';
 
-  // TODO: determine prf function and verify length for TLS 1.2
   var sp = c.session.sp;
   var vdl = 12;
-  var prf = prf_TLS1;
   b = prf(sp.master_secret, label, b.getBytes(), vdl);
   if(b.getBytes() !== vd) {
     return c.error(c, {
@@ -17513,6 +17772,7 @@ tls.handleFinished = function(c, record, length) {
   // digest finished message now that it has been handled
   c.session.md5.update(msgBytes);
   c.session.sha1.update(msgBytes);
+  c.session.sha256.update(msgBytes);
 
   // resuming session as client or NOT resuming session as server
   if((c.session.resuming && client) || (!c.session.resuming && !client)) {
@@ -17718,7 +17978,8 @@ tls.handleHandshake = function(c, record) {
         serverCertificate: null,
         clientCertificate: null,
         md5: forge.md.md5.create(),
-        sha1: forge.md.sha1.create()
+        sha1: forge.md.sha1.create(),
+        sha256: forge.md.sha1.create()
       };
     }
 
@@ -17732,6 +17993,7 @@ tls.handleHandshake = function(c, record) {
       type !== tls.HandshakeType.finished) {
       c.session.md5.update(bytes);
       c.session.sha1.update(bytes);
+      c.session.sha256.update(bytes);
     }
 
     // handle specific handshake type record
@@ -18032,22 +18294,20 @@ tls.generateKeys = function(c, sp) {
   // TLS 1.0 but we don't care right now because AES is better and we have
   // an implementation for it
 
-  // TODO: TLS 1.2 implementation
-  /*
   // determine the PRF
-  var prf;
-  switch(sp.prf_algorithm) {
-  case tls.PRFAlgorithm.tls_prf_sha256:
-    prf = prf_sha256;
-    break;
-  default:
-    // should never happen
-    throw new Error('Invalid PRF');
+  var tls12 = tls.usingTLS12(c);
+  var prf = prf_TLS1; // TLS 1.0/1.1 implementation
+  
+  if(tls12) { // TLS 1.2
+    switch(sp.prf_algorithm) {
+      case tls.PRFAlgorithm.tls_prf_sha256:
+        prf = prf_TLS12_sha256;
+        break;
+      default:
+        // should never happen
+        throw new Error('Invalid PRF');
+    }
   }
-  */
-
-  // TLS 1.0/1.1 implementation
-  var prf = prf_TLS1;
 
   // concatenate server and client random
   var random = sp.client_random + sp.server_random;
@@ -18448,6 +18708,33 @@ tls.createClientHello = function(c) {
     writeVector(ext, 2, snList);
     extensions.putBuffer(ext);
   }
+
+  // append supported algorithms to the Signature Hash Algorithm extension
+  // expected by older, less flexible systems like Windows 7 / 8.1
+  var algorithms = {
+    'SHA256-RSA': [0x04, 0x01],
+    'SHA1-RSA':   [0x02, 0x01]
+  };
+  var ext = forge.util.createBuffer();
+  ext.putByte(0x00);
+  ext.putByte(0x0d); // Type: signature algorithms
+
+  var algArray = forge.util.createBuffer();
+  for(var a in algorithms) {
+    algArray.putByte(algorithms[a][0]);
+    algArray.putByte(algorithms[a][1]);
+  }
+
+  var algBody = forge.util.createBuffer();
+  writeVector(algBody, 2, algArray);
+  algArray.putBuffer(algArray);
+
+  writeVector(ext, 2, algBody);
+  ext.putBuffer(algBody);
+
+  extensions.putBuffer(ext);
+
+  // add up final extension buffer length
   var extLength = extensions.length();
   if(extLength > 0) {
     // add extension vector length
@@ -18739,8 +19026,16 @@ tls.createServerKeyExchange = function(c) {
 tls.getClientSignature = function(c, callback) {
   // generate data to RSA encrypt
   var b = forge.util.createBuffer();
-  b.putBuffer(c.session.md5.digest());
-  b.putBuffer(c.session.sha1.digest());
+  var tls12 = tls.usingTLS12(c);
+  if (tls12) {
+      // Todo TLS 1.2 need to choose signature algorithms from Server Ability(c.session.certificateRequest.supported_signature_algorithms)
+      // and client ability（'SHA256-RSA': [0x04, 0x01],'SHA1-RSA':   [0x02, 0x01]）
+      // just use SHA256-RSA for TLS 1.2 now
+      b.putBuffer(c.session.sha256.digest())
+  } else {
+     b.putBuffer(c.session.md5.digest());
+     b.putBuffer(c.session.sha1.digest());
+  }
   b = b.getBytes();
 
   // create default signing function as necessary
@@ -18773,7 +19068,12 @@ tls.getClientSignature = function(c, callback) {
         }
       });
     } else {
-      b = privateKey.sign(b, null);
+      if (tls12) {
+          // tlsv1.2 need to use PKCS1 PKCS#1 v1.5
+        b = privateKey.sign(c.session.sha256);
+      } else {
+        b = privateKey.sign(b, null);
+      }
     }
     callback(c, b);
   };
@@ -18849,14 +19149,22 @@ tls.createCertificateVerify = function(c, signature) {
     vector that has the length prefixed using 2 bytes, so include those
     2 bytes in the handshake message length. This is done as a minor
     optimization instead of calling writeVector(). */
-
+  var tls12 = tls.usingTLS12(c);
   // determine length of the handshake message
   var length = signature.length + 2;
 
   // build record fragment
   var rval = forge.util.createBuffer();
   rval.putByte(tls.HandshakeType.certificate_verify);
-  rval.putInt24(length);
+  // Tlv1.2 need to send ssl.handshake.sig_hash_alg
+  if(tls12) {
+      // ssl.handshake.sig_hash_alg add 2 bytes
+      rval.putInt24(length + 2);
+      rval.putByte(0x04) // SHA256
+      rval.putByte(0x01) // RSA
+  } else {
+      rval.putInt24(length);
+  }
   // add vector length bytes
   rval.putInt16(signature.length);
   rval.putBytes(signature);
@@ -18968,14 +19276,26 @@ tls.createChangeCipherSpec = function() {
 tls.createFinished = function(c) {
   // generate verify_data
   var b = forge.util.createBuffer();
-  b.putBuffer(c.session.md5.digest());
-  b.putBuffer(c.session.sha1.digest());
-
-  // TODO: determine prf function and verify length for TLS 1.2
   var client = (c.entity === tls.ConnectionEnd.client);
   var sp = c.session.sp;
-  var vdl = 12;
-  var prf = prf_TLS1;
+  var vdl = 12; // Same as in TLS1.1 -- see https://tools.ietf.org/html/rfc5246#page-5
+  var tls12 = tls.usingTLS12(c);
+  var prf = null;
+
+  if(tls12) {
+      // Defined PRFs for 1.2 use a SHA256 digest -- see https://tools.ietf.org/html/rfc5246#page-5
+      switch(sp.mac_algorithm) {
+          case tls.MACAlgorithm.hmac_sha256:
+          case tls.MACAlgorithm.hmac_sha1:
+          default:
+            b.putBuffer(c.session.sha256.digest());
+      }
+      prf = prf_TLS12_sha256;
+  } else {
+      b.putBuffer(c.session.md5.digest());
+      b.putBuffer(c.session.sha1.digest());
+      prf = prf_TLS1;
+  }
   var label = client ? 'client finished' : 'server finished';
   b = prf(sp.master_secret, label, b.getBytes(), vdl);
 
@@ -19072,6 +19392,7 @@ tls.queue = function(c, record) {
     var bytes = record.fragment.bytes();
     c.session.md5.update(bytes);
     c.session.sha1.update(bytes);
+    c.session.sha256.update(bytes);
     bytes = null;
   }
 
@@ -19202,48 +19523,40 @@ var _alertDescToCertError = function(desc) {
  */
 tls.verifyCertificateChain = function(c, chain) {
   try {
-    // Make a copy of c.verifyOptions so that we can modify options.verify 
-    // without modifying c.verifyOptions.
-    var options = {};
-    for (var key in c.verifyOptions) {
-      options[key] = c.verifyOptions[key];
-    }
-
-    options.verify = function(vfd, depth, chain) {
-      // convert pki.certificateError to tls alert description
-      var desc = _certErrorToAlertDesc(vfd);
-
-      // call application callback
-      var ret = c.verify(c, vfd, depth, chain);
-      if(ret !== true) {
-        if(typeof ret === 'object' && !forge.util.isArray(ret)) {
-          // throw custom error
-          var error = new Error('The application rejected the certificate.');
-          error.send = true;
-          error.alert = {
-            level: tls.Alert.Level.fatal,
-            description: tls.Alert.Description.bad_certificate
-          };
-          if(ret.message) {
-            error.message = ret.message;
-          }
-          if(ret.alert) {
-            error.alert.description = ret.alert;
-          }
-          throw error;
-        }
-
-        // convert tls alert description to pki.certificateError
-        if(ret !== vfd) {
-          ret = _alertDescToCertError(ret);
-        }
-      }
-
-      return ret;
-    };
-
     // verify chain
-    forge.pki.verifyCertificateChain(c.caStore, chain, options);
+    forge.pki.verifyCertificateChain(c.caStore, chain,
+      function verify(vfd, depth, chain) {
+        // convert pki.certificateError to tls alert description
+        var desc = _certErrorToAlertDesc(vfd);
+
+        // call application callback
+        var ret = c.verify(c, vfd, depth, chain);
+        if(ret !== true) {
+          if(typeof ret === 'object' && !forge.util.isArray(ret)) {
+            // throw custom error
+            var error = new Error('The application rejected the certificate.');
+            error.send = true;
+            error.alert = {
+              level: tls.Alert.Level.fatal,
+              description: tls.Alert.Description.bad_certificate
+            };
+            if(ret.message) {
+              error.message = ret.message;
+            }
+            if(ret.alert) {
+              error.alert.description = ret.alert;
+            }
+            throw error;
+          }
+
+          // convert tls alert description to pki.certificateError
+          if(ret !== vfd) {
+            ret = _alertDescToCertError(ret);
+          }
+        }
+
+        return ret;
+      });
   } catch(ex) {
     // build tls error if not already customized
     var err = ex;
@@ -19400,7 +19713,6 @@ tls.createConnection = function(options) {
     virtualHost: options.virtualHost || null,
     verifyClient: options.verifyClient || false,
     verify: options.verify || function(cn, vfd, dpth, cts) {return vfd;},
-    verifyOptions: options.verifyOptions || {},
     getCertificate: options.getCertificate || null,
     getPrivateKey: options.getPrivateKey || null,
     getSignature: options.getSignature || null,
@@ -19667,7 +19979,8 @@ tls.createConnection = function(options) {
         clientCertificate: null,
         sp: {},
         md5: forge.md.md5.create(),
-        sha1: forge.md.sha1.create()
+        sha1: forge.md.sha1.create(),
+        sha256: forge.md.sha256.create()
       };
 
       // use existing session information
@@ -19845,9 +20158,11 @@ for(var key in tls) {
 
 // expose prf_tls1 for testing
 forge.tls.prf_tls1 = prf_TLS1;
+forge.tls.prf_tls12 = prf_TLS12;
 
 // expose sha1 hmac method
 forge.tls.hmac_sha1 = hmac_sha1;
+forge.tls.hmac_sha256 = hmac_sha256;
 
 // expose session cache creation
 forge.tls.createSessionCache = tls.createSessionCache;
@@ -19930,10 +20245,6 @@ forge.tls.createSessionCache = tls.createSessionCache;
  *   verifyClient: true to require a client certificate in server mode,
  *     'optional' to request one, false not to (default: false).
  *   verify: a handler used to custom verify certificates in the chain.
- *   verifyOptions: an object with options for the certificate chain validation.
- *     See documentation of pki.verifyCertificateChain for possible options.
- *     verifyOptions.verify is ignored. If you wish to specify a verify handler
- *     use the verify key.
  *   getCertificate: an optional callback used to get a certificate or
  *     a chain of certificates (as an array).
  *   getPrivateKey: an optional callback used to get a private key.
@@ -21095,336 +21406,9 @@ function createPbkdf2Params(salt, countBytes, dkLen, prfAlgorithm) {
 
 /***/ }),
 /* 23 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-/**
- * Secure Hash Algorithm with 256-bit digest (SHA-256) implementation.
- *
- * See FIPS 180-2 for details.
- *
- * @author Dave Longley
- *
- * Copyright (c) 2010-2015 Digital Bazaar, Inc.
- */
-var forge = __webpack_require__(0);
-__webpack_require__(4);
-__webpack_require__(1);
-
-var sha256 = module.exports = forge.sha256 = forge.sha256 || {};
-forge.md.sha256 = forge.md.algorithms.sha256 = sha256;
-
-/**
- * Creates a SHA-256 message digest object.
- *
- * @return a message digest object.
- */
-sha256.create = function() {
-  // do initialization as necessary
-  if(!_initialized) {
-    _init();
-  }
-
-  // SHA-256 state contains eight 32-bit integers
-  var _state = null;
-
-  // input buffer
-  var _input = forge.util.createBuffer();
-
-  // used for word storage
-  var _w = new Array(64);
-
-  // message digest object
-  var md = {
-    algorithm: 'sha256',
-    blockLength: 64,
-    digestLength: 32,
-    // 56-bit length of message so far (does not including padding)
-    messageLength: 0,
-    // true message length
-    fullMessageLength: null,
-    // size of message length in bytes
-    messageLengthSize: 8
-  };
-
-  /**
-   * Starts the digest.
-   *
-   * @return this digest object.
-   */
-  md.start = function() {
-    // up to 56-bit message length for convenience
-    md.messageLength = 0;
-
-    // full message length (set md.messageLength64 for backwards-compatibility)
-    md.fullMessageLength = md.messageLength64 = [];
-    var int32s = md.messageLengthSize / 4;
-    for(var i = 0; i < int32s; ++i) {
-      md.fullMessageLength.push(0);
-    }
-    _input = forge.util.createBuffer();
-    _state = {
-      h0: 0x6A09E667,
-      h1: 0xBB67AE85,
-      h2: 0x3C6EF372,
-      h3: 0xA54FF53A,
-      h4: 0x510E527F,
-      h5: 0x9B05688C,
-      h6: 0x1F83D9AB,
-      h7: 0x5BE0CD19
-    };
-    return md;
-  };
-  // start digest automatically for first time
-  md.start();
-
-  /**
-   * Updates the digest with the given message input. The given input can
-   * treated as raw input (no encoding will be applied) or an encoding of
-   * 'utf8' maybe given to encode the input using UTF-8.
-   *
-   * @param msg the message input to update with.
-   * @param encoding the encoding to use (default: 'raw', other: 'utf8').
-   *
-   * @return this digest object.
-   */
-  md.update = function(msg, encoding) {
-    if(encoding === 'utf8') {
-      msg = forge.util.encodeUtf8(msg);
-    }
-
-    // update message length
-    var len = msg.length;
-    md.messageLength += len;
-    len = [(len / 0x100000000) >>> 0, len >>> 0];
-    for(var i = md.fullMessageLength.length - 1; i >= 0; --i) {
-      md.fullMessageLength[i] += len[1];
-      len[1] = len[0] + ((md.fullMessageLength[i] / 0x100000000) >>> 0);
-      md.fullMessageLength[i] = md.fullMessageLength[i] >>> 0;
-      len[0] = ((len[1] / 0x100000000) >>> 0);
-    }
-
-    // add bytes to input buffer
-    _input.putBytes(msg);
-
-    // process bytes
-    _update(_state, _w, _input);
-
-    // compact input buffer every 2K or if empty
-    if(_input.read > 2048 || _input.length() === 0) {
-      _input.compact();
-    }
-
-    return md;
-  };
-
-  /**
-   * Produces the digest.
-   *
-   * @return a byte buffer containing the digest value.
-   */
-  md.digest = function() {
-    /* Note: Here we copy the remaining bytes in the input buffer and
-    add the appropriate SHA-256 padding. Then we do the final update
-    on a copy of the state so that if the user wants to get
-    intermediate digests they can do so. */
-
-    /* Determine the number of bytes that must be added to the message
-    to ensure its length is congruent to 448 mod 512. In other words,
-    the data to be digested must be a multiple of 512 bits (or 128 bytes).
-    This data includes the message, some padding, and the length of the
-    message. Since the length of the message will be encoded as 8 bytes (64
-    bits), that means that the last segment of the data must have 56 bytes
-    (448 bits) of message and padding. Therefore, the length of the message
-    plus the padding must be congruent to 448 mod 512 because
-    512 - 128 = 448.
-
-    In order to fill up the message length it must be filled with
-    padding that begins with 1 bit followed by all 0 bits. Padding
-    must *always* be present, so if the message length is already
-    congruent to 448 mod 512, then 512 padding bits must be added. */
-
-    var finalBlock = forge.util.createBuffer();
-    finalBlock.putBytes(_input.bytes());
-
-    // compute remaining size to be digested (include message length size)
-    var remaining = (
-      md.fullMessageLength[md.fullMessageLength.length - 1] +
-      md.messageLengthSize);
-
-    // add padding for overflow blockSize - overflow
-    // _padding starts with 1 byte with first bit is set (byte value 128), then
-    // there may be up to (blockSize - 1) other pad bytes
-    var overflow = remaining & (md.blockLength - 1);
-    finalBlock.putBytes(_padding.substr(0, md.blockLength - overflow));
-
-    // serialize message length in bits in big-endian order; since length
-    // is stored in bytes we multiply by 8 and add carry from next int
-    var next, carry;
-    var bits = md.fullMessageLength[0] * 8;
-    for(var i = 0; i < md.fullMessageLength.length - 1; ++i) {
-      next = md.fullMessageLength[i + 1] * 8;
-      carry = (next / 0x100000000) >>> 0;
-      bits += carry;
-      finalBlock.putInt32(bits >>> 0);
-      bits = next >>> 0;
-    }
-    finalBlock.putInt32(bits);
-
-    var s2 = {
-      h0: _state.h0,
-      h1: _state.h1,
-      h2: _state.h2,
-      h3: _state.h3,
-      h4: _state.h4,
-      h5: _state.h5,
-      h6: _state.h6,
-      h7: _state.h7
-    };
-    _update(s2, _w, finalBlock);
-    var rval = forge.util.createBuffer();
-    rval.putInt32(s2.h0);
-    rval.putInt32(s2.h1);
-    rval.putInt32(s2.h2);
-    rval.putInt32(s2.h3);
-    rval.putInt32(s2.h4);
-    rval.putInt32(s2.h5);
-    rval.putInt32(s2.h6);
-    rval.putInt32(s2.h7);
-    return rval;
-  };
-
-  return md;
-};
-
-// sha-256 padding bytes not initialized yet
-var _padding = null;
-var _initialized = false;
-
-// table of constants
-var _k = null;
-
-/**
- * Initializes the constant tables.
- */
-function _init() {
-  // create padding
-  _padding = String.fromCharCode(128);
-  _padding += forge.util.fillString(String.fromCharCode(0x00), 64);
-
-  // create K table for SHA-256
-  _k = [
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
-    0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
-    0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-    0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
-    0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
-    0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
-
-  // now initialized
-  _initialized = true;
-}
-
-/**
- * Updates a SHA-256 state with the given byte buffer.
- *
- * @param s the SHA-256 state to update.
- * @param w the array to use to store words.
- * @param bytes the byte buffer to update with.
- */
-function _update(s, w, bytes) {
-  // consume 512 bit (64 byte) chunks
-  var t1, t2, s0, s1, ch, maj, i, a, b, c, d, e, f, g, h;
-  var len = bytes.length();
-  while(len >= 64) {
-    // the w array will be populated with sixteen 32-bit big-endian words
-    // and then extended into 64 32-bit words according to SHA-256
-    for(i = 0; i < 16; ++i) {
-      w[i] = bytes.getInt32();
-    }
-    for(; i < 64; ++i) {
-      // XOR word 2 words ago rot right 17, rot right 19, shft right 10
-      t1 = w[i - 2];
-      t1 =
-        ((t1 >>> 17) | (t1 << 15)) ^
-        ((t1 >>> 19) | (t1 << 13)) ^
-        (t1 >>> 10);
-      // XOR word 15 words ago rot right 7, rot right 18, shft right 3
-      t2 = w[i - 15];
-      t2 =
-        ((t2 >>> 7) | (t2 << 25)) ^
-        ((t2 >>> 18) | (t2 << 14)) ^
-        (t2 >>> 3);
-      // sum(t1, word 7 ago, t2, word 16 ago) modulo 2^32
-      w[i] = (t1 + w[i - 7] + t2 + w[i - 16]) | 0;
-    }
-
-    // initialize hash value for this chunk
-    a = s.h0;
-    b = s.h1;
-    c = s.h2;
-    d = s.h3;
-    e = s.h4;
-    f = s.h5;
-    g = s.h6;
-    h = s.h7;
-
-    // round function
-    for(i = 0; i < 64; ++i) {
-      // Sum1(e)
-      s1 =
-        ((e >>> 6) | (e << 26)) ^
-        ((e >>> 11) | (e << 21)) ^
-        ((e >>> 25) | (e << 7));
-      // Ch(e, f, g) (optimized the same way as SHA-1)
-      ch = g ^ (e & (f ^ g));
-      // Sum0(a)
-      s0 =
-        ((a >>> 2) | (a << 30)) ^
-        ((a >>> 13) | (a << 19)) ^
-        ((a >>> 22) | (a << 10));
-      // Maj(a, b, c) (optimized the same way as SHA-1)
-      maj = (a & b) | (c & (a ^ b));
-
-      // main algorithm
-      t1 = h + s1 + ch + _k[i] + w[i];
-      t2 = s0 + maj;
-      h = g;
-      g = f;
-      f = e;
-      // `>>> 0` necessary to avoid iOS/Safari 10 optimization bug
-      // can't truncate with `| 0`
-      e = (d + t1) >>> 0;
-      d = c;
-      c = b;
-      b = a;
-      // `>>> 0` necessary to avoid iOS/Safari 10 optimization bug
-      // can't truncate with `| 0`
-      a = (t1 + t2) >>> 0;
-    }
-
-    // update hash state
-    s.h0 = (s.h0 + a) | 0;
-    s.h1 = (s.h1 + b) | 0;
-    s.h2 = (s.h2 + c) | 0;
-    s.h3 = (s.h3 + d) | 0;
-    s.h4 = (s.h4 + e) | 0;
-    s.h5 = (s.h5 + f) | 0;
-    s.h6 = (s.h6 + g) | 0;
-    s.h7 = (s.h7 + h) | 0;
-    len -= 64;
-  }
-}
-
+/* (ignored) */
 
 /***/ }),
 /* 24 */
@@ -21447,7 +21431,7 @@ __webpack_require__(1);
 var _crypto = null;
 if(forge.util.isNodejs && !forge.options.usePureJavaScript &&
   !process.versions['node-webkit']) {
-  _crypto = __webpack_require__(16);
+  _crypto = __webpack_require__(23);
 }
 
 /* PRNG API */
@@ -21699,12 +21683,13 @@ prng.create = function(plugin) {
   function defaultSeedFile(needed) {
     // use window.crypto.getRandomValues strong source of entropy if available
     var getRandomValues = null;
-    var globalScope = forge.util.globalScope;
-    var _crypto = globalScope.crypto || globalScope.msCrypto;
-    if(_crypto && _crypto.getRandomValues) {
-      getRandomValues = function(arr) {
-        return _crypto.getRandomValues(arr);
-      };
+    if(typeof window !== 'undefined') {
+      var _crypto = window.crypto || window.msCrypto;
+      if(_crypto && _crypto.getRandomValues) {
+        getRandomValues = function(arr) {
+          return _crypto.getRandomValues(arr);
+        };
+      }
     }
 
     var b = forge.util.createBuffer();
@@ -22392,7 +22377,7 @@ pkcs1.encode_rsa_oaep = function(key, message, options) {
 
   var PS = '';
   var PS_length = maxLength - message.length;
-  for(var i = 0; i < PS_length; i++) {
+  for (var i = 0; i < PS_length; i++) {
     PS += '\x00';
   }
 
@@ -24581,7 +24566,7 @@ sha512.create = function(algorithm) {
 
   // determine digest length by algorithm name (default)
   var digestLength = 64;
-  switch(algorithm) {
+  switch (algorithm) {
     case 'SHA-384':
       digestLength = 48;
       break;
@@ -25404,63 +25389,36 @@ module.exports = __webpack_require__(35);
  */
 module.exports = __webpack_require__(0);
 __webpack_require__(5);
-__webpack_require__(38);
+__webpack_require__(37);
 __webpack_require__(3);
 __webpack_require__(13);
 __webpack_require__(31);
 __webpack_require__(10);
-__webpack_require__(40);
+__webpack_require__(39);
 __webpack_require__(8);
-__webpack_require__(41);
+__webpack_require__(40);
 __webpack_require__(33);
-__webpack_require__(42);
+__webpack_require__(41);
 __webpack_require__(30);
 __webpack_require__(15);
 __webpack_require__(7);
 __webpack_require__(26);
 __webpack_require__(28);
-__webpack_require__(43);
+__webpack_require__(42);
 __webpack_require__(21);
 __webpack_require__(27);
 __webpack_require__(24);
 __webpack_require__(18);
 __webpack_require__(2);
 __webpack_require__(25);
+__webpack_require__(43);
 __webpack_require__(44);
-__webpack_require__(45);
 __webpack_require__(20);
 __webpack_require__(1);
 
 
 /***/ }),
 /* 36 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 37 */
 /***/ (function(module, exports) {
 
 /**
@@ -25652,7 +25610,7 @@ function _encodeWithByteBuffer(input, alphabet) {
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -25672,8 +25630,45 @@ var tls = module.exports = forge.tls;
 /**
  * Supported cipher suites.
  */
+// TLS 1.2
+tls.CipherSuites['TLS_RSA_WITH_AES_128_CBC_SHA256'] = {
+  id: [0x00,0x3c],
+  name: 'TLS_RSA_WITH_AES_128_CBC_SHA256',
+  initSecurityParameters: function(sp) {
+      console.log('----- AES128 initSecurityParameters()')
+    sp.bulk_cipher_algorithm = tls.BulkCipherAlgorithm.aes;
+    sp.cipher_type = tls.CipherType.block;
+    sp.enc_key_length = 16;
+    sp.block_length = 16;
+    sp.fixed_iv_length = 16;
+    sp.record_iv_length = 16;
+    sp.mac_algorithm = tls.MACAlgorithm.hmac_sha256;
+    sp.mac_length = 32;
+    sp.mac_key_length = 32;
+  },
+  initConnectionState: initConnectionState
+};
+// TLS 1.2
+tls.CipherSuites['TLS_RSA_WITH_AES_256_CBC_SHA256'] = {
+  id: [0x00,0x3d],
+  name: 'TLS_RSA_WITH_AES_256_CBC_SHA256',
+  initSecurityParameters: function(sp) {
+      console.log('----- AES256 initSecurityParameters()')
+    sp.bulk_cipher_algorithm = tls.BulkCipherAlgorithm.aes;
+    sp.cipher_type = tls.CipherType.block;
+    sp.enc_key_length = 32;
+    sp.block_length = 16;
+    sp.fixed_iv_length = 16;
+    sp.record_iv_length = 16;
+    sp.mac_algorithm = tls.MACAlgorithm.hmac_sha256;
+    sp.mac_length = 32;
+    sp.mac_key_length = 32;
+  },
+  initConnectionState: initConnectionState
+};
+
 tls.CipherSuites['TLS_RSA_WITH_AES_128_CBC_SHA'] = {
-  id: [0x00, 0x2f],
+  id: [0x00,0x2f],
   name: 'TLS_RSA_WITH_AES_128_CBC_SHA',
   initSecurityParameters: function(sp) {
     sp.bulk_cipher_algorithm = tls.BulkCipherAlgorithm.aes;
@@ -25689,7 +25684,7 @@ tls.CipherSuites['TLS_RSA_WITH_AES_128_CBC_SHA'] = {
   initConnectionState: initConnectionState
 };
 tls.CipherSuites['TLS_RSA_WITH_AES_256_CBC_SHA'] = {
-  id: [0x00, 0x35],
+  id: [0x00,0x35],
   name: 'TLS_RSA_WITH_AES_256_CBC_SHA',
   initSecurityParameters: function(sp) {
     sp.bulk_cipher_algorithm = tls.BulkCipherAlgorithm.aes;
@@ -25704,6 +25699,7 @@ tls.CipherSuites['TLS_RSA_WITH_AES_256_CBC_SHA'] = {
   },
   initConnectionState: initConnectionState
 };
+
 
 function initConnectionState(state, c, sp) {
   var client = (c.entity === forge.tls.ConnectionEnd.client);
@@ -25726,7 +25722,16 @@ function initConnectionState(state, c, sp) {
 
   // MAC setup
   state.read.macLength = state.write.macLength = sp.mac_length;
-  state.read.macFunction = state.write.macFunction = tls.hmac_sha1;
+  switch(sp.mac_algorithm) {
+      case tls.MACAlgorithm.hmac_sha256:
+        state.read.macFunction = state.write.macFunction = tls.hmac_sha256;
+        break;
+      case tls.MACAlgorithm.hmac_sha1:
+        state.read.macFunction = state.write.macFunction = tls.hmac_sha1;
+        break;
+      default:
+        throw new Error('Unknown HMAC function');
+  }
 }
 
 /**
@@ -25856,8 +25861,10 @@ function decrypt_aes_cbc_sha1_padding(blockSize, output, decrypt) {
  *
  * @return true on success, false on failure.
  */
+var count = 0;
 function decrypt_aes_cbc_sha1(record, s) {
   var rval = false;
+  ++count;
 
   var iv;
   if(record.version.minor === tls.Versions.TLS_1_0.minor) {
@@ -25940,7 +25947,7 @@ function compareMacs(key, mac1, mac2) {
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -25958,7 +25965,7 @@ forge.mgf.mgf1 = forge.mgf1;
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26960,7 +26967,7 @@ function M(o, a, b) {
 
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -27018,14 +27025,14 @@ forge.kem.rsa.create = function(kdf, options) {
    *   key: the secret key to use for encrypting a message.
    */
   kem.encrypt = function(publicKey, keyLength) {
-    // generate a random r where 1 < r < n
+    // generate a random r where 1 > r > n
     var byteLength = Math.ceil(publicKey.n.bitLength() / 8);
     var r;
     do {
       r = new BigInteger(
         forge.util.bytesToHex(prng.getBytesSync(byteLength)),
         16).mod(publicKey.n);
-    } while(r.compareTo(BigInteger.ONE) <= 0);
+    } while(r.equals(BigInteger.ZERO));
 
     // prepend r with zeros
     r = forge.util.hexToBytes(r.toString(16));
@@ -27134,7 +27141,7 @@ function _createKDF(kdf, md, counterStart, digestLength) {
 
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -27148,12 +27155,12 @@ module.exports = __webpack_require__(4);
 
 __webpack_require__(14);
 __webpack_require__(9);
-__webpack_require__(23);
+__webpack_require__(16);
 __webpack_require__(32);
 
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -27486,11 +27493,8 @@ p7.createSignedData = function() {
 
     /**
      * Signs the content.
-     * @param options Options to apply when signing:
-     *    [detached] boolean. If signing should be done in detached mode. Defaults to false.
      */
-    sign: function(options) {
-      options = options || {};
+    sign: function() {
       // auto-generate content info
       if(typeof msg.content !== 'object' || msg.contentInfo === null) {
         // use Data ContentInfo
@@ -27510,16 +27514,12 @@ p7.createSignedData = function() {
             content = forge.util.encodeUtf8(msg.content);
           }
 
-          if (options.detached) {
-            msg.detachedContent = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false, content);
-          } else {
-            msg.contentInfo.value.push(
-              // [0] EXPLICIT content
-              asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
-                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
-                  content)
-              ]));
-          }
+          msg.contentInfo.value.push(
+            // [0] EXPLICIT content
+            asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+              asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
+                content)
+            ]));
         }
       }
 
@@ -27602,28 +27602,21 @@ p7.createSignedData = function() {
   }
 
   function addSignerInfos(mds) {
-    var content;
-
-    if (msg.detachedContent) {
-      // Signature has been made in detached mode.
-      content = msg.detachedContent;
-    } else {
-      // Note: ContentInfo is a SEQUENCE with 2 values, second value is
-      // the content field and is optional for a ContentInfo but required here
-      // since signers are present
-      // get ContentInfo content
-      content = msg.contentInfo.value[1];
-      // skip [0] EXPLICIT content wrapper
-      content = content.value[0];
-    }
-
-    if(!content) {
+    // Note: ContentInfo is a SEQUENCE with 2 values, second value is
+    // the content field and is optional for a ContentInfo but required here
+    // since signers are present
+    if(msg.contentInfo.value.length < 2) {
       throw new Error(
         'Could not sign PKCS#7 message; there is no content to sign.');
     }
 
     // get ContentInfo content type
     var contentType = asn1.derToOid(msg.contentInfo.value[0].value);
+
+    // get ContentInfo content
+    var content = msg.contentInfo.value[1];
+    // skip [0] EXPLICIT content wrapper
+    content = content.value[0];
 
     // serialize content
     var bytes = asn1.toDer(content);
@@ -28416,7 +28409,7 @@ function _decryptContent(msg) {
 
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -28658,7 +28651,7 @@ function _sha1() {
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
