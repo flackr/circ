@@ -1,202 +1,132 @@
-window.net.SslSocket = (function() {
+(function() {
+  "use strict";
+  var SslSocket, exports, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  function createBlob(src) {
-    var BB = window.BlobBuilder || window.WebKitBlobBuilder;
-    if (BB) {
-      var bb = new BB();
-      bb.append(src);
-      return bb.getBlob();
+  var exports = (_ref = window.net) != null ? _ref : window.net = {};
+
+  /*
+   * A socket connected to an IRC server. Uses chrome.sockets.tcp.
+  */
+
+
+  SslSocket = (function(_super) {
+
+    __extends(SslSocket, _super);
+
+    function SslSocket() {
+      this._onCreate = __bind(this._onCreate, this);
+      this._onConnect = __bind(this._onConnect, this);
+      this._onSecure = __bind(this._onSecure, this);
+      this._onReceive = __bind(this._onReceive, this);
+      this._onReceiveError = __bind(this._onReceiveError, this);
+      return SslSocket.__super__.constructor.apply(this, arguments);
     }
-    return new Blob([src]);
-  }
 
-  var string2ArrayBuffer = function(string, callback) {
-    var buf = new ArrayBuffer(string.length);
-    var bufView = new Uint8Array(buf);
-    for (var i=0; i < string.length; i++) {
-      bufView[i] = string.charCodeAt(i);
-    }
-    callback(buf);
-  };
+    SslSocket.prototype.connect = function(addr, port) {
+      this._active();
+      var _this = this;
+      return chrome.sockets.tcp.create({}, function(si) {
+        _this._onCreate(si, addr, parseInt(port))
+      });
+    };
 
-  var arrayBuffer2String = function(buf, callback) {
-    var bufView = new Uint8Array(buf);
-    var chunkSize = 65536;
-    var result = '';
-    for (var i = 0; i < bufView.length; i += chunkSize) {
-      result += String.fromCharCode.apply(null, bufView.subarray(i, Math.min(i + chunkSize, bufView.length)));
-    }
-    callback(result);
-  };
-
-  var SslSocket = function() {
-    this._buffer = '';
-    this._requiredBytes = 0;
-    this._onReceive = this._onReceive.bind(this);
-    this._onReceiveError = this._onReceiveError.bind(this);
-    net.AbstractTCPSocket.apply(this);
-  };
-
-  SslSocket.prototype.__proto__ = net.AbstractTCPSocket.prototype;
-
-  SslSocket.prototype.connect = function(addr, port) {
-    var _this = this;
-    this._active();
-    chrome.sockets.tcp.create({}, function(si) {
-      _this.socketId = si.socketId;
-      if (_this.socketId > 0) {
+    SslSocket.prototype._onCreate = function(si, addr, port) {
+      var self = this;
+      this.socketId = si.socketId;
+      if (this.socketId > 0) {
         registerSocketConnection(si.socketId);
-        chrome.sockets.tcp.setPaused(_this.socketId, true);
-        // Port will be of the form +port# given that it is using SSL.
-        chrome.sockets.tcp.connect(_this.socketId, addr, parseInt(port.substr(1)),
-            _this._onConnect.bind(_this));
+        chrome.sockets.tcp.setPaused(this.socketId, true, function(rc) {
+          chrome.sockets.tcp.connect(
+              self.socketId, addr, port, self._onConnect);
+        });
       } else {
-        _this.emit('error', "Couldn\'t create socket");
+        return this.emit('error', "couldn't create socket");
       }
-    });
-  };
+    };
 
-  SslSocket.prototype._onConnect = function(rc) {
-    if (rc < 0) {
-      this.emit('error', 'Couldn\'t connect to socket: ' +
-          chrome.runtime.lastError.message + ' (error ' + (-rc) + ')');
-      return;
-    }
-    this._initializeTls({});
-    this._tls.handshake(this._tlsOptions.sessionId || null);
-    chrome.sockets.tcp.onReceive.addListener(this._onReceive);
-    chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
-    chrome.sockets.tcp.setPaused(this.socketId, false);
-  };
+    SslSocket.prototype._onConnect = function(rc) {
+      if (rc < 0) {
+        this.emit('error', "couldn't connect to socket: " +
+          chrome.runtime.lastError.message + " (error " + (-rc) + ")");
+      } else {
+        chrome.sockets.tcp.secure(this.socketId, {}, this._onSecure);
+      }
+    };
 
-  SslSocket.prototype._initializeTls = function(options) {
-    var _this = this;
-    this._tlsOptions = options;
-    this._tls = forge.tls.createConnection({
-        server: false,
-        sessionId: options.sessionId || null,
-        caStore: options.caStore || [],
-        sessionCache: options.sessionCache || null,
-        cipherSuites: options.cipherSuites || [
-          forge.tls.CipherSuites.TLS_RSA_WITH_AES_128_CBC_SHA,
-          forge.tls.CipherSuites.TLS_RSA_WITH_AES_256_CBC_SHA],
-        virtualHost: options.virtualHost,
-        verify: options.verify || function() { return true },
-        getCertificate: options.getCertificate,
-        getPrivateKey: options.getPrivateKey,
-        getSignature: options.getSignature,
-        deflate: options.deflate,
-        inflate: options.inflate,
-        connected: function(c) {
-          // first handshake complete, call handler
-//          if(c.handshakes === 1) {
-            console.log('TLS socket connected');
-            _this.emit('connect');
-//          }
-        },
-        tlsDataReady: function(c) {
-          // send TLS data over socket
-          var bytes = c.tlsData.getBytes();
-          string2ArrayBuffer(bytes, function(data) {
-            chrome.sockets.tcp.send(_this.socketId, data, function(sendInfo) {
-              if (sendInfo.resultCode < 0) {
-                console.error('SOCKET ERROR on write: ' +
-                    chrome.runtime.lastError.message + ' (error ' + (-sendInfo.resultCode) + ')');
-              }
-              if (sendInfo.bytesSent === data.byteLength) {
-                _this.emit('drain');
-              } else {
-                if (sendInfo.bytesSent >= 0) {
-                  console.error('Can\'t handle non-complete writes: wrote ' +
-                      sendInfo.bytesSent + ' expected ' + data.byteLength);
-                }
-                _this.emit('error', 'Invalid write on socket, code: ' + sendInfo.resultCode);
-              }
-            });
-          });
-        },
-        dataReady: function(c) {
-          // indicate application data is ready
-          var data = c.data.getBytes();
-          irc.util.toSocketData(forge.util.decodeUtf8(data), function(data) {
-            _this.emit('data', data);
-          });
-        },
-        closed: function(c) {
-          // close socket
-          _this._close();
-        },
-        error: function(c, e) {
-          // send error, close socket
-          _this.emit('error', 'tlsError: ' + e.message);
-          _this._close();
+    SslSocket.prototype._onSecure = function(rc) {
+      if (rc < 0) {
+        this.emit('error', "failed to secure socket: " +
+          chrome.runtime.lastError.message + " (error " + (-rc) + ")");
+        return;
+      }
+      this.emit('connect');
+
+      chrome.sockets.tcp.onReceive.addListener(this._onReceive);
+      chrome.sockets.tcp.onReceiveError.addListener(this._onReceiveError);
+      chrome.sockets.tcp.setPaused(this.socketId, false);
+    };
+
+    SslSocket.prototype._onReceive = function(info) {
+      if (info.socketId != this.socketId)
+        return;
+      this._active();
+      this.emit('data', info.data);
+    };
+
+    SslSocket.prototype._onReceiveError = function(info) {
+      if (info.socketId != this.socketId)
+        return;
+      this._active();
+      if (info.resultCode == -100) {  // connection closed
+        this.emit('end');
+        this.close();
+      }
+      else {
+        this.emit('error', "read from socket: " + 
+          " (error " + (-info.resultCode) + ")");
+        this.close();
+      }
+    };
+
+    SslSocket.prototype.write = function(data) {
+      var _this = this;
+      this._active();
+      return chrome.sockets.tcp.send(this.socketId, data, function(sendInfo) {
+        if (sendInfo.resultCode < 0) {
+          console.error("SOCKET ERROR on send: ",
+            chrome.runtime.lastError.message + " (error " + (-sendInfo.resultCode) + ")");
+        }
+        if (sendInfo.bytesSent === data.byteLength) {
+          return _this.emit('drain');
+        } else {
+          if (sendInfo.bytesSent >= 0) {
+            console.error("Can't handle non-complete send: wrote " +
+              sendInfo.bytesSent + " expected " + data.byteLength);
+          }
+          return _this.emit('error',
+              "Invalid send on socket, code: " + sendInfo.bytesSent);
         }
       });
-  };
+    };
 
-  SslSocket.prototype._onClosed = function() {
-    if (this._tls && this._tls.open && this._tls.handshaking) {
-      this.emit('error', 'Connection closed during handshake');
-    }
-  };
-
-  SslSocket.prototype.close = function() {
-    if (this._tls)
-      this._tls.close();
-  };
-
-  SslSocket.prototype._close = function() {
-    if (this.socketId != null) {
-      chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
-      chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
-      chrome.sockets.tcp.disconnect(this.socketId);
-      chrome.sockets.tcp.close(this.socketId);
-      registerSocketConnection(this.socketId, true);
-    }
-    this.emit('close');
-  };
-
-  SslSocket.prototype.write = function(data) {
-    var _this = this;
-    arrayBuffer2String(data, function(data) {
-      _this._tls.prepare(data);
-    });
-  };
-
-  SslSocket.prototype._onReceive = function(receiveInfo) {
-    if (receiveInfo.socketId != this.socketId)
-      return;
-    this._active();
-    if (!this._tls.open)
-      return;
-    var _this = this;
-    arrayBuffer2String(receiveInfo.data, function (data) {
-      _this._buffer += data;
-      if (_this._buffer.length >= _this._requiredBytes) {
-        _this._requiredBytes = _this._tls.process(_this._buffer);
-        _this._buffer = '';
+    SslSocket.prototype.close = function() {
+      if (this.socketId != null) {
+        chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
+        chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
+        chrome.sockets.tcp.disconnect(this.socketId);
+        chrome.sockets.tcp.close(this.socketId);
+        registerSocketConnection(this.socketId, true);
       }
-    });
-  };
+      return this.emit('close');
+    };
 
-  SslSocket.prototype._onReceiveError = function (readInfo) {
-    if (readInfo.socketId != this.socketId)
-      return;
-    this._active();
-    if (info.resultCode === -100) {  // connection closed
-      this.emit('end');
-      this._close();
-    }
-    else {
-      var message = '';
-      if (chrome.runtime.lastError)
-        message = chrome.runtime.lastError.message;
-      this.emit('error', 'read from socket: ' + message + ' (error ' +
-          (-readInfo.resultCode) + ')');
-      this._close();
-      return;
-    }
-  };
+    return SslSocket;
 
-  return SslSocket;
-})();
+  })(net.AbstractTCPSocket);
+
+  exports.SslSocket = SslSocket;
+
+}).call(this);
