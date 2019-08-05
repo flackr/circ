@@ -254,10 +254,7 @@
         socket = new net.RemoteSocket;
         this._ircSocketMap[server] = socket;
       } else {
-        if (port && port.substr && port.substr(0, 1) == '+')
-          socket = new net.SslSocket;
-        else
-          socket = new net.ChromeSocket;
+        socket = new net.ChromeSocket;
         this.broadcastSocketData(socket, server);
       }
       return socket;
