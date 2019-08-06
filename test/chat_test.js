@@ -171,6 +171,17 @@
           return expect(message.indexOf('/hi')).not.toBe(-1);
         });
       });
+      it("can be displayed with /show-script", function() {
+        loadScript(mocks.scripts.hiSourceCode);
+        return runs(function() {
+          var message;
+          spyOn(client.currentWindow, 'message');
+          type('/show-script /hi');
+          message = client.currentWindow.message.mostRecentCall.args[1];
+	  const expected = `Script: /hi\n${mocks.scripts.hiSourceCode}`;
+          return expect(message.indexOf(expected)).not.toBe(-1);
+        });
+      });
       it("can be removed with /uninstall", function() {
         loadScript(mocks.scripts.hiSourceCode);
         return runs(function() {
