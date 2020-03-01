@@ -83,7 +83,7 @@
         case 'SOURCE':
           return [' https://github.com/flackr/circ/'];
         case 'PING':
-          return [' ' + args[0]];
+          return [' ' + args.join(' ')];
         case 'TIME':
           var d = new Date();
           return [' ' + d.toUTCString()];
