@@ -49,7 +49,7 @@
       it("parses color codes", function() {
         var coloredText;
         coloredText = "\u000315hey guy\u0003, how's it going?";
-        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(192, 192, 192);'>hey guy</font><font style='color: rgb(192, 192, 192);'>, how's it going?</font>");
+        expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(192, 192, 192);'>hey guy</font><font style=''>, how's it going?</font>");
         coloredText = "\u00033hey guy\u00032, how's it going?";
         expect(html.parseColorCodes(coloredText)).toBe("<font style='color: rgb(0, 128, 0);'>hey guy</font><font style='color: rgb(0, 0, 128);'>, how's it going?</font>");
         coloredText = "\u00033hey guy\u00031,2, how's it going?";

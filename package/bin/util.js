@@ -273,6 +273,11 @@
 
         if(gr3)
           background = colors[parseInt(gr3)];
+
+        if (!gr2 && !gr3) {
+            color = null;
+            background = null;
+        }
       }
 
       if(!gr4)
