@@ -99,15 +99,6 @@
       handle('op', 'othernick');
       return expect(onOp).toHaveBeenCalled();
     });
-    it("only runs /join-server when online", function() {
-      var onJoinServer = spyOn(handler._handlers['join-server'], 'run');
-      handle('join-server');
-      expect(onJoinServer).toHaveBeenCalled();
-      mocks.navigator.goOffline();
-      handler._handlers['join-server'].run.reset();
-      handle('join-server');
-      return expect(onJoinServer).not.toHaveBeenCalled();
-    });
     return describe("handles the command autostart", function() {
       beforeEach(function() {
         return context.storage.setAutostart = jasmine.createSpy('setAutostart');

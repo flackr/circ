@@ -10,7 +10,6 @@
     function Navigator() {}
 
     Navigator.prototype.useMock = function() {
-      window.navigator = exports.navigator;
       return this.onLine = true;
     };
 
