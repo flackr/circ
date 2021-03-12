@@ -20,12 +20,15 @@
     function ChromeSocket() {
       this._onCreate = __bind(this._onCreate, this);
       this._onConnect = __bind(this._onConnect, this);
+      this._onPreSecureConnect = __bind(this._onPreSecureConnect, this);
       this._onReceive = __bind(this._onReceive, this);
       this._onReceiveError = __bind(this._onReceiveError, this);
+      this.secure = false;
       return ChromeSocket.__super__.constructor.apply(this, arguments);
     }
 
     ChromeSocket.prototype.connect = function(addr, port) {
+      this.secure = port && port.length > 1 && port[0] == '+';
       this._active();
       var _this = this;
       return chrome.sockets.tcp.create({}, function(si) {
@@ -38,12 +41,25 @@
       if (this.socketId > 0) {
         registerSocketConnection(si.socketId);
         chrome.sockets.tcp.setPaused(this.socketId, true);
-        return chrome.sockets.tcp.connect(
-            this.socketId, addr, port, this._onConnect);
+	if (this.secure) {
+          return chrome.sockets.tcp.connect(
+              this.socketId, addr, port, this._onPreSecureConnect);
+	} else {
+          return chrome.sockets.tcp.connect(
+              this.socketId, addr, port, this._onConnect);
+	}
       } else {
         return this.emit('error', "couldn't create socket");
       }
     };
+
+    ChromeSocket.prototype._onPreSecureConnect = function(rc) {
+      if (rc < 0) {
+	this._onConnect(rc);
+      } else {
+	chrome.sockets.tcp.secure(this.socketId, {}, this._onConnect);
+      }
+    }
 
     ChromeSocket.prototype._onConnect = function(rc) {
       if (rc < 0) {
