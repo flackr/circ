@@ -335,6 +335,22 @@
           return this.displayMessage('notice', this.listInstalledScripts());
         }
       });
+      this._addCommand('show-script', {
+	description: "show source code for script",
+	params: ['scriptName'],
+	usage: '<script name>',
+	category: 'scripts',
+	run: function() {
+          const script = this.chat.scriptHandler.getScriptByName(this.scriptName);
+	  if (script) {
+	    return this.displayMessage(
+                'notice', `Script: ${this.scriptName}\n${script.sourceCode.trimRight()}`);
+          } else {
+            const message = `No script by the name '${this.scriptName}' was found. ${this.listInstalledScripts()}`;
+            return this.displayMessage('error', message);
+          }
+	}
+      });
       this._addCommand('topic', {
         description: "sets the topic of the current channel, displays the " + "current topic if no topic is specified",
         category: 'uncommon',
