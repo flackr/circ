@@ -102,13 +102,18 @@ ul {
 
 .dragbar:hover {
   width: 6px;
-  transition: width .1s;
+  margin-right: -5px;
+  transition: width .1s, margin .1s;
+  position: relative;
+  z-index: 998;
 }
 
 .dragbar {
   height: 100%;
   width: 1px;
   cursor: col-resize;
+  background-color: #ECECEC;
+  border-right: 1px solid rgba(0, 0, 0, .15);
 }
 
 #ghostbar{
@@ -138,10 +143,6 @@ ul {
 #rooms-and-nicks .room.server {
   background-color: #F2EFD3;
   position: relative;
-}
-
-#rooms-and-nicks:hover .room.server .content-item {
-  width: 130px;
 }
 
 #rooms-and-nicks .add-channel {
@@ -239,13 +240,6 @@ ul {
 
 #rooms-and-nicks .room .remove-button:hover {
   color: rgba(0, 0, 0, .5);
-}
-
-#rooms-and-nicks .room.selected:not(.footer):not(.always-empty) .content-item {
-  width: 123px;
-}
-#rooms-and-nicks .room:hover:not(.footer):not(.always-empty) .content-item {
-  width: 123px;
 }
 
 #rooms-and-nicks .room.selected:not(.footer):not(.always-empty) .remove-button {
