@@ -6,7 +6,7 @@
   var exports = window;
 
   exports.globals = {
-    PROJECT_URL: 'http://flackr.github.com/circ',
+    PROJECT_URL: 'https://github.com/flackr/circ/',
 
     ISSUES_URL: 'https://github.com/flackr/circ/issues',
 
